@@ -2,7 +2,7 @@
 
 #define WIFI_SSID ""
 #define WIFI_PASS ""
-#define BOT_TOKEN ":AAE66JCabqMmO-"
+#define BOT_TOKEN ""
 #define CHAT_ID ""
 
 #ifdef ESP8266
