@@ -112,6 +112,7 @@ class MessageRead {
         return LocationRead(entry[fbhash::location]);
     }
 
+    // доступ к пакету данных
     gson::Entry entry;
 };
 

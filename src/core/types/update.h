@@ -63,6 +63,6 @@ class Update {
     Type _type;
 };
 
-typedef void (*Callback)(Update& upd);
+typedef void (*CallbackUpdate)(Update& upd);
 
 }  // namespace fb

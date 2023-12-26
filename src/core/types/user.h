@@ -48,6 +48,7 @@ class User {
         return entry[fbhash::is_premium];
     }
 
+    // доступ к пакету данных
     gson::Entry entry;
 };
 

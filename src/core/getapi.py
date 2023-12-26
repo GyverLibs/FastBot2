@@ -1,3 +1,4 @@
+# парсер API с сайта телеграм. Наполняет константами файл keys.h
 import pathlib
 import requests
 import re

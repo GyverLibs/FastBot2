@@ -48,6 +48,7 @@ class Chat {
         return entry[fbhash::is_forum];
     }
 
+    // доступ к пакету данных
     gson::Entry entry;
 };
 

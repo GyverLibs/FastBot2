@@ -15,6 +15,21 @@
 #include "core/types/user.h"
 #include "core/updates.h"
 
+#ifndef FB2_CUSTOM_CLIENT
+#if defined(ESP8266)
+#include <ESP8266WiFi.h>
+#include <WiFiClientSecure.h>
+#include <WiFiClientSecureBearSSL.h>
+#elif defined(ESP32)
+#include <WiFi.h>
+#include <WiFiClientSecure.h>
+#endif
+#endif
+
+namespace fb {
+typedef void (*CallbackResult)(gson::Entry& entry);
+}
+
 class FastBot2 {
    public:
     // режим опроса обновлений
@@ -28,10 +43,18 @@ class FastBot2 {
     fb::Updates updates;
 
     // передать клиента и запустить
-    FastBot2(Client* client = nullptr) : _client(client) {
+    FastBot2(Client* client = nullptr) {
+#if !defined(FB2_CUSTOM_CLIENT) && (defined(ESP8266) || defined(ESP32))
+        setClient(&espclient);
+        espclient.setInsecure();
+        //client.setBufferSizes(512, 512);  // TODO
+#endif
+        if (client) setClient(client);
         begin();
         _token.reserve(47);
     }
+
+    // ============================== SYSTEM ==============================
 
     // установить клиента
     void setClient(Client* client) {
@@ -48,7 +71,7 @@ class FastBot2 {
         _poll_limit = limit ? limit : 1;
     }
 
-    // установить лимит длины сообщения от сервера (умолч. 15000)
+    // установить лимит размера сообщения от сервера, при превышении сообщение будет пропущено (умолч. 15000)
     void setMemLimit(uint16_t limit = 15000) {
         _client.setMemLimit(limit);
     }
@@ -80,24 +103,37 @@ class FastBot2 {
         _poll_offset = -1;
     }
 
-    // подключить обработчик вида void cb(fb::Update& u) {}
-    void attach(fb::Callback callback) {
-        _cb = callback;
+    // ============================== ATTACH ==============================
+
+    // подключить обработчик обновлений вида void cb(fb::Update& u) {}
+    void attachUpdate(fb::CallbackUpdate callback) {
+        _cbu1 = callback;
     }
 
-    // отключить обработчик
-    void detach() {
-        _cb = nullptr;
+    // отключить обработчик обновлений
+    void detachUpdate() {
+        _cbu1 = nullptr;
     }
 
-    // подключить второй обработчик вида void cb(fb::Update& u) {}
-    void attach2(fb::Callback callback) {
-        _cb2 = callback;
+    // подключить второй обработчик обновлений вида void cb(fb::Update& u) {}
+    void attachUpdate2(fb::CallbackUpdate callback) {
+        _cbu2 = callback;
     }
 
-    // отключить второй обработчик
-    void detach2() {
-        _cb2 = nullptr;
+    // отключить второй обработчик обновлений
+    void detachUpdate2() {
+        _cbu2 = nullptr;
+    }
+
+    // подключить обработчик результата вида void cb(gson::Entry& r) {}
+    // здесь нельзя отправлять сообщения с флагом wait
+    void attachResult(fb::CallbackResult callback) {
+        _cbr = callback;
+    }
+
+    // отключить обработчик результата
+    void detachResult() {
+        _cbr = nullptr;
     }
 
     // ============================== TICK ==============================
@@ -136,7 +172,7 @@ class FastBot2 {
         return _error != fb::Error::None;
     }
 
-    // прочитать ошибку
+    // прочитать ошибку. Вызов сбросит ошибку
     fb::Error getError() {
         fb::Error buf = _error;
         _error = fb::Error::None;
@@ -145,8 +181,8 @@ class FastBot2 {
 
     // ============================== SEND ==============================
 
-    // отправить сообщение
-    void sendMessage(fb::Message& msg) {
+    // отправить сообщение. Для отправки подряд нескольких сообщений лучше поставить wait true - ждать ответ сервера
+    void sendMessage(fb::Message& msg, bool wait = false) {
         if (!msg.text.length() || !msg.chat_id.valid()) return;
 
         fb::packet p(fbcmd::sendMessage(), _token);
@@ -158,19 +194,25 @@ class FastBot2 {
         if (msg.disable_notification) p.addBool(fbapi::disable_notification(), true);
         if (msg.protect) p.addBool(fbapi::protect_content(), true);
         if (msg.mode != fb::Message::Mode::None) p.addStr(fbapi::parse_mode(), msg.mode == (fb::Message::Mode::MarkdownV2) ? F("MarkdownV2") : F("HTML"));
-        send(p);
+        sendPacket(p, wait);
     }
 
     // ============================== CUSTOM ==============================
 
-    fb::packet makePacket(const __FlashStringHelper* cmd) {
+    // начать пакет для ручной отправки в API
+    fb::packet beginPacket(const __FlashStringHelper* cmd) {
         return fb::packet(cmd, _token);
     }
 
     // отправить данные
-    void send(fb::packet& p) {
+    void sendPacket(fb::packet& p, bool wait = false) {
         _poll_wait = 0;
-        _client.send(p);
+        if (wait && _allow_send_wait) {
+            String s = _client.send_read(p, &_error);
+            _parse(s);
+        } else {
+            _client.send(p);
+        }
     }
 
     // подключен ли клиент
@@ -178,7 +220,15 @@ class FastBot2 {
         return _client.connected();
     }
 
-    // ===================== PRIVATE =====================
+#ifndef FB2_CUSTOM_CLIENT
+#if defined(ESP8266)
+    BearSSL::WiFiClientSecure espclient;
+#elif defined(ESP32)
+    WiFiClientSecure espclient;
+#endif
+#endif
+
+    // ============================== PRIVATE ==============================
    private:
     BotClient _client;
     bool _state = 0;
@@ -190,9 +240,11 @@ class FastBot2 {
     uint8_t _poll_limit = 3;
     int32_t _poll_offset = 0;
     bool _poll_wait = 0;
+    bool _allow_send_wait = 1;
 
-    fb::Callback _cb = nullptr;
-    fb::Callback _cb2 = nullptr;
+    fb::CallbackUpdate _cbu1 = nullptr;
+    fb::CallbackUpdate _cbu2 = nullptr;
+    fb::CallbackResult _cbr = nullptr;
 
     void _getUpdates() {
         fb::packet p(fbcmd::getUpdates(), _token);
@@ -233,24 +285,27 @@ class FastBot2 {
         if (!doc[fbhash::ok]) return _error = fb::Error::Telegram;
 
         gson::Entry result = doc[fbhash::result];
+        if (!result.valid()) return _error = fb::Error::Telegram;
 
         // ============= UPDATES =============
         if (result.type() == gson::Type::Array) {
             uint8_t len = result.length();
+            if (len) _poll_offset = result[0][fbhash::update_id].toInt32() + len;
 
             for (uint8_t i = 0; i < len; i++) {
-                if (i == 0) _poll_offset = result[0][fbhash::update_id].toInt32() + len;
                 gson::Entry upd = result[i][1];
                 if (!upd.valid()) continue;
 
                 fb::Update update(upd, upd.keyHash());
-                if (_cb) _cb(update);
-                if (_cb2) _cb2(update);
+                if (_cbu1) _cbu1(update);
+                if (_cbu2) _cbu2(update);
                 yield();
             }
-
         } else {
             // ============= INFO =============
+            _allow_send_wait = 0;
+            if (_cbr) _cbr(result);
+            _allow_send_wait = 1;
         }
 
         return fb::Error::None;

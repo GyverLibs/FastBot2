@@ -43,6 +43,7 @@ class LocationRead {
         return entry[fbhash::proximity_alert_radius];
     }
 
+    // доступ к пакету данных
     gson::Entry entry;
 };
 

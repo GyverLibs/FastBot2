@@ -13,10 +13,10 @@ enum class Error : uint8_t {
     Reserve,   // не получилось выделить память
     Length,    // несоответствие размера данных
     HTTP,      // ошибка HTTP пакета
-    Client,    // ошибка клиента, не смог подключиться
-    Telegram,  // ошибка телеграм (пакет не OK)
+    Client,    // ошибка клиента / не смог подключиться
+    Telegram,  // ошибка Телеграм (пакет с ошибкой)
     MemLimit,  // слишком длинное сообщение
-    Parse,     // ошибка парсинга пакета
+    Parse,     // ошибка парсинга json пакета
 };
 
 }
@@ -183,46 +183,3 @@ class BotClient {
         return _client->connected();
     }
 };
-
-// bool send(const __FlashStringHelper* cmd, const String& data = "") {
-//     if (!_client) return 0;
-//     if (_wait_f) stop();
-//     last_ms = millis();
-
-//     if (!connect()) return 0;
-//     String buf;
-//     buf += F("POST /bot");
-//     buf += token;
-//     buf += '/';
-//     buf += cmd;
-//     buf += F(
-//         " HTTP/1.1"
-//         "\r\nHost: " TELEGRAM_HOST
-//         "\r\nContent-Type: application/json"
-//         "\r\nContent-Length: ");
-//     buf += data.length() + 2;  // + {}
-//     buf += F("\r\n\r\n{");
-//     buf += data;
-//     buf += '}';
-//     _client->print(buf);
-//     _wait_f = 1;
-//     return 1;
-// }
-
-// String send_read(const __FlashStringHelper* cmd, const String& data = "", fb::Error* error = nullptr) {
-//     if (!_client) return String();
-//     bool sent = send(cmd, data);
-//     if (!sent) {
-//         if (error) *error = fb::Error::Client;
-//         return String();
-//     }
-//     uint32_t ms = millis();
-//     while (!available()) {
-//         if (millis() - ms >= timeout) {
-//             if (error) *error = fb::Error::Timeout;
-//             return String();
-//         }
-//         yield();
-//     }
-//     return read(error);
-// }
