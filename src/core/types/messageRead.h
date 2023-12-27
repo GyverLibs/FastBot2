@@ -12,8 +12,7 @@ namespace fb {
 
 using sutil::AnyText;
 
-class MessageRead {
-   public:
+struct MessageRead {
     MessageRead(gson::Entry entry) : entry(entry) {}
 
     // ================ REPLY ================

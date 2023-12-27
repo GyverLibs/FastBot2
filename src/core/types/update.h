@@ -4,6 +4,7 @@
 
 #include "core/keys.h"
 #include "messageRead.h"
+#include "queryRead.h"
 
 namespace fb {
 
@@ -32,6 +33,18 @@ class Update {
     // тип апдейта
     Type type() {
         return _type;
+    }
+
+    // ================ QUERY ================
+
+    // это query
+    bool isQuery() {
+        return _type == Type::callback_query;
+    }
+
+    // query
+    QueryRead query() {
+        return QueryRead(entry);
     }
 
     // ================ MESSAGE ================

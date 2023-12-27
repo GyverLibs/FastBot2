@@ -9,8 +9,7 @@ namespace fb {
 
 using sutil::AnyText;
 
-class User {
-   public:
+struct User {
     User(gson::Entry entry) : entry(entry) {}
 
     // id юзера

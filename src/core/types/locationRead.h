@@ -9,8 +9,7 @@ namespace fb {
 
 using sutil::AnyText;
 
-class LocationRead {
-   public:
+struct LocationRead {
     LocationRead(gson::Entry entry) : entry(entry) {}
 
     // долгота

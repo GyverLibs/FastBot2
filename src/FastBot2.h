@@ -4,6 +4,7 @@
 
 #define FB_LONG_POLL_TOUT 300
 
+#include "FastBot2_class.h"
 #include "core/BotClient.h"
 #include "core/keys.h"
 #include "core/packet.h"
@@ -28,7 +29,8 @@
 
 namespace fb {
 typedef void (*CallbackResult)(gson::Entry& entry);
-}
+typedef void (*CallbackRaw)(const String& res);
+}  // namespace fb
 
 class FastBot2 {
    public:
@@ -47,7 +49,7 @@ class FastBot2 {
 #if !defined(FB2_CUSTOM_CLIENT) && (defined(ESP8266) || defined(ESP32))
         setClient(&espclient);
         espclient.setInsecure();
-        //client.setBufferSizes(512, 512);  // TODO
+        // client.setBufferSizes(512, 512);  // TODO
 #endif
         if (client) setClient(client);
         begin();
@@ -136,6 +138,16 @@ class FastBot2 {
         _cbr = nullptr;
     }
 
+    // подключить обработчик сырых json данных Telegram вида void cb(const String& r) {}
+    void attachRaw(fb::CallbackRaw callback) {
+        _cbs = callback;
+    }
+
+    // отключить обработчик сырых данных
+    void detachRaw() {
+        _cbs = nullptr;
+    }
+
     // ============================== TICK ==============================
 
     // тикер, вызывать в loop
@@ -180,21 +192,89 @@ class FastBot2 {
     }
 
     // ============================== SEND ==============================
+    // ответить на callback. Можно указать текст и вызвать alert
+    bool answerCallbackQuery(sutil::AnyText id, sutil::AnyText text = sutil::AnyText(), bool show_alert = false) {
+        _query_answ = true;
+        fb::packet p(fbcmd::answerCallbackQuery(), _token);
+        p.addStr(fbapi::callback_query_id(), id);
+        if (text.valid()) p.addStr(fbapi::text(), text);
+        if (show_alert) p.addBool(fbapi::show_alert(), true);
+        return sendPacket(p);
+    }
 
-    // отправить сообщение. Для отправки подряд нескольких сообщений лучше поставить wait true - ждать ответ сервера
-    void sendMessage(fb::Message& msg, bool wait = false) {
-        if (!msg.text.length() || !msg.chat_id.valid()) return;
+    // отправить сообщение
+    bool sendMessage(sutil::AnyText text, sutil::AnyValue chat_id) {
+        fb::Message msg(text, chat_id);
+        return sendMessage(msg);
+    }
+
+    // отправить сообщение
+    bool sendMessage(fb::Message& m, bool wait = false) {
+        if (!m.text.length() || !m.chat_id.valid()) return 0;
 
         fb::packet p(fbcmd::sendMessage(), _token);
-        p.addStr(fbapi::chat_id(), msg.chat_id);
-        p.addStr(fbapi::text(), msg.text);
-        if (msg.thread_id >= 0) p.addInt(fbapi::message_thread_id(), msg.thread_id);
-        if (msg.reply_to >= 0) p.addInt(fbapi::reply_to_message_id(), msg.reply_to);
-        if (msg.disable_preview) p.addBool(fbapi::disable_web_page_preview(), true);
-        if (msg.disable_notification) p.addBool(fbapi::disable_notification(), true);
-        if (msg.protect) p.addBool(fbapi::protect_content(), true);
-        if (msg.mode != fb::Message::Mode::None) p.addStr(fbapi::parse_mode(), msg.mode == (fb::Message::Mode::MarkdownV2) ? F("MarkdownV2") : F("HTML"));
-        sendPacket(p, wait);
+        p.addStr(fbapi::chat_id(), m.chat_id);
+        p.addStr(fbapi::text(), m.text);
+        if (m.thread_id >= 0) p.addInt(fbapi::message_thread_id(), m.thread_id);
+        if (m.reply_to >= 0) p.addInt(fbapi::reply_to_message_id(), m.reply_to);
+        if (!m.preview) p.addBool(fbapi::disable_web_page_preview(), true);
+        if (!m.notification) p.addBool(fbapi::disable_notification(), true);
+        if (m.protect) p.addBool(fbapi::protect_content(), true);
+        if (m.mode != fb::Message::Mode::Text) p.addStr(fbapi::parse_mode(), m.mode == (fb::Message::Mode::MarkdownV2) ? F("MarkdownV2") : F("HTML"));
+        if (m._remove_menu || m._menu_inline || m._menu) {
+            p.beginObj(fbapi::reply_markup());
+            // REMOVE MENU
+            if (m._remove_menu) {
+                p.addBool(fbapi::remove_keyboard(), true);
+
+                // INLINE MENU
+            } else if (m._menu_inline) {
+                p.beginArr(fbapi::inline_keyboard());
+                m._menu_inline->_trim();
+                sutil::Parser rows((char*)m._menu_inline->text.c_str(), '\n');
+                sutil::Parser data((char*)m._menu_inline->data.c_str(), ';');
+                while (rows.next()) {
+                    sutil::Parser cols((char*)rows.str(), ';');
+                    p.beginArr();
+                    while (cols.next()) {
+                        data.next();
+                        p.beginObj();
+                        p.addStr(fbapi::text(), cols.str());
+                        // url or callback_data
+                        if (!strncmp_P(data.str(), PSTR("http://"), 7) ||
+                            !strncmp_P(data.str(), PSTR("https://"), 8) ||
+                            !strncmp_P(data.str(), PSTR("tg://"), 5)) {
+                            p.addStr(fbapi::url(), data.str());
+                        } else {
+                            p.addStr(fbapi::callback_data(), data.str());
+                        }
+                        p.endObj();
+                    }
+                    p.endArr();
+                }
+                p.endArr();
+
+                // REPLY MENU
+            } else {
+                p.beginArr(fbapi::keyboard());
+                m._menu->_trim();
+                sutil::Parser rows((char*)m._menu->text.c_str(), '\n');
+                while (rows.next()) {
+                    sutil::Parser cols((char*)rows.str(), ';');
+                    p.beginArr();
+                    while (cols.next()) p.addStr(cols.str());
+                    p.endArr();
+                }
+                p.endArr();
+                if (m._menu->persistent) p.addBool(fbapi::is_persistent(), true);
+                if (m._menu->resize) p.addBool(fbapi::resize_keyboard(), true);
+                if (m._menu->one_time) p.addBool(fbapi::one_time_keyboard(), true);
+                if (m._menu->selective) p.addBool(fbapi::selective(), true);
+                if (m._menu->placeholder.length()) p.addStr(fbapi::input_field_placeholder(), m._menu->placeholder);
+            }
+            p.endObj();
+        }
+        return sendPacket(p, wait);
     }
 
     // ============================== CUSTOM ==============================
@@ -205,13 +285,24 @@ class FastBot2 {
     }
 
     // отправить данные
-    void sendPacket(fb::packet& p, bool wait = false) {
+    bool sendPacket(fb::packet& p, bool wait = false) {
+        // wait resp packet
+        while (!_poll_wait && _client.waiting()) {
+            if (_client.available()) {
+                String s = _client.read(&_error);
+                _parse(s);
+            }
+            yield();
+        }
         _poll_wait = 0;
+
         if (wait && _allow_send_wait) {
             String s = _client.send_read(p, &_error);
             _parse(s);
+            return !hasError();
         } else {
             _client.send(p);
+            return 1;
         }
     }
 
@@ -241,17 +332,21 @@ class FastBot2 {
     int32_t _poll_offset = 0;
     bool _poll_wait = 0;
     bool _allow_send_wait = 1;
+    bool _query_answ = 0;
 
     fb::CallbackUpdate _cbu1 = nullptr;
     fb::CallbackUpdate _cbu2 = nullptr;
     fb::CallbackResult _cbr = nullptr;
+    fb::CallbackRaw _cbs = nullptr;
 
     void _getUpdates() {
         fb::packet p(fbcmd::getUpdates(), _token);
-        if (_poll_mode == Poll::Long) p.addInt(fbapi::timeout(), _poll_tout / 1000);
+        if (_poll_mode == Poll::Long) p.addInt(fbapi::timeout(), (uint16_t)(_poll_tout / 1000));
         p.addInt(fbapi::limit(), _poll_limit);
         p.addInt(fbapi::offset(), _poll_offset);
+        p.beginArr(fbapi::allowed_updates());
         updates.fill(p);
+        p.endArr();
 
         if (_poll_mode == Poll::Sync) {
             String s = _client.send_read(p, &_error);
@@ -275,11 +370,14 @@ class FastBot2 {
             default:
                 return _error;
         }
+        yield();
 
+        if (_cbs) _cbs(s);
         yield();
 
         gson::Doc doc(20);
         if (!doc.parse(s)) return _error = fb::Error::Parse;
+        yield();
 
         doc.hashKeys();
         if (!doc[fbhash::ok]) return _error = fb::Error::Telegram;
@@ -295,10 +393,16 @@ class FastBot2 {
             for (uint8_t i = 0; i < len; i++) {
                 gson::Entry upd = result[i][1];
                 if (!upd.valid()) continue;
+                size_t typeHash = upd.keyHash();
+                fb::Update update(upd, typeHash);
+                if (typeHash == fbhash::callback_query) _query_answ = 0;
 
-                fb::Update update(upd, upd.keyHash());
                 if (_cbu1) _cbu1(update);
                 if (_cbu2) _cbu2(update);
+
+                if (typeHash == fbhash::callback_query && !_query_answ) {
+                    answerCallbackQuery(update.query().id());
+                }
                 yield();
             }
         } else {

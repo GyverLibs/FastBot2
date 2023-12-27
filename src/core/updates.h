@@ -66,11 +66,9 @@ class Updates {
             fbapi::chat_join_request(),
         };
 
-        p.beginArr(fbapi::allowed_updates());
         for (uint8_t i = 0; i < 14; i++) {
             if (read(i)) p.addStr(upd_arr[i]);
         }
-        p.endArr();
     }
 
    private:
