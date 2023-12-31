@@ -46,7 +46,7 @@ class Updates {
         return updates & (1 << idx);
     }
 
-    void fill(fb::packet& p) {
+    void fill(fb::Packet& p) {
         if (updates == 0xffff) return;
 
         const __FlashStringHelper* upd_arr[] = {

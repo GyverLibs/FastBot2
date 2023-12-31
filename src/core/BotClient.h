@@ -40,7 +40,7 @@ class BotClient {
         _memlimit = limit;
     }
 
-    bool send(fb::packet& data) {
+    bool send(fb::Packet& data) {
         if (!_client) return 0;
 
         if (_wait_f) stop();
@@ -53,7 +53,7 @@ class BotClient {
         return 1;
     }
 
-    String send_read(fb::packet& data, fb::Error* error = nullptr) {
+    String send_read(fb::Packet& data, fb::Error* error = nullptr) {
         if (!_client) return String();
 
         bool sent = send(data);

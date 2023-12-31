@@ -9,6 +9,8 @@
 
 namespace fb {
 
+using sutil::AnyValue;
+
 class Message {
     friend class ::FastBot2;
 
@@ -18,19 +20,14 @@ class Message {
         MarkdownV2,
         HTML,
     };
-
-    Message(const String& text = String(), sutil::AnyValue chat_id = sutil::AnyValue()) : text(text), chat_id(chat_id) {
-        preview = default_preview;
-        notification = default_notification;
-        protect = default_protect;
-        mode = default_mode;
-    }
+    Message() {}
+    Message(const String& text, AnyValue chat_id) : text(text), chat_id(chat_id) {}
 
     // текст сообщения
     String text;
 
     // id чата, куда отправлять
-    sutil::AnyValue chat_id;
+    AnyValue chat_id;
 
     // id темы в группе
     int32_t thread_id = -1;
@@ -39,16 +36,16 @@ class Message {
     int32_t reply_to = -1;
 
     // включить превью для ссылок
-    bool preview;
+    bool preview = default_preview;
 
     // уведомить о получении
-    bool notification;
+    bool notification = default_notification;
 
     // защитить от пересылки и копирования
-    bool protect;
+    bool protect = default_protect;
 
     // режим текста: Text, MarkdownV2, HTML
-    Mode mode;
+    Mode mode = default_mode;
 
     // добавить обычное меню
     void setMenu(fb::Menu& menu) {
@@ -64,6 +61,8 @@ class Message {
     void removeMenu() {
         _remove_menu = 1;
     }
+
+    // ===================================
 
     // включить превью для ссылок (умолч. 1)
     static bool default_preview;
@@ -87,5 +86,30 @@ bool Message::default_preview = 1;
 bool Message::default_notification = 1;
 bool Message::default_protect = 0;
 Message::Mode Message::default_mode = Message::Mode::Text;
+
+// ===================================================
+
+struct MessageForward {
+    MessageForward() {}
+    MessageForward(AnyValue message_id, AnyValue from_chat_id, AnyValue chat_id) : message_id(message_id), from_chat_id(from_chat_id), chat_id(chat_id) {}
+
+    // id пересылаемого сообщения в чате
+    AnyValue message_id;
+
+    // id чата пересылаемого сообщения
+    AnyValue from_chat_id;
+
+    // id чата, в который пересылать
+    AnyValue chat_id;
+
+    // id темы в группе, в которую переслать
+    int32_t thread_id = -1;
+
+    // уведомить о получении
+    bool notification = Message::default_notification;
+
+    // защитить от пересылки и копирования
+    bool protect = Message::default_protect;
+};
 
 }  // namespace fb

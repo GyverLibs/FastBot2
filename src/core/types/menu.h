@@ -12,12 +12,8 @@ void _trimDiv(String& s) {
 }
 
 struct Menu {
-    Menu(const String& text = String()) : text(text) {
-        persistent = default_persistent;
-        resize = default_resize;
-        one_time = default_one_time;
-        selective = default_selective;
-    }
+    Menu() {}
+    Menu(const String& text) : text(text) {}
 
     // надписи кнопок. Гор. разделитель - ;, верт. - \n (кнопка_1 ; кнопка_2 \n кнопка_3 ; кнопка_4)
     String text;
@@ -26,28 +22,16 @@ struct Menu {
     String placeholder;
 
     // принудительно показывать клавиатуру
-    bool persistent;
+    bool persistent = default_persistent;
 
     // уменьшить клавиатуру под количество кнопок
-    bool resize;
+    bool resize = default_resize;
 
     // автоматически скрывать после нажатия
-    bool one_time;
+    bool one_time = default_one_time;
 
     // показывать только упомянутым в сообщении юзерам
-    bool selective;
-
-    // принудительно показывать клавиатуру (умолч. 0)
-    static bool default_persistent;
-
-    // уменьшить клавиатуру под количество кнопок (умолч. 0)
-    static bool default_resize;
-
-    // автоматически скрывать после нажатия (умолч. 0)
-    static bool default_one_time;
-
-    // показывать только упомянутым в сообщении юзерам (умолч. 0)
-    static bool default_selective;
+    bool selective = default_selective;
 
     // добавить кнопку
     Menu& addButton(AnyText text) {
@@ -62,6 +46,20 @@ struct Menu {
         return *this;
     }
 
+    // ===================================
+
+    // принудительно показывать клавиатуру (умолч. 0)
+    static bool default_persistent;
+
+    // уменьшить клавиатуру под количество кнопок (умолч. 0)
+    static bool default_resize;
+
+    // автоматически скрывать после нажатия (умолч. 0)
+    static bool default_one_time;
+
+    // показывать только упомянутым в сообщении юзерам (умолч. 0)
+    static bool default_selective;
+
     void _trim() {
         _trimDiv(text);
     }
@@ -73,7 +71,8 @@ bool Menu::default_one_time = 0;
 bool Menu::default_selective = 0;
 
 struct MenuInline {
-    MenuInline(const String& text = String(), const String& data = String()) : text(text), data(data) {}
+    MenuInline() {}
+    MenuInline(const String& text, const String& data) : text(text), data(data) {}
     MenuInline(uint16_t reserve) {
         this->reserve(reserve);
     }

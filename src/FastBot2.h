@@ -148,6 +148,14 @@ class FastBot2 {
         _cbs = nullptr;
     }
 
+    
+    // ============================== MISC ==============================
+
+    // ID последнего отправленного сообщения от бота. Для опроса сразу после sendMessage - ставь wait у sendMessage
+    uint32_t lastBotMessage() {
+        return _last_bot;
+    }
+
     // ============================== TICK ==============================
 
     // тикер, вызывать в loop
@@ -192,29 +200,45 @@ class FastBot2 {
     }
 
     // ============================== SEND ==============================
+
     // ответить на callback. Можно указать текст и вызвать alert
     bool answerCallbackQuery(sutil::AnyText id, sutil::AnyText text = sutil::AnyText(), bool show_alert = false) {
         _query_answ = true;
-        fb::packet p(fbcmd::answerCallbackQuery(), _token);
+        fb::Packet p(fbcmd::answerCallbackQuery(), _token);
         p.addStr(fbapi::callback_query_id(), id);
         if (text.valid()) p.addStr(fbapi::text(), text);
         if (show_alert) p.addBool(fbapi::show_alert(), true);
         return sendPacket(p);
     }
 
+    // переслать сообщение
+    bool forwardMessage(fb::MessageForward& m, bool wait = false) {
+        if (!m.chat_id.valid() || !m.from_chat_id.valid() || !m.message_id.valid()) return 0;
+
+        fb::Packet p(fbcmd::sendMessage(), _token);
+        p.addInt(fbapi::message_id(), m.message_id);
+        p.addInt(fbapi::from_chat_id(), m.from_chat_id);
+        p.addInt(fbapi::chat_id(), m.chat_id);
+        if (m.thread_id >= 0) p.addInt(fbapi::message_thread_id(), m.thread_id);
+        if (!m.notification) p.addBool(fbapi::disable_notification(), true);
+        if (m.protect) p.addBool(fbapi::protect_content(), true);
+        return sendPacket(p, wait);
+    }
+
     // отправить сообщение
-    bool sendMessage(sutil::AnyText text, sutil::AnyValue chat_id) {
+    bool sendMessage(sutil::AnyText text, sutil::AnyValue chat_id, bool wait = false) {
         fb::Message msg(text, chat_id);
-        return sendMessage(msg);
+        return sendMessage(msg, wait);
     }
 
     // отправить сообщение
     bool sendMessage(fb::Message& m, bool wait = false) {
         if (!m.text.length() || !m.chat_id.valid()) return 0;
-
-        fb::packet p(fbcmd::sendMessage(), _token);
-        p.addStr(fbapi::chat_id(), m.chat_id);
+        
+        _last_bot++;
+        fb::Packet p(fbcmd::sendMessage(), _token);
         p.addStr(fbapi::text(), m.text);
+        p.addInt(fbapi::chat_id(), m.chat_id);
         if (m.thread_id >= 0) p.addInt(fbapi::message_thread_id(), m.thread_id);
         if (m.reply_to >= 0) p.addInt(fbapi::reply_to_message_id(), m.reply_to);
         if (!m.preview) p.addBool(fbapi::disable_web_page_preview(), true);
@@ -231,10 +255,10 @@ class FastBot2 {
             } else if (m._menu_inline) {
                 p.beginArr(fbapi::inline_keyboard());
                 m._menu_inline->_trim();
-                sutil::Parser rows((char*)m._menu_inline->text.c_str(), '\n');
-                sutil::Parser data((char*)m._menu_inline->data.c_str(), ';');
+                sutil::Parser rows(m._menu_inline->text, '\n');
+                sutil::Parser data(m._menu_inline->data, ';');
                 while (rows.next()) {
-                    sutil::Parser cols((char*)rows.str(), ';');
+                    sutil::Parser cols(rows.str(), ';');
                     p.beginArr();
                     while (cols.next()) {
                         data.next();
@@ -258,9 +282,9 @@ class FastBot2 {
             } else {
                 p.beginArr(fbapi::keyboard());
                 m._menu->_trim();
-                sutil::Parser rows((char*)m._menu->text.c_str(), '\n');
+                sutil::Parser rows(m._menu->text, '\n');
                 while (rows.next()) {
-                    sutil::Parser cols((char*)rows.str(), ';');
+                    sutil::Parser cols(rows.str(), ';');
                     p.beginArr();
                     while (cols.next()) p.addStr(cols.str());
                     p.endArr();
@@ -280,13 +304,13 @@ class FastBot2 {
     // ============================== CUSTOM ==============================
 
     // начать пакет для ручной отправки в API
-    fb::packet beginPacket(const __FlashStringHelper* cmd) {
-        return fb::packet(cmd, _token);
+    fb::Packet beginPacket(const __FlashStringHelper* cmd) {
+        return fb::Packet(cmd, _token);
     }
 
     // отправить данные
-    bool sendPacket(fb::packet& p, bool wait = false) {
-        // wait resp packet
+    bool sendPacket(fb::Packet& p, bool wait = false) {
+        // wait resp Packet
         while (!_poll_wait && _client.waiting()) {
             if (_client.available()) {
                 String s = _client.read(&_error);
@@ -334,13 +358,16 @@ class FastBot2 {
     bool _allow_send_wait = 1;
     bool _query_answ = 0;
 
+    uint32_t _last_bot = 0;
+
     fb::CallbackUpdate _cbu1 = nullptr;
     fb::CallbackUpdate _cbu2 = nullptr;
     fb::CallbackResult _cbr = nullptr;
     fb::CallbackRaw _cbs = nullptr;
 
+    // ==============================================
     void _getUpdates() {
-        fb::packet p(fbcmd::getUpdates(), _token);
+        fb::Packet p(fbcmd::getUpdates(), _token);
         if (_poll_mode == Poll::Long) p.addInt(fbapi::timeout(), (uint16_t)(_poll_tout / 1000));
         p.addInt(fbapi::limit(), _poll_limit);
         p.addInt(fbapi::offset(), _poll_offset);
@@ -356,6 +383,7 @@ class FastBot2 {
         }
     }
 
+    // ==============================================
     fb::Error _parse(String& s) {
         _client.last_ms = millis();
         _poll_wait = 0;
@@ -393,6 +421,7 @@ class FastBot2 {
             for (uint8_t i = 0; i < len; i++) {
                 gson::Entry upd = result[i][1];
                 if (!upd.valid()) continue;
+
                 size_t typeHash = upd.keyHash();
                 fb::Update update(upd, typeHash);
                 if (typeHash == fbhash::callback_query) _query_answ = 0;
@@ -408,6 +437,7 @@ class FastBot2 {
         } else {
             // ============= INFO =============
             _allow_send_wait = 0;
+            if (result.includes(fbhash::message_id)) _last_bot = result[fbhash::message_id];
             if (_cbr) _cbr(result);
             _allow_send_wait = 1;
         }

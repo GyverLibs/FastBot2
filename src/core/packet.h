@@ -8,9 +8,9 @@ namespace fb {
 
 using gson::string;
 
-class packet : public gson::string {
+class Packet : public gson::string {
    public:
-    packet(const __FlashStringHelper* cmd, const String& token) {
+    Packet(const __FlashStringHelper* cmd, const String& token) {
         s += F("POST /bot");
         s += token;
         s += '/';
