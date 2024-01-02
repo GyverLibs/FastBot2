@@ -235,7 +235,6 @@ class FastBot2 {
     bool sendMessage(fb::Message& m, bool wait = false) {
         if (!m.text.length() || !m.chat_id.valid()) return 0;
         
-        _last_bot++;
         fb::Packet p(fbcmd::sendMessage(), _token);
         p.addStr(fbapi::text(), m.text);
         p.addInt(fbapi::chat_id(), m.chat_id);
@@ -319,6 +318,7 @@ class FastBot2 {
             yield();
         }
         _poll_wait = 0;
+        // if (!_last_bot) wait = true;
 
         if (wait && _allow_send_wait) {
             String s = _client.send_read(p, &_error);
