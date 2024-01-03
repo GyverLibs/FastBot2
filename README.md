@@ -3,6 +3,13 @@
 
 > Библиотека в разработке! Руководствуйтесь примером и подсказками IDE
 
+## Установка
+Библиотека не в релизе, качайте репозиторий zip архивом (кнопка Code справа вверху) или по [прямой ссылке](https://github.com/GyverLibs/FastBot2/archive/refs/heads/main.zip) на загрузку.
+
+Для работы FastBot2 нужно установить библиотеки:
+- [GSON](https://github.com/GyverLibs/GSON)
+- [StringUtils](https://github.com/GyverLibs/StringUtils)
+
 ## Режим опроса обновлений
 ### Sync (по умолчанию)
 ```cpp
