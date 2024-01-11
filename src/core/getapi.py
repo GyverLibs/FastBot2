@@ -1,4 +1,4 @@
-# парсер API с сайта телеграм. Наполняет константами файл keys.h
+# парсер API с сайта телеграм. Наполняет константами файл api.h
 import pathlib
 import requests
 import re
@@ -30,6 +30,6 @@ keys += '\n}\n\nnamespace fbcmd {'
 for cmd in tgcmd: keys += '\nFB_MAKE_API(' + cmd + ')'
 keys += '\n}'
 
-with open(str(path) + '/keys.h', 'w') as f: f.write(keys)
+with open(str(path) + '/api.h', 'w') as f: f.write(keys)
 
 print('Done!')

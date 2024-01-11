@@ -3,7 +3,7 @@
 #include <GSON.h>
 #include <StringUtils.h>
 
-#include "core/keys.h"
+#include "core/api.h"
 
 namespace fb {
 
@@ -35,7 +35,7 @@ struct Menu {
 
     // добавить кнопку
     Menu& addButton(AnyText text) {
-        text.toString(this->text);
+        text.addString(this->text);
         this->text += ';';
         return *this;
     }
@@ -91,9 +91,9 @@ struct MenuInline {
 
     // добавить кнопку
     MenuInline& addButton(AnyText text, AnyText data = AnyText()) {
-        text.toString(this->text);
-        if (data.valid()) data.toString(this->data);
-        else text.toString(this->data);
+        text.addString(this->text);
+        if (data.valid()) data.addString(this->data);
+        else text.addString(this->data);
         this->text += ';';
         this->data += ';';
         return *this;

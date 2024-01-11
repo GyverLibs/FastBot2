@@ -4,7 +4,7 @@
 #include <StringUtils.h>
 
 #include "FastBot2_class.h"
-#include "core/keys.h"
+#include "core/api.h"
 #include "menu.h"
 
 namespace fb {

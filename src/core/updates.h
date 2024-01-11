@@ -2,7 +2,7 @@
 #include <Arduino.h>
 
 #include "packet.h"
-#include "keys.h"
+#include "api.h"
 
 namespace fb {
 
@@ -67,7 +67,7 @@ class Updates {
         };
 
         for (uint8_t i = 0; i < 14; i++) {
-            if (read(i)) p.addStr(upd_arr[i]);
+            if (read(i)) p.addString(upd_arr[i]);
         }
     }
 

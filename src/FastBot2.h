@@ -6,7 +6,7 @@
 
 #include "FastBot2_class.h"
 #include "core/BotClient.h"
-#include "core/keys.h"
+#include "core/api.h"
 #include "core/packet.h"
 #include "core/types/chat.h"
 #include "core/types/locationRead.h"
@@ -205,8 +205,8 @@ class FastBot2 {
     bool answerCallbackQuery(sutil::AnyText id, sutil::AnyText text = sutil::AnyText(), bool show_alert = false) {
         _query_answ = true;
         fb::Packet p(fbcmd::answerCallbackQuery(), _token);
-        p.addStr(fbapi::callback_query_id(), id);
-        if (text.valid()) p.addStr(fbapi::text(), text);
+        p.addString(fbapi::callback_query_id(), id);
+        if (text.valid()) p.addString(fbapi::text(), text);
         if (show_alert) p.addBool(fbapi::show_alert(), true);
         return sendPacket(p);
     }
@@ -236,14 +236,14 @@ class FastBot2 {
         if (!m.text.length() || !m.chat_id.valid()) return 0;
         
         fb::Packet p(fbcmd::sendMessage(), _token);
-        p.addStr(fbapi::text(), m.text);
+        p.addString(fbapi::text(), m.text);
         p.addInt(fbapi::chat_id(), m.chat_id);
         if (m.thread_id >= 0) p.addInt(fbapi::message_thread_id(), m.thread_id);
         if (m.reply_to >= 0) p.addInt(fbapi::reply_to_message_id(), m.reply_to);
         if (!m.preview) p.addBool(fbapi::disable_web_page_preview(), true);
         if (!m.notification) p.addBool(fbapi::disable_notification(), true);
         if (m.protect) p.addBool(fbapi::protect_content(), true);
-        if (m.mode != fb::Message::Mode::Text) p.addStr(fbapi::parse_mode(), m.mode == (fb::Message::Mode::MarkdownV2) ? F("MarkdownV2") : F("HTML"));
+        if (m.mode != fb::Message::Mode::Text) p.addString(fbapi::parse_mode(), m.mode == (fb::Message::Mode::MarkdownV2) ? F("MarkdownV2") : F("HTML"));
         if (m._remove_menu || m._menu_inline || m._menu) {
             p.beginObj(fbapi::reply_markup());
             // REMOVE MENU
@@ -262,14 +262,14 @@ class FastBot2 {
                     while (cols.next()) {
                         data.next();
                         p.beginObj();
-                        p.addStr(fbapi::text(), cols.str());
+                        p.addString(fbapi::text(), cols.str());
                         // url or callback_data
                         if (!strncmp_P(data.str(), PSTR("http://"), 7) ||
                             !strncmp_P(data.str(), PSTR("https://"), 8) ||
                             !strncmp_P(data.str(), PSTR("tg://"), 5)) {
-                            p.addStr(fbapi::url(), data.str());
+                            p.addString(fbapi::url(), data.str());
                         } else {
-                            p.addStr(fbapi::callback_data(), data.str());
+                            p.addString(fbapi::callback_data(), data.str());
                         }
                         p.endObj();
                     }
@@ -285,7 +285,7 @@ class FastBot2 {
                 while (rows.next()) {
                     sutil::Parser cols(rows.str(), ';');
                     p.beginArr();
-                    while (cols.next()) p.addStr(cols.str());
+                    while (cols.next()) p.addString(cols.str());
                     p.endArr();
                 }
                 p.endArr();
@@ -293,7 +293,7 @@ class FastBot2 {
                 if (m._menu->resize) p.addBool(fbapi::resize_keyboard(), true);
                 if (m._menu->one_time) p.addBool(fbapi::one_time_keyboard(), true);
                 if (m._menu->selective) p.addBool(fbapi::selective(), true);
-                if (m._menu->placeholder.length()) p.addStr(fbapi::input_field_placeholder(), m._menu->placeholder);
+                if (m._menu->placeholder.length()) p.addString(fbapi::input_field_placeholder(), m._menu->placeholder);
             }
             p.endObj();
         }
