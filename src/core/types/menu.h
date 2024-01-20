@@ -3,15 +3,15 @@
 #include <GSON.h>
 #include <StringUtils.h>
 
+#include "FastBot2_class.h"
 #include "core/api.h"
 
 namespace fb {
 
-void _trimDiv(String& s) {
-    if (s[s.length() - 1] == ';') s.remove(s.length() - 1);
-}
+class Menu {
+    friend class ::FastBot2;
 
-struct Menu {
+   public:
     Menu() {}
     Menu(const String& text) : text(text) {}
 
@@ -60,9 +60,7 @@ struct Menu {
     // показывать только упомянутым в сообщении юзерам (умолч. 0)
     static bool default_selective;
 
-    void _trim() {
-        _trimDiv(text);
-    }
+   private:
 };
 
 bool Menu::default_persistent = 0;
@@ -70,7 +68,10 @@ bool Menu::default_resize = 0;
 bool Menu::default_one_time = 0;
 bool Menu::default_selective = 0;
 
-struct MenuInline {
+class MenuInline {
+    friend class ::FastBot2;
+
+   public:
     MenuInline() {}
     MenuInline(const String& text, const String& data) : text(text), data(data) {}
     MenuInline(uint16_t reserve) {
@@ -105,10 +106,7 @@ struct MenuInline {
         return *this;
     }
 
-    void _trim() {
-        _trimDiv(text);
-        _trimDiv(data);
-    }
+   private:
 };
 
 }  // namespace fb

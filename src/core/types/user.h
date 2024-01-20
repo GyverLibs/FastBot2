@@ -3,13 +3,17 @@
 #include <GSON.h>
 #include <StringUtils.h>
 
+#include "FastBot2_class.h"
 #include "core/api.h"
 
 namespace fb {
 
 using sutil::AnyText;
 
-struct User {
+class User {
+    friend class ::FastBot2;
+
+   public:
     User(gson::Entry entry) : entry(entry) {}
 
     // id юзера
@@ -51,4 +55,4 @@ struct User {
     gson::Entry entry;
 };
 
-}
+}  // namespace fb

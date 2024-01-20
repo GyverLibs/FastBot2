@@ -3,23 +3,34 @@
 #include <GSON.h>
 #include <StringUtils.h>
 
+#include "FastBot2_class.h"
 #include "core/api.h"
 
 namespace fb {
 
 using sutil::AnyText;
 
-struct Chat {
+class Chat {
+    friend class ::FastBot2;
+
+   public:
     Chat(gson::Entry entry) : entry(entry) {}
+
+    enum class Type : size_t {
+        private_chat = sutil::SH("private"),
+        group = sutil::SH("group"),
+        supergroup = sutil::SH("supergroup"),
+        channel = sutil::SH("channel"),
+    };
 
     // id чата
     AnyText id() {
         return entry[fbhash::id];
     }
 
-    // тип чата: private, group, supergroup, channel
-    AnyText type() {
-        return entry[fbhash::type];
+    // тип чата: private_chat, group, supergroup, channel
+    Type type() {
+        return (Type)entry[fbhash::type].hash();
     }
 
     // название чата (для supergroups, channels, group chats)
@@ -49,6 +60,8 @@ struct Chat {
 
     // доступ к пакету данных
     gson::Entry entry;
+
+   private:
 };
 
-}
+}  // namespace fb

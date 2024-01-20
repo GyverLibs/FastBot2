@@ -3,6 +3,7 @@
 #include <GSON.h>
 #include <StringUtils.h>
 
+#include "FastBot2_class.h"
 #include "chat.h"
 #include "core/api.h"
 #include "locationRead.h"
@@ -12,7 +13,52 @@ namespace fb {
 
 using sutil::AnyText;
 
-struct MessageRead {
+class MessageOrigin {
+    friend class ::FastBot2;
+
+   public:
+    MessageOrigin(gson::Entry entry) : entry(entry) {}
+
+    enum class Type : size_t {
+        user = sutil::SH("user"),
+        hidden_user = sutil::SH("hidden_user"),
+        chat = sutil::SH("chat"),
+        channel = sutil::SH("channel"),
+    };
+
+    // тип отправителя: user, hidden_user, chat, channel
+    Type type() {
+        return (Type)entry[fbhash::type].hash();
+    }
+
+    // дата оригинального сообщения
+    AnyText date() {
+        return entry[fbhash::date];
+    }
+
+    // отправитель type == user
+    User sender_user() {
+        return User(entry[fbhash::sender_user]);
+    }
+
+    // отправитель type == chat
+    Chat sender_chat() {
+        return Chat(entry[fbhash::sender_chat]);
+    }
+
+    // отправитель type == channel
+    Chat chat() {
+        return Chat(entry[fbhash::chat]);
+    }
+
+    // доступ к пакету данных
+    gson::Entry entry;
+};
+
+class MessageRead {
+    friend class ::FastBot2;
+
+   public:
     MessageRead(gson::Entry entry) : entry(entry) {}
 
     // ================ REPLY ================
@@ -23,7 +69,7 @@ struct MessageRead {
     }
 
     // сообщение, на которое отвечает это сообщение
-    MessageRead reply_to_message() {
+    MessageRead reply() {
         return MessageRead(entry[fbhash::reply_to_message]);
     }
 
@@ -31,27 +77,12 @@ struct MessageRead {
 
     // сообщение переслано из другого чата
     bool isForward() {
-        return entry.includes(fbhash::forward_from) || entry.includes(fbhash::forward_from_chat);
+        return entry.includes(fbhash::forward_origin);
     }
 
-    // дата отправки оригинального пересланного сообщения
-    AnyText forward_date() {
-        return entry[fbhash::forward_date];
-    }
-
-    // отправитель оригинального пересланного сообщения
-    User forward_from() {
-        return User(entry[fbhash::forward_from]);
-    }
-
-    // чат, из которого переслали это сообщение
-    Chat forward_from_chat() {
-        return Chat(entry[fbhash::forward_from_chat]);
-    }
-
-    // id сообщения в канале, если оно переслано из канала
-    AnyText forward_from_message_id() {
-        return entry[fbhash::forward_from_message_id];
+    // данные о пересланном сообщении
+    MessageOrigin forward() {
+        return MessageOrigin(entry[fbhash::forward_origin]);
     }
 
     // ================ MISC ================
@@ -62,13 +93,18 @@ struct MessageRead {
     }
 
     // id сообщения в этом чате
-    AnyText id() {
+    AnyText message_id() {
         return entry[fbhash::message_id];
     }
 
     // id темы в группе
     AnyText thread_id() {
         return entry[fbhash::message_thread_id];
+    }
+
+    // сообщение отправлено в топик форума
+    AnyText is_topic() {
+        return entry[fbhash::is_topic_message];
     }
 
     // дата отправки или пересылки сообщения
@@ -103,7 +139,7 @@ struct MessageRead {
 
     // сообщение содержит геолокацию
     bool hasLocation() {
-        return entry[fbhash::location].valid();
+        return entry.includes(fbhash::location);
     }
 
     // геолокация

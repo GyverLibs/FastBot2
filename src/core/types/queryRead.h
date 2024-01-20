@@ -3,6 +3,7 @@
 #include <GSON.h>
 #include <StringUtils.h>
 
+#include "FastBot2_class.h"
 #include "core/api.h"
 #include "messageRead.h"
 #include "user.h"
@@ -11,7 +12,10 @@ namespace fb {
 
 using sutil::AnyText;
 
-struct QueryRead {
+class QueryRead {
+    friend class ::FastBot2;
+
+   public:
     QueryRead(gson::Entry entry) : entry(entry) {}
 
     // callback id

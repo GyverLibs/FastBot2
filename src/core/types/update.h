@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include <GSON.h>
 
+#include "FastBot2_class.h"
 #include "core/api.h"
 #include "messageRead.h"
 #include "queryRead.h"
@@ -9,6 +10,8 @@
 namespace fb {
 
 class Update {
+    friend class ::FastBot2;
+
    public:
     enum class Type : size_t {
         message = fbhash::message,

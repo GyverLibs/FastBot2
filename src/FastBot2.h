@@ -148,7 +148,6 @@ class FastBot2 {
         _cbs = nullptr;
     }
 
-    
     // ============================== MISC ==============================
 
     // ID последнего отправленного сообщения от бота. Для опроса сразу после sendMessage - ставь wait у sendMessage
@@ -214,14 +213,8 @@ class FastBot2 {
     // переслать сообщение
     bool forwardMessage(fb::MessageForward& m, bool wait = false) {
         if (!m.chat_id.valid() || !m.from_chat_id.valid() || !m.message_id.valid()) return 0;
-
         fb::Packet p(fbcmd::sendMessage(), _token);
-        p.addInt(fbapi::message_id(), m.message_id);
-        p.addInt(fbapi::from_chat_id(), m.from_chat_id);
-        p.addInt(fbapi::chat_id(), m.chat_id);
-        if (m.thread_id >= 0) p.addInt(fbapi::message_thread_id(), m.thread_id);
-        if (!m.notification) p.addBool(fbapi::disable_notification(), true);
-        if (m.protect) p.addBool(fbapi::protect_content(), true);
+        m.makePacket(p);
         return sendPacket(p, wait);
     }
 
@@ -234,69 +227,8 @@ class FastBot2 {
     // отправить сообщение
     bool sendMessage(fb::Message& m, bool wait = false) {
         if (!m.text.length() || !m.chat_id.valid()) return 0;
-        
         fb::Packet p(fbcmd::sendMessage(), _token);
-        p.addString(fbapi::text(), m.text);
-        p.addInt(fbapi::chat_id(), m.chat_id);
-        if (m.thread_id >= 0) p.addInt(fbapi::message_thread_id(), m.thread_id);
-        if (m.reply_to >= 0) p.addInt(fbapi::reply_to_message_id(), m.reply_to);
-        if (!m.preview) p.addBool(fbapi::disable_web_page_preview(), true);
-        if (!m.notification) p.addBool(fbapi::disable_notification(), true);
-        if (m.protect) p.addBool(fbapi::protect_content(), true);
-        if (m.mode != fb::Message::Mode::Text) p.addString(fbapi::parse_mode(), m.mode == (fb::Message::Mode::MarkdownV2) ? F("MarkdownV2") : F("HTML"));
-        if (m._remove_menu || m._menu_inline || m._menu) {
-            p.beginObj(fbapi::reply_markup());
-            // REMOVE MENU
-            if (m._remove_menu) {
-                p.addBool(fbapi::remove_keyboard(), true);
-
-                // INLINE MENU
-            } else if (m._menu_inline) {
-                p.beginArr(fbapi::inline_keyboard());
-                m._menu_inline->_trim();
-                sutil::Parser rows(m._menu_inline->text, '\n');
-                sutil::Parser data(m._menu_inline->data, ';');
-                while (rows.next()) {
-                    sutil::Parser cols(rows.str(), ';');
-                    p.beginArr();
-                    while (cols.next()) {
-                        data.next();
-                        p.beginObj();
-                        p.addString(fbapi::text(), cols.str());
-                        // url or callback_data
-                        if (!strncmp_P(data.str(), PSTR("http://"), 7) ||
-                            !strncmp_P(data.str(), PSTR("https://"), 8) ||
-                            !strncmp_P(data.str(), PSTR("tg://"), 5)) {
-                            p.addString(fbapi::url(), data.str());
-                        } else {
-                            p.addString(fbapi::callback_data(), data.str());
-                        }
-                        p.endObj();
-                    }
-                    p.endArr();
-                }
-                p.endArr();
-
-                // REPLY MENU
-            } else {
-                p.beginArr(fbapi::keyboard());
-                m._menu->_trim();
-                sutil::Parser rows(m._menu->text, '\n');
-                while (rows.next()) {
-                    sutil::Parser cols(rows.str(), ';');
-                    p.beginArr();
-                    while (cols.next()) p.addString(cols.str());
-                    p.endArr();
-                }
-                p.endArr();
-                if (m._menu->persistent) p.addBool(fbapi::is_persistent(), true);
-                if (m._menu->resize) p.addBool(fbapi::resize_keyboard(), true);
-                if (m._menu->one_time) p.addBool(fbapi::one_time_keyboard(), true);
-                if (m._menu->selective) p.addBool(fbapi::selective(), true);
-                if (m._menu->placeholder.length()) p.addString(fbapi::input_field_placeholder(), m._menu->placeholder);
-            }
-            p.endObj();
-        }
+        m.makePacket(p);
         return sendPacket(p, wait);
     }
 

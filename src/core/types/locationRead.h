@@ -3,13 +3,17 @@
 #include <GSON.h>
 #include <StringUtils.h>
 
+#include "FastBot2_class.h"
 #include "core/api.h"
 
 namespace fb {
 
 using sutil::AnyText;
 
-struct LocationRead {
+class LocationRead {
+    friend class ::FastBot2;
+
+   public:
     LocationRead(gson::Entry entry) : entry(entry) {}
 
     // долгота
@@ -44,6 +48,8 @@ struct LocationRead {
 
     // доступ к пакету данных
     gson::Entry entry;
+
+   private:
 };
 
-}
+}  // namespace fb
