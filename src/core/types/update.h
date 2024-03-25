@@ -2,33 +2,30 @@
 #include <Arduino.h>
 #include <GSON.h>
 
-#include "FastBot2_class.h"
+#include "MessageRead.h"
+#include "QueryRead.h"
 #include "core/api.h"
-#include "messageRead.h"
-#include "queryRead.h"
 
 namespace fb {
 
+// https://core.telegram.org/bots/api#update
 class Update {
-    friend class ::FastBot2;
-
    public:
     enum class Type : size_t {
         message = fbhash::message,
-        edited_message = fbhash::edited_message,
-        channel_post = fbhash::channel_post,
-        edited_channel_post = fbhash::edited_channel_post,
-
-        inline_query = fbhash::inline_query,
-        chosen_inline_result = fbhash::chosen_inline_result,
-        callback_query = fbhash::callback_query,
-        shipping_query = fbhash::shipping_query,
-        pre_checkout_query = fbhash::pre_checkout_query,
+        editedMessage = fbhash::edited_message,
+        channelPost = fbhash::channel_post,
+        editedChannelPost = fbhash::edited_channel_post,
+        inlineQuery = fbhash::inline_query,
+        chosenInlineResult = fbhash::chosen_inline_result,
+        callbackQuery = fbhash::callback_query,
+        shippingQuery = fbhash::shipping_query,
+        preCheckoutQuery = fbhash::pre_checkout_query,
         poll = fbhash::poll,
-        poll_answer = fbhash::poll_answer,
-        my_chat_member = fbhash::my_chat_member,
-        chat_member = fbhash::chat_member,
-        chat_join_request = fbhash::chat_join_request,
+        pollAnswer = fbhash::poll_answer,
+        myChatMember = fbhash::my_chat_member,
+        chatMember = fbhash::chat_member,
+        chatJoinRequest = fbhash::chat_join_request,
     };
 
     Update(gson::Entry& entry, size_t type) : entry(entry), _type((Type)type) {}
@@ -42,7 +39,7 @@ class Update {
 
     // это query
     bool isQuery() {
-        return _type == Type::callback_query;
+        return _type == Type::callbackQuery;
     }
 
     // query
@@ -59,17 +56,17 @@ class Update {
 
     // это сообщение
     bool isMessage() {
-        return _type == Type::message || _type == Type::edited_message;
+        return _type == Type::message || _type == Type::editedMessage;
     }
 
     // это пост в канале
     bool isPost() {
-        return _type == Type::channel_post || _type == Type::edited_channel_post;
+        return _type == Type::channelPost || _type == Type::editedChannelPost;
     }
 
     // это отредактированное сообщение или отредактированный пост
     bool isEdited() {
-        return _type == Type::edited_message || _type == Type::edited_channel_post;
+        return _type == Type::editedMessage || _type == Type::editedChannelPost;
     }
 
     // доступ к пакету данных

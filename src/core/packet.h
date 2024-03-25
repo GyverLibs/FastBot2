@@ -6,8 +6,6 @@
 
 namespace fb {
 
-using gson::string;
-
 class Packet : public gson::string {
    public:
     Packet(const __FlashStringHelper* cmd, const String& token) {
@@ -23,11 +21,11 @@ class Packet : public gson::string {
             "\r\n\r\n");
 
         _header_pos = s.length();
-        string::beginObj();
+        gson::string::beginObj();
     }
     void end() {
-        string::endObj();
-        string::end();
+        gson::string::endObj();
+        gson::string::end();
         uint16_t len = s.length() - _header_pos;
         char* p = (char*)s.c_str() + _header_pos - 5;
         do {

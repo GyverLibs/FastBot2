@@ -3,34 +3,29 @@
 #include <GSON.h>
 #include <StringUtils.h>
 
-#include "FastBot2_class.h"
+#include "MessageRead.h"
+#include "UserRead.h"
 #include "core/api.h"
-#include "messageRead.h"
-#include "user.h"
 
 namespace fb {
 
-using sutil::AnyText;
-
-class QueryRead {
-    friend class ::FastBot2;
-
-   public:
+// https://core.telegram.org/bots/api#callbackquery
+struct QueryRead {
     QueryRead(gson::Entry entry) : entry(entry) {}
 
     // callback id
-    AnyText id() {
+    su::Text id() {
         return entry[fbhash::id];
     }
 
     // callback data
-    AnyText data() {
+    su::Text data() {
         return entry[fbhash::data];
     }
 
     // отправитель коллбэка
-    User from() {
-        return User(entry[fbhash::from]);
+    UserRead from() {
+        return UserRead(entry[fbhash::from]);
     }
 
     // сообщение

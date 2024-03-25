@@ -3,28 +3,23 @@
 #include <GSON.h>
 #include <StringUtils.h>
 
-#include "FastBot2_class.h"
 #include "core/api.h"
 
 namespace fb {
 
-using sutil::AnyText;
-
-class Chat {
-    friend class ::FastBot2;
-
-   public:
-    Chat(gson::Entry entry) : entry(entry) {}
+// https://core.telegram.org/bots/api#chat
+struct ChatRead {
+    ChatRead(gson::Entry entry) : entry(entry) {}
 
     enum class Type : size_t {
-        private_chat = sutil::SH("private"),
-        group = sutil::SH("group"),
-        supergroup = sutil::SH("supergroup"),
-        channel = sutil::SH("channel"),
+        privateChat = su::SH("private"),
+        group = su::SH("group"),
+        supergroup = su::SH("supergroup"),
+        channel = su::SH("channel"),
     };
 
     // id чата
-    AnyText id() {
+    su::Text id() {
         return entry[fbhash::id];
     }
 
@@ -34,34 +29,32 @@ class Chat {
     }
 
     // название чата (для supergroups, channels, group chats)
-    AnyText title() {
+    su::Text title() {
         return entry[fbhash::title];
     }
 
     // имя чата (для private chats, supergroups, channels)
-    AnyText username() {
+    su::Text username() {
         return entry[fbhash::username];
     }
 
     // имя (для private chat)
-    AnyText first_name() {
+    su::Text firstName() {
         return entry[fbhash::first_name];
     }
 
     // фамилия (для private chat)
-    AnyText last_name() {
+    su::Text lastName() {
         return entry[fbhash::last_name];
     }
 
     // в supergroup включены темы
-    AnyText is_forum() {
+    su::Text isForum() {
         return entry[fbhash::is_forum];
     }
 
     // доступ к пакету данных
     gson::Entry entry;
-
-   private:
 };
 
 }  // namespace fb

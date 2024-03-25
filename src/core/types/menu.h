@@ -3,15 +3,12 @@
 #include <GSON.h>
 #include <StringUtils.h>
 
-#include "FastBot2_class.h"
 #include "core/api.h"
 
 namespace fb {
 
-class Menu {
-    friend class ::FastBot2;
-
-   public:
+// https://core.telegram.org/bots/api#replykeyboardmarkup
+struct Menu {
     Menu() {}
     Menu(const String& text) : text(text) {}
 
@@ -22,19 +19,19 @@ class Menu {
     String placeholder;
 
     // принудительно показывать клавиатуру
-    bool persistent = default_persistent;
+    bool persistent = persistentDefault;
 
     // уменьшить клавиатуру под количество кнопок
-    bool resize = default_resize;
+    bool resize = resizeDefault;
 
     // автоматически скрывать после нажатия
-    bool one_time = default_one_time;
+    bool oneTime = oneTimeDefault;
 
     // показывать только упомянутым в сообщении юзерам
-    bool selective = default_selective;
+    bool selective = selectiveDefault;
 
     // добавить кнопку
-    Menu& addButton(AnyText text) {
+    Menu& addButton(su::Text text) {
         text.addString(this->text);
         this->text += ';';
         return *this;
@@ -49,64 +46,16 @@ class Menu {
     // ===================================
 
     // принудительно показывать клавиатуру (умолч. 0)
-    static bool default_persistent;
+    static bool persistentDefault;
 
     // уменьшить клавиатуру под количество кнопок (умолч. 0)
-    static bool default_resize;
+    static bool resizeDefault;
 
     // автоматически скрывать после нажатия (умолч. 0)
-    static bool default_one_time;
+    static bool oneTimeDefault;
 
     // показывать только упомянутым в сообщении юзерам (умолч. 0)
-    static bool default_selective;
-
-   private:
-};
-
-bool Menu::default_persistent = 0;
-bool Menu::default_resize = 0;
-bool Menu::default_one_time = 0;
-bool Menu::default_selective = 0;
-
-class MenuInline {
-    friend class ::FastBot2;
-
-   public:
-    MenuInline() {}
-    MenuInline(const String& text, const String& data) : text(text), data(data) {}
-    MenuInline(uint16_t reserve) {
-        this->reserve(reserve);
-    }
-
-    // надписи кнопок. Гор. разделитель - ;, верт. - \n (кнопка_1 ; кнопка_2 \n кнопка_3 ; кнопка_4)
-    String text;
-
-    // callback data кнопок с разделителем ; . Поддерживаются url адреса
-    String data;
-
-    // зарезервировать строки
-    void reserve(uint16_t len) {
-        text.reserve(len);
-        data.reserve(len);
-    }
-
-    // добавить кнопку
-    MenuInline& addButton(AnyText text, AnyText data = AnyText()) {
-        text.addString(this->text);
-        if (data.valid()) data.addString(this->data);
-        else text.addString(this->data);
-        this->text += ';';
-        this->data += ';';
-        return *this;
-    }
-
-    // перенести строку
-    MenuInline& newRow() {
-        if (text.length()) text[text.length() - 1] = '\n';
-        return *this;
-    }
-
-   private:
+    static bool selectiveDefault;
 };
 
 }  // namespace fb

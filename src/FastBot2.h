@@ -8,12 +8,12 @@
 #include "core/BotClient.h"
 #include "core/api.h"
 #include "core/packet.h"
-#include "core/types/chat.h"
-#include "core/types/locationRead.h"
-#include "core/types/message.h"
-#include "core/types/messageRead.h"
-#include "core/types/update.h"
-#include "core/types/user.h"
+#include "core/types/Message.h"
+#include "core/types/MessageEdit.h"
+#include "core/types/MessageForward.h"
+#include "core/types/MessageRead.h"
+#include "core/types/QueryRead.h"
+#include "core/types/Update.h"
 #include "core/updates.h"
 
 #ifndef FB2_CUSTOM_CLIENT
@@ -38,7 +38,7 @@ class FastBot2 {
     enum class Poll : uint8_t {
         Sync,   // синхронный (рекомендуемый период > 3500 мс)
         Async,  // асинхронный (рекомендуемый период > 3500 мс)
-        Long,   // асинхронный long polling
+        Long,   // асинхронный long polling (рекомендуемый период > 10000 мс)
     };
 
     // разрешение и запрет типов обновлений
@@ -46,12 +46,14 @@ class FastBot2 {
 
     // передать клиента и запустить
     FastBot2(Client* client = nullptr) {
-#if !defined(FB2_CUSTOM_CLIENT) && (defined(ESP8266) || defined(ESP32))
-        setClient(&espclient);
-        espclient.setInsecure();
-        // client.setBufferSizes(512, 512);  // TODO
-#endif
         if (client) setClient(client);
+        else {
+#if !defined(FB2_CUSTOM_CLIENT) && (defined(ESP8266) || defined(ESP32))
+            setClient(&espclient);
+            espclient.setInsecure();
+            // client.setBufferSizes(512, 512);  // TODO
+#endif
+        }
         begin();
         _token.reserve(47);
     }
@@ -66,6 +68,11 @@ class FastBot2 {
     // установить токен
     void setToken(const String& token) {
         _token = token;
+    }
+
+    // получить токен
+    String getToken() {
+        return _token;
     }
 
     // установить лимит - кол-во сообщений в одном обновлении (умолч. 3)
@@ -150,7 +157,7 @@ class FastBot2 {
 
     // ============================== MISC ==============================
 
-    // ID последнего отправленного сообщения от бота. Для опроса сразу после sendMessage - ставь wait у sendMessage
+    // id последнего отправленного сообщения от бота. Для опроса сразу после sendMessage - ставь wait у sendMessage
     uint32_t lastBotMessage() {
         return _last_bot;
     }
@@ -201,7 +208,7 @@ class FastBot2 {
     // ============================== SEND ==============================
 
     // ответить на callback. Можно указать текст и вызвать alert
-    bool answerCallbackQuery(sutil::AnyText id, sutil::AnyText text = sutil::AnyText(), bool show_alert = false) {
+    bool answerCallbackQuery(su::Text id, su::Text text = su::Text(), bool show_alert = false) {
         _query_answ = true;
         fb::Packet p(fbcmd::answerCallbackQuery(), _token);
         p.addString(fbapi::callback_query_id(), id);
@@ -212,23 +219,93 @@ class FastBot2 {
 
     // переслать сообщение
     bool forwardMessage(fb::MessageForward& m, bool wait = false) {
-        if (!m.chat_id.valid() || !m.from_chat_id.valid() || !m.message_id.valid()) return 0;
+        if (!m.chatID.valid() || !m.fromChatID.valid() || !m.messageID.valid()) return 0;
         fb::Packet p(fbcmd::sendMessage(), _token);
         m.makePacket(p);
         return sendPacket(p, wait);
     }
 
     // отправить сообщение
-    bool sendMessage(sutil::AnyText text, sutil::AnyValue chat_id, bool wait = false) {
+    bool sendMessage(su::Text text, su::Value chat_id, bool wait = false) {
         fb::Message msg(text, chat_id);
         return sendMessage(msg, wait);
     }
 
     // отправить сообщение
     bool sendMessage(fb::Message& m, bool wait = false) {
-        if (!m.text.length() || !m.chat_id.valid()) return 0;
+        if (!m.text.length() || !m.chatID.valid()) return 0;
         fb::Packet p(fbcmd::sendMessage(), _token);
         m.makePacket(p);
+        return sendPacket(p, wait);
+    }
+
+    // ============================== EDIT ==============================
+
+    // редактировать текст
+    bool editText(fb::EditText& m, bool wait = false) {
+        if (!m.text.length() || !m.chatID.valid() || m.messageID < 0) return 0;
+        fb::Packet p(fbcmd::editMessageText(), _token);
+        m.makePacket(p);
+        return sendPacket(p, wait);
+    }
+
+    // редактировать заголовок
+    bool editCaption(fb::EditCaption& m, bool wait = false) {
+        if (!m.caption.length() || !m.chatID.valid() || m.messageID < 0) return 0;
+        fb::Packet p(fbcmd::editMessageCaption(), _token);
+        m.makePacket(p);
+        return sendPacket(p, wait);
+    }
+
+    // редактировать клавиатуру
+    bool editKeyboard(fb::EditKeyboard& m, bool wait = false) {
+        if (!m.chatID.valid() || m.messageID < 0) return 0;
+        fb::Packet p(fbcmd::editMessageReplyMarkup(), _token);
+        m.makePacket(p);
+        return sendPacket(p, wait);
+    }
+
+    // редактировать медиа
+    bool editMedia(fb::EditMedia& m, bool wait = false) {
+        if (!m.chatID.valid() || m.messageID < 0) return 0;
+        fb::Packet p(fbcmd::editMessageMedia(), _token);
+        m.makePacket(p);
+        return sendPacket(p, wait);
+    }
+
+    // редактировать геолокацию
+    bool editLocation(fb::EditLocation& m, bool wait = false) {
+        if (!m.chatID.valid() || m.messageID < 0) return 0;
+        fb::Packet p(fbcmd::editMessageLiveLocation(), _token);
+        m.makePacket(p);
+        return sendPacket(p, wait);
+    }
+
+    // остановить геолокацию
+    bool stopLocation(fb::StopLocation& m, bool wait = false) {
+        if (!m.chatID.valid() || m.messageID < 0) return 0;
+        fb::Packet p(fbcmd::stopMessageLiveLocation(), _token);
+        m.makePacket(p);
+        return sendPacket(p, wait);
+    }
+
+    // ============================== DELETE ==============================
+
+    // удалить сообщение
+    bool deleteMessage(su::Value chatID, uint32_t messageID, bool wait = false) {
+        fb::Packet p(fbcmd::deleteMessage(), _token);
+        p.addInt(fbapi::chat_id(), chatID);
+        p.addInt(fbapi::message_id(), messageID);
+        return sendPacket(p, wait);
+    }
+
+    // удалить сообщения
+    bool deleteMessages(su::Value chatID, uint32_t* messageIDs, uint16_t amount, bool wait = false) {
+        fb::Packet p(fbcmd::deleteMessages(), _token);
+        p.addInt(fbapi::chat_id(), chatID);
+        p.beginArr(fbapi::message_ids());
+        for (uint16_t i = 0; i < amount; i++) p.addInt(messageIDs[i]);
+        p.endArr();
         return sendPacket(p, wait);
     }
 
@@ -335,14 +412,14 @@ class FastBot2 {
         if (_cbs) _cbs(s);
         yield();
 
-        gson::Doc doc(20);
-        if (!doc.parse(s)) return _error = fb::Error::Parse;
+        gson::Parser json(20);
+        if (!json.parse(s)) return _error = fb::Error::Parse;
         yield();
 
-        doc.hashKeys();
-        if (!doc[fbhash::ok]) return _error = fb::Error::Telegram;
+        json.hashKeys();
+        if (!json[fbhash::ok]) return _error = fb::Error::Telegram;
 
-        gson::Entry result = doc[fbhash::result];
+        gson::Entry result = json[fbhash::result];
         if (!result.valid()) return _error = fb::Error::Telegram;
 
         // ============= UPDATES =============
@@ -367,7 +444,7 @@ class FastBot2 {
                 yield();
             }
         } else {
-            // ============= INFO =============
+            // ============= RESPONSE =============
             _allow_send_wait = 0;
             if (result.includes(fbhash::message_id)) _last_bot = result[fbhash::message_id];
             if (_cbr) _cbr(result);

@@ -4,22 +4,23 @@
 #include <StringUtils.h>
 
 #include "FastBot2_class.h"
+#include "Menu.h"
+#include "MenuInline.h"
 #include "core/api.h"
 #include "core/packet.h"
-#include "menu.h"
 
 namespace fb {
 
-using sutil::AnyValue;
-
+// https://core.telegram.org/bots/api#replyparameters
 struct ReplyParam {
     // id сообщения, на которое отвечаем
-    int32_t message_id = -1;
+    int32_t messageID = -1;
 
     // id чата, в котором находится сообщение, на которое отвечаем
-    AnyValue chat_id;
+    su::Value chatID;
 };
 
+// https://core.telegram.org/bots/api#message
 class Message {
     friend class ::FastBot2;
 
@@ -30,31 +31,31 @@ class Message {
         HTML,
     };
     Message() {}
-    Message(const String& text, AnyValue chat_id) : text(text), chat_id(chat_id) {}
+    Message(const String& text, su::Value chatID) : text(text), chatID(chatID) {}
 
     // текст сообщения
     String text;
 
     // id чата, куда отправлять
-    AnyValue chat_id;
+    su::Value chatID;
 
     // id темы в группе, куда отправлять
-    int32_t thread_id = -1;
+    int32_t threadID = -1;
 
     // параметры ответа на сообщение
     ReplyParam reply;
 
     // включить превью для ссылок
-    bool preview = default_preview;
+    bool preview = previewDefault;
 
     // уведомить о получении
-    bool notification = default_notification;
+    bool notification = notificationDefault;
 
     // защитить от пересылки и копирования
-    bool protect = default_protect;
+    bool protect = protectDefault;
 
     // режим текста: Text, MarkdownV2, HTML
-    Mode mode = default_mode;
+    Mode mode = modeDefault;
 
     // добавить обычное меню
     void setMenu(fb::Menu& menu) {
@@ -74,30 +75,31 @@ class Message {
     // ===================================
 
     // включить превью для ссылок (умолч. 1)
-    static bool default_preview;
+    static bool previewDefault;
 
     // уведомить о получении (умолч. 1)
-    static bool default_notification;
+    static bool notificationDefault;
 
     // защитить от пересылки и копирования (умолч. 0)
-    static bool default_protect;
+    static bool protectDefault;
 
     // режим текста: Text, MarkdownV2, HTML (умолч. Text)
-    static Mode default_mode;
+    static Mode modeDefault;
 
    private:
     bool _remove_menu = 0;
     fb::Menu* _menu = nullptr;
     fb::MenuInline* _menu_inline = nullptr;
 
+   protected:
     void makePacket(fb::Packet& p) {
-        p.addString(fbapi::text(), text);
-        p.addInt(fbapi::chat_id(), chat_id);
-        if (thread_id >= 0) p.addInt(fbapi::message_thread_id(), thread_id);
-        if (reply.message_id >= 0) {
+        p.addInt(fbapi::chat_id(), chatID);
+        if (text.length()) p.addString(fbapi::text(), text);
+        if (threadID >= 0) p.addInt(fbapi::message_thread_id(), threadID);
+        if (reply.messageID >= 0) {
             p.beginObj(fbapi::reply_parameters());
-            p.addInt(fbapi::message_id(), reply.message_id);
-            if (reply.chat_id.valid()) p.addInt(fbapi::chat_id(), reply.chat_id);
+            p.addInt(fbapi::message_id(), reply.messageID);
+            if (reply.chatID.valid()) p.addInt(fbapi::chat_id(), reply.chatID);
             p.endObj();
         }
         if (!preview) {
@@ -119,22 +121,22 @@ class Message {
                 p.beginArr(fbapi::inline_keyboard());
                 _trim(_menu_inline->text);
                 _trim(_menu_inline->data);
-                sutil::Parser rows(_menu_inline->text, '\n');
-                sutil::Parser data(_menu_inline->data, ';');
-                while (rows.next()) {
-                    sutil::Parser cols(rows.str(), ';');
+                su::TextParser rows(_menu_inline->text, '\n');
+                su::TextParser data(_menu_inline->data, ';');
+                while (rows.parse()) {
+                    su::TextParser cols(rows, ';');
                     p.beginArr();
-                    while (cols.next()) {
-                        data.next();
+                    while (cols.parse()) {
+                        data.parse();
                         p.beginObj();
-                        p.addString(fbapi::text(), cols.str());
+                        p.addString(fbapi::text(), cols);
                         // url or callback_data
-                        if (!strncmp_P(data.str(), PSTR("http://"), 7) ||
-                            !strncmp_P(data.str(), PSTR("https://"), 8) ||
-                            !strncmp_P(data.str(), PSTR("tg://"), 5)) {
-                            p.addString(fbapi::url(), data.str());
+                        if (data.startsWith(F("http://")) ||
+                            data.startsWith(F("https://")) ||
+                            data.startsWith(F("tg://"))) {
+                            p.addString(fbapi::url(), data);
                         } else {
-                            p.addString(fbapi::callback_data(), data.str());
+                            p.addString(fbapi::callback_data(), data);
                         }
                         p.endObj();
                     }
@@ -146,17 +148,17 @@ class Message {
             } else {
                 p.beginArr(fbapi::keyboard());
                 _trim(_menu->text);
-                sutil::Parser rows(_menu->text, '\n');
-                while (rows.next()) {
-                    sutil::Parser cols(rows.str(), ';');
+                su::TextParser rows(_menu->text, '\n');
+                while (rows.parse()) {
+                    su::TextParser cols(rows, ';');
                     p.beginArr();
-                    while (cols.next()) p.addString(cols.str());
+                    while (cols.parse()) p.addString(cols);
                     p.endArr();
                 }
                 p.endArr();
                 if (_menu->persistent) p.addBool(fbapi::is_persistent(), true);
                 if (_menu->resize) p.addBool(fbapi::resize_keyboard(), true);
-                if (_menu->one_time) p.addBool(fbapi::one_time_keyboard(), true);
+                if (_menu->oneTime) p.addBool(fbapi::one_time_keyboard(), true);
                 if (_menu->selective) p.addBool(fbapi::selective(), true);
                 if (_menu->placeholder.length()) p.addString(fbapi::input_field_placeholder(), _menu->placeholder);
             }
@@ -166,49 +168,6 @@ class Message {
 
     void _trim(String& s) {
         if (s[s.length() - 1] == ';') s.remove(s.length() - 1);
-    }
-};
-
-bool Message::default_preview = 1;
-bool Message::default_notification = 1;
-bool Message::default_protect = 0;
-Message::Mode Message::default_mode = Message::Mode::Text;
-
-// ===================================================
-
-class MessageForward {
-    friend class ::FastBot2;
-
-   public:
-    MessageForward() {}
-    MessageForward(AnyValue message_id, AnyValue from_chat_id, AnyValue chat_id) : message_id(message_id), from_chat_id(from_chat_id), chat_id(chat_id) {}
-
-    // id пересылаемого сообщения в чате
-    AnyValue message_id;
-
-    // id чата пересылаемого сообщения
-    AnyValue from_chat_id;
-
-    // id чата, в который пересылать
-    AnyValue chat_id;
-
-    // id темы в группе, в которую переслать
-    int32_t thread_id = -1;
-
-    // уведомить о получении
-    bool notification = Message::default_notification;
-
-    // защитить от пересылки и копирования
-    bool protect = Message::default_protect;
-
-   private:
-    void makePacket(fb::Packet& p) {
-        p.addInt(fbapi::message_id(), message_id);
-        p.addInt(fbapi::from_chat_id(), from_chat_id);
-        p.addInt(fbapi::chat_id(), chat_id);
-        if (thread_id >= 0) p.addInt(fbapi::message_thread_id(), thread_id);
-        if (!notification) p.addBool(fbapi::disable_notification(), true);
-        if (protect) p.addBool(fbapi::protect_content(), true);
     }
 };
 

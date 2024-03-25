@@ -1,8 +1,8 @@
 #pragma once
 #include <Arduino.h>
 
-#include "packet.h"
 #include "api.h"
+#include "packet.h"
 
 namespace fb {
 
@@ -10,19 +10,19 @@ class Updates {
    public:
     enum Type : uint16_t {
         message = (1 << 0),
-        edited_message = (1 << 1),
-        channel_post = (1 << 2),
-        edited_channel_post = (1 << 3),
-        inline_query = (1 << 4),
-        chosen_inline_result = (1 << 5),
-        callback_query = (1 << 6),
-        shipping_query = (1 << 7),
-        pre_checkout_query = (1 << 8),
+        editedMessage = (1 << 1),
+        channelPost = (1 << 2),
+        editedChannelPost = (1 << 3),
+        inlineQuery = (1 << 4),
+        chosenInlineResult = (1 << 5),
+        callbackQuery = (1 << 6),
+        shippingQuery = (1 << 7),
+        preCheckoutQuery = (1 << 8),
         poll = (1 << 9),
-        poll_answer = (1 << 10),
-        my_chat_member = (1 << 11),
-        chat_member = (1 << 12),
-        chat_join_request = (1 << 13),
+        pollAnswer = (1 << 10),
+        myChatMember = (1 << 11),
+        chatMember = (1 << 12),
+        chatJoinRequest = (1 << 13),
     };
 
     void set(uint16_t nmods) {

@@ -3,53 +3,46 @@
 #include <GSON.h>
 #include <StringUtils.h>
 
-#include "FastBot2_class.h"
 #include "core/api.h"
 
 namespace fb {
 
-using sutil::AnyText;
-
-class LocationRead {
-    friend class ::FastBot2;
-
-   public:
+// https://core.telegram.org/bots/api#location
+struct LocationRead {
     LocationRead(gson::Entry entry) : entry(entry) {}
 
-    // долгота
-    AnyText longitude() {
-        return entry[fbhash::longitude];
-    }
-
     // широта
-    AnyText latitude() {
+    su::Text latitude() {
         return entry[fbhash::latitude];
     }
 
+    // долгота
+    su::Text longitude() {
+        return entry[fbhash::longitude];
+    }
+
     // точность в метрах, 0-1500
-    AnyText horizontal_accuracy() {
+    su::Text horizontalAccuracy() {
         return entry[fbhash::horizontal_accuracy];
     }
 
     // Время относительно даты отправки сообщения в секундах, в течение которого местоположение может быть обновлено
-    AnyText live_period() {
+    su::Text livePeriod() {
         return entry[fbhash::live_period];
     }
 
     // направление в градусах, 1-360
-    AnyText heading() {
+    su::Text heading() {
         return entry[fbhash::heading];
     }
 
     // Максимальное расстояние в метрах для оповещений о приближении к другому участнику чата
-    AnyText proximity_alert_radius() {
+    su::Text proximityAlertRadius() {
         return entry[fbhash::proximity_alert_radius];
     }
 
     // доступ к пакету данных
     gson::Entry entry;
-
-   private:
 };
 
 }  // namespace fb

@@ -3,63 +3,72 @@
 #include <GSON.h>
 #include <StringUtils.h>
 
-#include "FastBot2_class.h"
-#include "chat.h"
+#include "ChatRead.h"
+#include "DocumentRead.h"
+#include "LocationRead.h"
+#include "MessageOriginRead.h"
+#include "UserRead.h"
 #include "core/api.h"
-#include "locationRead.h"
-#include "user.h"
 
 namespace fb {
 
-using sutil::AnyText;
+// https://core.telegram.org/bots/api#message
+struct MessageRead {
+    MessageRead(gson::Entry entry) : entry(entry) {}
 
-class MessageOrigin {
-    friend class ::FastBot2;
+    // ================ INFO ================
 
-   public:
-    MessageOrigin(gson::Entry entry) : entry(entry) {}
-
-    enum class Type : size_t {
-        user = sutil::SH("user"),
-        hidden_user = sutil::SH("hidden_user"),
-        chat = sutil::SH("chat"),
-        channel = sutil::SH("channel"),
-    };
-
-    // тип отправителя: user, hidden_user, chat, channel
-    Type type() {
-        return (Type)entry[fbhash::type].hash();
+    // текст сообщения
+    su::Text text() {
+        return entry[fbhash::text];
     }
 
-    // дата оригинального сообщения
-    AnyText date() {
+    // id сообщения в этом чате
+    su::Text id() {
+        return entry[fbhash::message_id];
+    }
+
+    // id темы в группе
+    su::Text threadID() {
+        return entry[fbhash::message_thread_id];
+    }
+
+    // сообщение отправлено в топик форума
+    su::Text isTopic() {
+        return entry[fbhash::is_topic_message];
+    }
+
+    // дата отправки или пересылки сообщения
+    su::Text date() {
         return entry[fbhash::date];
     }
 
-    // отправитель type == user
-    User sender_user() {
-        return User(entry[fbhash::sender_user]);
+    // дата изменения сообщения
+    su::Text editDate() {
+        return entry[fbhash::edit_date];
     }
 
-    // отправитель type == chat
-    Chat sender_chat() {
-        return Chat(entry[fbhash::sender_chat]);
+    // ================ SENDER ================
+
+    // отправитель сообщения
+    UserRead from() {
+        return UserRead(entry[fbhash::from]);
     }
 
-    // отправитель type == channel
-    Chat chat() {
-        return Chat(entry[fbhash::chat]);
+    // бот, через которого пришло это сообщение
+    UserRead viaBot() {
+        return UserRead(entry[fbhash::via_bot]);
     }
 
-    // доступ к пакету данных
-    gson::Entry entry;
-};
+    // чат, которому принадлежит это сообщение
+    ChatRead chat() {
+        return ChatRead(entry[fbhash::chat]);
+    }
 
-class MessageRead {
-    friend class ::FastBot2;
-
-   public:
-    MessageRead(gson::Entry entry) : entry(entry) {}
+    // чат, если сообщение отправлено от имени чата
+    ChatRead senderChat() {
+        return ChatRead(entry[fbhash::sender_chat]);
+    }
 
     // ================ REPLY ================
 
@@ -81,61 +90,11 @@ class MessageRead {
     }
 
     // данные о пересланном сообщении
-    MessageOrigin forward() {
-        return MessageOrigin(entry[fbhash::forward_origin]);
+    MessageOriginRead forward() {
+        return MessageOriginRead(entry[fbhash::forward_origin]);
     }
 
-    // ================ MISC ================
-
-    // текст сообщения
-    AnyText text() {
-        return entry[fbhash::text];
-    }
-
-    // id сообщения в этом чате
-    AnyText message_id() {
-        return entry[fbhash::message_id];
-    }
-
-    // id темы в группе
-    AnyText thread_id() {
-        return entry[fbhash::message_thread_id];
-    }
-
-    // сообщение отправлено в топик форума
-    AnyText is_topic() {
-        return entry[fbhash::is_topic_message];
-    }
-
-    // дата отправки или пересылки сообщения
-    AnyText date() {
-        return entry[fbhash::date];
-    }
-
-    // дата изменения сообщения
-    AnyText edit_date() {
-        return entry[fbhash::edit_date];
-    }
-
-    // отправитель сообщения
-    User from() {
-        return User(entry[fbhash::from]);
-    }
-
-    // бот, через которого пришло это сообщение
-    User via_bot() {
-        return User(entry[fbhash::via_bot]);
-    }
-
-    // чат, которому принадлежит это сообщение
-    Chat chat() {
-        return Chat(entry[fbhash::chat]);
-    }
-
-    // чат, если сообщение отправлено от имени чата
-    Chat sender_chat() {
-        return Chat(entry[fbhash::sender_chat]);
-    }
+    // ================ LOCATION ================
 
     // сообщение содержит геолокацию
     bool hasLocation() {
@@ -145,6 +104,18 @@ class MessageRead {
     // геолокация
     LocationRead location() {
         return LocationRead(entry[fbhash::location]);
+    }
+
+    // ================ DOCUMENT ================
+
+    // сообщение содержит документ
+    bool hasDocument() {
+        return entry.includes(fbhash::document);
+    }
+
+    // документ
+    DocumentRead document() {
+        return DocumentRead(entry[fbhash::document]);
     }
 
     // доступ к пакету данных

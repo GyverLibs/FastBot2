@@ -21,6 +21,7 @@ void cbs(const String& s) {
 
 // обработчик ответов сервера
 void cbr(gson::Entry& r) {
+    // важный момент: отсюда нельзя ничего отправлять в бота! Библиотека проигнорирует отправку
     Serial.println(r[fbhash::message_id]);
 }
 
@@ -33,12 +34,12 @@ void cb(fb::Update& u) {
 
         // эхо, вариант 1
         // fb::Message msg;
-        // msg.text = u.message().text().str();
+        // msg.text = u.message().text().;
         // msg.chat_id = u.message().chat().id();
         // bot.sendMessage(msg);
 
         // эхо, вариант 2
-        bot.sendMessage(u.message().text().str(), u.message().chat().id());
+        bot.sendMessage(u.message().text(), u.message().chat().id());
     }
 
     // ответ на query
@@ -81,16 +82,16 @@ void setup() {
     // bot.setPollMode(FastBot2::Poll::Async, 4000);
 
     // настройки сообщений по умолчанию
-    // fb::Message::default_preview = 1;
-    // fb::Message::default_notification = 1;
-    // fb::Message::default_protect = 0;
-    // fb::Message::default_mode = fb::Message::Mode::Text;
+    // fb::Message::previewDefault = 1;
+    // fb::Message::notificationDefault = 1;
+    // fb::Message::protectDefault = 0;
+    // fb::Message::modeDefault = fb::Message::Mode::Text;
 
     // настройки меню по умолчанию
-    // fb::Menu::default_persistent = 0;
-    // fb::Menu::default_resize = 0;
-    // fb::Menu::default_one_time = 0;
-    // fb::Menu::default_selective = 0;
+    // fb::Menu::persistentDefault = 0;
+    // fb::Menu::resizeDefault = 0;
+    // fb::Menu::oneTimeDefault = 0;
+    // fb::Menu::selectiveDefault = 0;
 }
 
 void loop() {
