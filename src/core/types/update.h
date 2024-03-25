@@ -12,20 +12,20 @@ namespace fb {
 class Update {
    public:
     enum class Type : size_t {
-        message = fbhash::message,
-        editedMessage = fbhash::edited_message,
-        channelPost = fbhash::channel_post,
-        editedChannelPost = fbhash::edited_channel_post,
-        inlineQuery = fbhash::inline_query,
-        chosenInlineResult = fbhash::chosen_inline_result,
-        callbackQuery = fbhash::callback_query,
-        shippingQuery = fbhash::shipping_query,
-        preCheckoutQuery = fbhash::pre_checkout_query,
-        poll = fbhash::poll,
-        pollAnswer = fbhash::poll_answer,
-        myChatMember = fbhash::my_chat_member,
-        chatMember = fbhash::chat_member,
-        chatJoinRequest = fbhash::chat_join_request,
+        message = fbh::message,
+        editedMessage = fbh::edited_message,
+        channelPost = fbh::channel_post,
+        editedChannelPost = fbh::edited_channel_post,
+        inlineQuery = fbh::inline_query,
+        chosenInlineResult = fbh::chosen_inline_result,
+        callbackQuery = fbh::callback_query,
+        shippingQuery = fbh::shipping_query,
+        preCheckoutQuery = fbh::pre_checkout_query,
+        poll = fbh::poll,
+        pollAnswer = fbh::poll_answer,
+        myChatMember = fbh::my_chat_member,
+        chatMember = fbh::chat_member,
+        chatJoinRequest = fbh::chat_join_request,
     };
 
     Update(gson::Entry& entry, size_t type) : entry(entry), _type((Type)type) {}

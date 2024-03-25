@@ -23,7 +23,7 @@ text = '''#pragma once
 namespace fbapi {'''
 
 for key in tgapi: text += '\nFB_MAKE_API(' + key + ')'
-text += '\n}\n\nnamespace fbhash {'
+text += '\n}\n\nnamespace fbh {'
 
 for key in tgapi: text += '\nFB_MAKE_HASH(' + key + ')'
 text += '\n}\n\nnamespace fbcmd {'
@@ -61,7 +61,7 @@ with open(str(path) + '/api.h', 'w') as f: f.write(text)
 # namespace fbapi {'''
 
 # for key in tgapi: text += '\nFB_MAKE_API(' + key + ')'
-# text += '\n}\n\nnamespace fbhash {'
+# text += '\n}\n\nnamespace fbh {'
 
 # for key in tgapi: text += '\nFB_MAKE_HASH(' + key + ')'
 # text += '\n}\n\nnamespace fbcmd {'

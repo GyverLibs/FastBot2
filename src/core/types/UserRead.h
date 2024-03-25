@@ -13,37 +13,37 @@ struct UserRead {
 
     // id юзера
     su::Text id() {
-        return entry[fbhash::id];
+        return entry[fbh::id];
     }
 
     // бот или нет
     su::Text isBot() {
-        return entry[fbhash::is_bot];
+        return entry[fbh::is_bot];
     }
 
     // имя
     su::Text firstName() {
-        return entry[fbhash::first_name];
+        return entry[fbh::first_name];
     }
 
     // фамилия
     su::Text lastName() {
-        return entry[fbhash::last_name];
+        return entry[fbh::last_name];
     }
 
     // юзернейм
     su::Text username() {
-        return entry[fbhash::username];
+        return entry[fbh::username];
     }
 
     // код страны https://en.wikipedia.org/wiki/IETF_language_tag
     su::Text languageCode() {
-        return entry[fbhash::language_code];
+        return entry[fbh::language_code];
     }
 
     // true - премиум юзер
     su::Text isPremium() {
-        return entry[fbhash::is_premium];
+        return entry[fbh::is_premium];
     }
 
     // доступ к пакету данных

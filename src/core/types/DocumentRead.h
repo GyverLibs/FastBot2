@@ -13,27 +13,27 @@ struct DocumentRead {
 
     // id документа
     su::Text id() {
-        return entry[fbhash::file_id];
+        return entry[fbh::file_id];
     }
 
     // уникальный id документа
     su::Text uniqueID() {
-        return entry[fbhash::file_unique_id];
+        return entry[fbh::file_unique_id];
     }
 
     // имя документа
     su::Text name() {
-        return entry[fbhash::file_name];
+        return entry[fbh::file_name];
     }
 
     // тип документа
     su::Text type() {
-        return entry[fbhash::mime_type];
+        return entry[fbh::mime_type];
     }
 
     // размер документа
     su::Text size() {
-        return entry[fbhash::file_size];
+        return entry[fbh::file_size];
     }
 
     gson::Entry entry;

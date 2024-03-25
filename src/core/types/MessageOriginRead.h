@@ -22,27 +22,27 @@ struct MessageOriginRead {
 
     // тип отправителя: user, hidden_user, chat, channel
     Type type() {
-        return (Type)entry[fbhash::type].hash();
+        return (Type)entry[fbh::type].hash();
     }
 
     // дата оригинального сообщения
     su::Text date() {
-        return entry[fbhash::date];
+        return entry[fbh::date];
     }
 
     // отправитель type == user
     UserRead senderUser() {
-        return UserRead(entry[fbhash::sender_user]);
+        return UserRead(entry[fbh::sender_user]);
     }
 
     // отправитель type == chat
     ChatRead senderChat() {
-        return ChatRead(entry[fbhash::sender_chat]);
+        return ChatRead(entry[fbh::sender_chat]);
     }
 
     // отправитель type == channel
     ChatRead chat() {
-        return ChatRead(entry[fbhash::chat]);
+        return ChatRead(entry[fbh::chat]);
     }
 
     // доступ к пакету данных

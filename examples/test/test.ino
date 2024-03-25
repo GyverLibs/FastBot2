@@ -22,7 +22,7 @@ void cbs(const String& s) {
 // обработчик ответов сервера
 void cbr(gson::Entry& r) {
     // важный момент: отсюда нельзя ничего отправлять в бота! Библиотека проигнорирует отправку
-    Serial.println(r[fbhash::message_id]);
+    Serial.println(r[fbh::message_id]);
 }
 
 // обработчик обновлений

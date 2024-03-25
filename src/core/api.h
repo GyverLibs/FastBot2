@@ -489,7 +489,7 @@ FB_MAKE_API(reactions)
 FB_MAKE_API(source)
 }
 
-namespace fbhash {
+namespace fbh {
 FB_MAKE_HASH(via_bot)
 FB_MAKE_HASH(quote_parse_mode)
 FB_MAKE_HASH(file_date)

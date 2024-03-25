@@ -226,8 +226,8 @@ class FastBot2 {
     }
 
     // отправить сообщение
-    bool sendMessage(su::Text text, su::Value chat_id, bool wait = false) {
-        fb::Message msg(text, chat_id);
+    bool sendMessage(su::Text text, su::Value chatID, bool wait = false) {
+        fb::Message msg(text, chatID);
         return sendMessage(msg, wait);
     }
 
@@ -237,6 +237,63 @@ class FastBot2 {
         fb::Packet p(fbcmd::sendMessage(), _token);
         m.makePacket(p);
         return sendPacket(p, wait);
+    }
+
+    // ============================== SET ==============================
+
+    // отправить статус "набирает сообщение" на 5 секунд
+    bool setTyping(su::Value chatID, su::Value threadID = su::Value()) {
+        if (!chatID.valid()) return 0;
+        fb::Packet p(fbcmd::sendChatAction(), _token);
+        p.addInt(fbapi::chat_id(), chatID);
+        p.addString(fbapi::action(), F("typing"));
+        if (threadID.valid()) p.addInt(fbapi::message_thread_id(), threadID);
+        return sendPacket(p);
+    }
+
+    // установить заголовок чата
+    bool setChatTitle(su::Value chatID, su::Text title) {
+        if (!chatID.valid()) return 0;
+        fb::Packet p(fbcmd::setChatTitle(), _token);
+        p.addInt(fbapi::chat_id(), chatID);
+        p.addString(fbapi::title(), title);
+        return sendPacket(p);
+    }
+
+    // установить описание чата
+    bool setChatDescription(su::Value chatID, su::Text description) {
+        if (!chatID.valid()) return 0;
+        fb::Packet p(fbcmd::setChatDescription(), _token);
+        p.addInt(fbapi::chat_id(), chatID);
+        p.addString(fbapi::description(), description);
+        return sendPacket(p);
+    }
+
+    // закрепить сообщение
+    bool pinChatMessage(su::Value chatID, su::Value messageID, bool notify = true) {
+        if (!chatID.valid()) return 0;
+        fb::Packet p(fbcmd::pinChatMessage(), _token);
+        p.addInt(fbapi::chat_id(), chatID);
+        p.addInt(fbapi::message_id(), messageID);
+        p.addBool(fbapi::disable_notification(), notify);
+        return sendPacket(p);
+    }
+
+    // открепить сообщение
+    bool unpinChatMessage(su::Value chatID, su::Value messageID) {
+        if (!chatID.valid()) return 0;
+        fb::Packet p(fbcmd::unpinChatMessage(), _token);
+        p.addInt(fbapi::chat_id(), chatID);
+        p.addInt(fbapi::message_id(), messageID);
+        return sendPacket(p);
+    }
+
+    // открепить все сообщения
+    bool unpinAllChatMessages(su::Value chatID) {
+        if (!chatID.valid()) return 0;
+        fb::Packet p(fbcmd::unpinAllChatMessages(), _token);
+        p.addInt(fbapi::chat_id(), chatID);
+        return sendPacket(p);
     }
 
     // ============================== EDIT ==============================
@@ -292,7 +349,7 @@ class FastBot2 {
     // ============================== DELETE ==============================
 
     // удалить сообщение
-    bool deleteMessage(su::Value chatID, uint32_t messageID, bool wait = false) {
+    bool deleteMessage(su::Value chatID, su::Value messageID, bool wait = false) {
         fb::Packet p(fbcmd::deleteMessage(), _token);
         p.addInt(fbapi::chat_id(), chatID);
         p.addInt(fbapi::message_id(), messageID);
@@ -327,7 +384,7 @@ class FastBot2 {
             yield();
         }
         _poll_wait = 0;
-        // if (!_last_bot) wait = true;
+        // if (!_last_bot) wait = true;  // 1st message
 
         if (wait && _allow_send_wait) {
             String s = _client.send_read(p, &_error);
@@ -417,15 +474,15 @@ class FastBot2 {
         yield();
 
         json.hashKeys();
-        if (!json[fbhash::ok]) return _error = fb::Error::Telegram;
+        if (!json[fbh::ok]) return _error = fb::Error::Telegram;
 
-        gson::Entry result = json[fbhash::result];
+        gson::Entry result = json[fbh::result];
         if (!result.valid()) return _error = fb::Error::Telegram;
 
         // ============= UPDATES =============
         if (result.type() == gson::Type::Array) {
             uint8_t len = result.length();
-            if (len) _poll_offset = result[0][fbhash::update_id].toInt32() + len;
+            if (len) _poll_offset = result[0][fbh::update_id].toInt32() + len;
 
             for (uint8_t i = 0; i < len; i++) {
                 gson::Entry upd = result[i][1];
@@ -433,12 +490,12 @@ class FastBot2 {
 
                 size_t typeHash = upd.keyHash();
                 fb::Update update(upd, typeHash);
-                if (typeHash == fbhash::callback_query) _query_answ = 0;
+                if (typeHash == fbh::callback_query) _query_answ = 0;
 
                 if (_cbu1) _cbu1(update);
                 if (_cbu2) _cbu2(update);
 
-                if (typeHash == fbhash::callback_query && !_query_answ) {
+                if (typeHash == fbh::callback_query && !_query_answ) {
                     answerCallbackQuery(update.query().id());
                 }
                 yield();
@@ -446,7 +503,7 @@ class FastBot2 {
         } else {
             // ============= RESPONSE =============
             _allow_send_wait = 0;
-            if (result.includes(fbhash::message_id)) _last_bot = result[fbhash::message_id];
+            if (result.includes(fbh::message_id)) _last_bot = result[fbh::message_id];
             if (_cbr) _cbr(result);
             _allow_send_wait = 1;
         }

@@ -13,32 +13,32 @@ struct LocationRead {
 
     // широта
     su::Text latitude() {
-        return entry[fbhash::latitude];
+        return entry[fbh::latitude];
     }
 
     // долгота
     su::Text longitude() {
-        return entry[fbhash::longitude];
+        return entry[fbh::longitude];
     }
 
     // точность в метрах, 0-1500
     su::Text horizontalAccuracy() {
-        return entry[fbhash::horizontal_accuracy];
+        return entry[fbh::horizontal_accuracy];
     }
 
     // Время относительно даты отправки сообщения в секундах, в течение которого местоположение может быть обновлено
     su::Text livePeriod() {
-        return entry[fbhash::live_period];
+        return entry[fbh::live_period];
     }
 
     // направление в градусах, 1-360
     su::Text heading() {
-        return entry[fbhash::heading];
+        return entry[fbh::heading];
     }
 
     // Максимальное расстояние в метрах для оповещений о приближении к другому участнику чата
     su::Text proximityAlertRadius() {
-        return entry[fbhash::proximity_alert_radius];
+        return entry[fbh::proximity_alert_radius];
     }
 
     // доступ к пакету данных
