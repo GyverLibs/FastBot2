@@ -8,6 +8,7 @@
 #include "core/BotClient.h"
 #include "core/api.h"
 #include "core/packet.h"
+#include "core/types/Location.h"
 #include "core/types/Message.h"
 #include "core/types/MessageEdit.h"
 #include "core/types/MessageForward.h"
@@ -235,6 +236,14 @@ class FastBot2 {
     bool sendMessage(fb::Message& m, bool wait = false) {
         if (!m.text.length() || !m.chatID.valid()) return 0;
         fb::Packet p(fbcmd::sendMessage(), _token);
+        m.makePacket(p);
+        return sendPacket(p, wait);
+    }
+
+    // отправить геолокацию
+    bool sendLocation(fb::Location& m, bool wait = false) {
+        if (!m.chatID.valid()) return 0;
+        fb::Packet p(fbcmd::sendLocation(), _token);
         m.makePacket(p);
         return sendPacket(p, wait);
     }
