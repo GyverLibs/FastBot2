@@ -17,6 +17,8 @@ text = '''#pragma once
 #include <Arduino.h>
 #include <StringUtils.h>
 
+#define FB_BOT_API_VERSION "7.1"
+
 #define FB_MAKE_API(x) static inline const __FlashStringHelper* x() { return F(#x); }
 #define FB_MAKE_HASH(x) constexpr size_t x = su::SH(#x);
 

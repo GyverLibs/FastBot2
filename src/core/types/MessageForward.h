@@ -10,20 +10,20 @@
 
 namespace fb {
 
-// https://core.telegram.org/bots/api#forwardmessages
+// https://core.telegram.org/bots/api#forwardmessage
 class MessageForward {
     friend class ::FastBot2;
 
    public:
     MessageForward() {}
-    MessageForward(su::Value messageID,
-                   su::Value fromChatID,
-                   su::Value chatID) : messageID(messageID),
-                                             fromChatID(fromChatID),
-                                             chatID(chatID) {}
+    MessageForward(uint32_t messageID,
+                   const su::Value& fromChatID,
+                   const su::Value& chatID) : messageID(messageID),
+                                              fromChatID(fromChatID),
+                                              chatID(chatID) {}
 
     // id пересылаемого сообщения в чате
-    su::Value messageID;
+    uint32_t messageID;
 
     // id чата пересылаемого сообщения
     su::Value fromChatID;
@@ -41,7 +41,7 @@ class MessageForward {
     bool protect = Message::protectDefault;
 
    private:
-    void makePacket(fb::Packet& p) {
+    void makePacket(fb::Packet& p) const {
         p.addInt(fbapi::message_id(), messageID);
         p.addInt(fbapi::from_chat_id(), fromChatID);
         p.addInt(fbapi::chat_id(), chatID);

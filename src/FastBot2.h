@@ -8,6 +8,7 @@
 #include "core/BotClient.h"
 #include "core/api.h"
 #include "core/packet.h"
+#include "core/types/File.h"
 #include "core/types/Location.h"
 #include "core/types/Message.h"
 #include "core/types/MessageEdit.h"
@@ -113,6 +114,11 @@ class FastBot2 {
         _poll_offset = -1;
     }
 
+    // id последнего отправленного сообщения от бота. Для опроса сразу после sendMessage - ставь wait у sendMessage
+    uint32_t lastBotMessage() {
+        return _last_bot;
+    }
+
     // ============================== ATTACH ==============================
 
     // подключить обработчик обновлений вида void cb(fb::Update& u) {}
@@ -156,13 +162,6 @@ class FastBot2 {
         _cbs = nullptr;
     }
 
-    // ============================== MISC ==============================
-
-    // id последнего отправленного сообщения от бота. Для опроса сразу после sendMessage - ставь wait у sendMessage
-    uint32_t lastBotMessage() {
-        return _last_bot;
-    }
-
     // ============================== TICK ==============================
 
     // тикер, вызывать в loop
@@ -192,20 +191,6 @@ class FastBot2 {
         return _poll_wait;
     }
 
-    // ============================== ERROR ==============================
-
-    // есть ошибка
-    bool hasError() {
-        return _error != fb::Error::None;
-    }
-
-    // прочитать ошибку. Вызов сбросит ошибку
-    fb::Error getError() {
-        fb::Error buf = _error;
-        _error = fb::Error::None;
-        return buf;
-    }
-
     // ============================== SEND ==============================
 
     // ответить на callback. Можно указать текст и вызвать alert
@@ -213,27 +198,21 @@ class FastBot2 {
         _query_answ = true;
         fb::Packet p(fbcmd::answerCallbackQuery(), _token);
         p.addString(fbapi::callback_query_id(), id);
-        if (text.valid()) p.addString(fbapi::text(), text);
+        if (text.valid()) p.addStringEsc(fbapi::text(), text);
         if (show_alert) p.addBool(fbapi::show_alert(), true);
         return sendPacket(p);
     }
 
     // переслать сообщение
-    bool forwardMessage(fb::MessageForward& m, bool wait = false) {
-        if (!m.chatID.valid() || !m.fromChatID.valid() || !m.messageID.valid()) return 0;
+    bool forwardMessage(const fb::MessageForward& m, bool wait = false) {
+        if (!m.chatID.valid() || !m.fromChatID.valid()) return 0;
         fb::Packet p(fbcmd::sendMessage(), _token);
         m.makePacket(p);
         return sendPacket(p, wait);
     }
 
     // отправить сообщение
-    bool sendMessage(su::Text text, su::Value chatID, bool wait = false) {
-        fb::Message msg(text, chatID);
-        return sendMessage(msg, wait);
-    }
-
-    // отправить сообщение
-    bool sendMessage(fb::Message& m, bool wait = false) {
+    bool sendMessage(const fb::Message& m, bool wait = false) {
         if (!m.text.length() || !m.chatID.valid()) return 0;
         fb::Packet p(fbcmd::sendMessage(), _token);
         m.makePacket(p);
@@ -241,12 +220,29 @@ class FastBot2 {
     }
 
     // отправить геолокацию
-    bool sendLocation(fb::Location& m, bool wait = false) {
+    bool sendLocation(const fb::Location& m, bool wait = false) {
         if (!m.chatID.valid()) return 0;
         fb::Packet p(fbcmd::sendLocation(), _token);
         m.makePacket(p);
         return sendPacket(p, wait);
     }
+
+// ============================== FILE ==============================
+#ifdef FB_ESP_BUILD
+    bool sendFile(const fb::File& m, bool wait = false) {
+        fb::Packet p(m.multipart, _token);
+        m.makePacket(p);
+        return sendPacket(p, wait);
+    }
+
+    // редактировать медиа
+    bool editFile(const fb::FileEdit& m, bool wait = false) {
+        if (!m.chatID.valid()) return 0;
+        fb::Packet p(m.multipart, _token);
+        m.makePacket(p);
+        return sendPacket(p, wait);
+    }
+#endif
 
     // ============================== SET ==============================
 
@@ -265,7 +261,7 @@ class FastBot2 {
         if (!chatID.valid()) return 0;
         fb::Packet p(fbcmd::setChatTitle(), _token);
         p.addInt(fbapi::chat_id(), chatID);
-        p.addString(fbapi::title(), title);
+        p.addStringEsc(fbapi::title(), title);
         return sendPacket(p);
     }
 
@@ -274,9 +270,11 @@ class FastBot2 {
         if (!chatID.valid()) return 0;
         fb::Packet p(fbcmd::setChatDescription(), _token);
         p.addInt(fbapi::chat_id(), chatID);
-        p.addString(fbapi::description(), description);
+        p.addStringEsc(fbapi::description(), description);
         return sendPacket(p);
     }
+
+    // ============================== PIN ==============================
 
     // закрепить сообщение
     bool pinChatMessage(su::Value chatID, su::Value messageID, bool notify = true) {
@@ -308,7 +306,7 @@ class FastBot2 {
     // ============================== EDIT ==============================
 
     // редактировать текст
-    bool editText(fb::EditText& m, bool wait = false) {
+    bool editText(const fb::TextEdit& m, bool wait = false) {
         if (!m.text.length() || !m.chatID.valid() || m.messageID < 0) return 0;
         fb::Packet p(fbcmd::editMessageText(), _token);
         m.makePacket(p);
@@ -316,7 +314,7 @@ class FastBot2 {
     }
 
     // редактировать заголовок
-    bool editCaption(fb::EditCaption& m, bool wait = false) {
+    bool editCaption(const fb::CaptionEdit& m, bool wait = false) {
         if (!m.caption.length() || !m.chatID.valid() || m.messageID < 0) return 0;
         fb::Packet p(fbcmd::editMessageCaption(), _token);
         m.makePacket(p);
@@ -324,23 +322,15 @@ class FastBot2 {
     }
 
     // редактировать клавиатуру
-    bool editKeyboard(fb::EditKeyboard& m, bool wait = false) {
+    bool editKeyboard(const fb::KeyboardEdit& m, bool wait = false) {
         if (!m.chatID.valid() || m.messageID < 0) return 0;
         fb::Packet p(fbcmd::editMessageReplyMarkup(), _token);
         m.makePacket(p);
         return sendPacket(p, wait);
     }
 
-    // редактировать медиа
-    bool editMedia(fb::EditMedia& m, bool wait = false) {
-        if (!m.chatID.valid() || m.messageID < 0) return 0;
-        fb::Packet p(fbcmd::editMessageMedia(), _token);
-        m.makePacket(p);
-        return sendPacket(p, wait);
-    }
-
     // редактировать геолокацию
-    bool editLocation(fb::EditLocation& m, bool wait = false) {
+    bool editLocation(const fb::LocationEdit& m, bool wait = false) {
         if (!m.chatID.valid() || m.messageID < 0) return 0;
         fb::Packet p(fbcmd::editMessageLiveLocation(), _token);
         m.makePacket(p);
@@ -348,7 +338,7 @@ class FastBot2 {
     }
 
     // остановить геолокацию
-    bool stopLocation(fb::StopLocation& m, bool wait = false) {
+    bool stopLocation(const fb::LocationStop& m, bool wait = false) {
         if (!m.chatID.valid() || m.messageID < 0) return 0;
         fb::Packet p(fbcmd::stopMessageLiveLocation(), _token);
         m.makePacket(p);
@@ -375,7 +365,7 @@ class FastBot2 {
         return sendPacket(p, wait);
     }
 
-    // ============================== CUSTOM ==============================
+    // ============================== PACKET ==============================
 
     // начать пакет для ручной отправки в API
     fb::Packet beginPacket(const __FlashStringHelper* cmd) {
@@ -405,6 +395,21 @@ class FastBot2 {
         }
     }
 
+    // ============================== ERROR ==============================
+
+    // есть ошибка
+    bool hasError() {
+        return _error != fb::Error::None;
+    }
+
+    // прочитать ошибку. Вызов сбросит ошибку
+    fb::Error getError() {
+        fb::Error buf = _error;
+        _error = fb::Error::None;
+        return buf;
+    }
+
+    // ============================== PRIVATE ==============================
     // подключен ли клиент
     bool _connected() {
         return _client.connected();
@@ -418,7 +423,6 @@ class FastBot2 {
 #endif
 #endif
 
-    // ============================== PRIVATE ==============================
    private:
     BotClient _client;
     bool _state = 0;

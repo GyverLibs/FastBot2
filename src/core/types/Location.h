@@ -13,6 +13,11 @@ class Location : private Message {
     friend class ::FastBot2;
 
    public:
+    Location();
+    Location(float latitude, float longitude, const su::Value& chatID) : latitude(latitude), longitude(longitude) {
+        this->chatID = chatID;
+    }
+
     using Message::chatID;
     using Message::notification;
     using Message::protect;
@@ -40,7 +45,7 @@ class Location : private Message {
     uint32_t proximityAlertRadius = 0;
 
    protected:
-    void makePacket(fb::Packet& p) {
+    void makePacket(fb::Packet& p) const {
         Message::makePacket(p);
         p.addFloat(fbapi::latitude(), latitude, 6);
         p.addFloat(fbapi::longitude(), longitude, 6);

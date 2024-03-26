@@ -20,7 +20,7 @@ struct ReplyParam {
     su::Value chatID;
 };
 
-// https://core.telegram.org/bots/api#message
+// https://core.telegram.org/bots/api#sendmessage
 class Message {
     friend class ::FastBot2;
 
@@ -31,7 +31,7 @@ class Message {
         HTML,
     };
     Message() {}
-    Message(const String& text, su::Value chatID) : text(text), chatID(chatID) {}
+    Message(const String& text, const su::Value& chatID) : text(text), chatID(chatID) {}
 
     // текст сообщения
     String text;
@@ -92,9 +92,9 @@ class Message {
     fb::MenuInline* _menu_inline = nullptr;
 
    protected:
-    void makePacket(fb::Packet& p) {
+    void makePacket(fb::Packet& p) const {
         p.addInt(fbapi::chat_id(), chatID);
-        if (text.length()) p.addString(fbapi::text(), text);
+        if (text.length()) p.addStringEsc(fbapi::text(), text);
         if (threadID >= 0) p.addInt(fbapi::message_thread_id(), threadID);
         if (reply.messageID >= 0) {
             p.beginObj(fbapi::reply_parameters());
@@ -110,63 +110,100 @@ class Message {
         if (!notification) p.addBool(fbapi::disable_notification(), true);
         if (protect) p.addBool(fbapi::protect_content(), true);
         if (mode != fb::Message::Mode::Text) p.addString(fbapi::parse_mode(), mode == (fb::Message::Mode::MarkdownV2) ? F("MarkdownV2") : F("HTML"));
+
         if (_remove_menu || _menu_inline || _menu) {
             p.beginObj(fbapi::reply_markup());
-            // REMOVE MENU
-            if (_remove_menu) {
-                p.addBool(fbapi::remove_keyboard(), true);
-
-                // INLINE MENU
-            } else if (_menu_inline) {
-                p.beginArr(fbapi::inline_keyboard());
-                _trim(_menu_inline->text);
-                _trim(_menu_inline->data);
-                su::TextParser rows(_menu_inline->text, '\n');
-                su::TextParser data(_menu_inline->data, ';');
-                while (rows.parse()) {
-                    su::TextParser cols(rows, ';');
-                    p.beginArr();
-                    while (cols.parse()) {
-                        data.parse();
-                        p.beginObj();
-                        p.addString(fbapi::text(), cols);
-                        // url or callback_data
-                        if (data.startsWith(F("http://")) ||
-                            data.startsWith(F("https://")) ||
-                            data.startsWith(F("tg://"))) {
-                            p.addString(fbapi::url(), data);
-                        } else {
-                            p.addString(fbapi::callback_data(), data);
-                        }
-                        p.endObj();
-                    }
-                    p.endArr();
-                }
-                p.endArr();
-
-                // REPLY MENU
-            } else {
-                p.beginArr(fbapi::keyboard());
-                _trim(_menu->text);
-                su::TextParser rows(_menu->text, '\n');
-                while (rows.parse()) {
-                    su::TextParser cols(rows, ';');
-                    p.beginArr();
-                    while (cols.parse()) p.addString(cols);
-                    p.endArr();
-                }
-                p.endArr();
-                if (_menu->persistent) p.addBool(fbapi::is_persistent(), true);
-                if (_menu->resize) p.addBool(fbapi::resize_keyboard(), true);
-                if (_menu->oneTime) p.addBool(fbapi::one_time_keyboard(), true);
-                if (_menu->selective) p.addBool(fbapi::selective(), true);
-                if (_menu->placeholder.length()) p.addString(fbapi::input_field_placeholder(), _menu->placeholder);
-            }
+            makeMenu(p);
             p.endObj();
         }
     }
 
-    void _trim(String& s) {
+    void makeQS(fb::Packet& p) const {
+        p.addQS(fbapi::chat_id(), chatID);
+        if (text.length()) p.addQS(fbapi::text(), text);
+        if (threadID >= 0) p.addQS(fbapi::message_thread_id(), threadID);
+        if (reply.messageID >= 0) {
+            p.beginQS(fbapi::reply_parameters());
+            p.beginObj();
+            p.addInt(fbapi::message_id(), reply.messageID);
+            if (reply.chatID.valid()) p.addInt(fbapi::chat_id(), reply.chatID);
+            p.endObj();
+            p.end();
+        }
+        if (!preview) {
+            p.beginQS(fbapi::link_preview_options());
+            p.beginObj();
+            p.addBool(fbapi::is_disabled(), true);
+            p.endObj();
+            p.end();
+        }
+        if (!notification) p.addQS(fbapi::disable_notification(), true);
+        if (protect) p.addQS(fbapi::protect_content(), true);
+        if (mode != fb::Message::Mode::Text) p.addQS(fbapi::parse_mode(), mode == (fb::Message::Mode::MarkdownV2) ? F("MarkdownV2") : F("HTML"));
+
+        if (_remove_menu || _menu_inline || _menu) {
+            p.beginQS(fbapi::reply_markup());
+            p.beginObj();
+            makeMenu(p);
+            p.endObj();
+            p.end();
+        }
+    }
+
+    void makeMenu(fb::Packet& p) const {
+        // REMOVE MENU
+        if (_remove_menu) {
+            p.addBool(fbapi::remove_keyboard(), true);
+
+            // INLINE MENU
+        } else if (_menu_inline) {
+            p.beginArr(fbapi::inline_keyboard());
+            _trim(_menu_inline->text);
+            _trim(_menu_inline->data);
+            su::TextParser rows(_menu_inline->text, '\n');
+            su::TextParser data(_menu_inline->data, ';');
+            while (rows.parse()) {
+                su::TextParser cols(rows, ';');
+                p.beginArr();
+                while (cols.parse()) {
+                    data.parse();
+                    p.beginObj();
+                    p.addStringEsc(fbapi::text(), cols);
+                    // url or callback_data
+                    if (data.startsWith(F("http://")) ||
+                        data.startsWith(F("https://")) ||
+                        data.startsWith(F("tg://"))) {
+                        p.addString(fbapi::url(), data);
+                    } else {
+                        p.addString(fbapi::callback_data(), data);
+                    }
+                    p.endObj();
+                }
+                p.endArr();
+            }
+            p.endArr();
+
+            // REPLY MENU
+        } else {
+            p.beginArr(fbapi::keyboard());
+            _trim(_menu->text);
+            su::TextParser rows(_menu->text, '\n');
+            while (rows.parse()) {
+                su::TextParser cols(rows, ';');
+                p.beginArr();
+                while (cols.parse()) p.addString(cols);
+                p.endArr();
+            }
+            p.endArr();
+            if (_menu->persistent) p.addBool(fbapi::is_persistent(), true);
+            if (_menu->resize) p.addBool(fbapi::resize_keyboard(), true);
+            if (_menu->oneTime) p.addBool(fbapi::one_time_keyboard(), true);
+            if (_menu->selective) p.addBool(fbapi::selective(), true);
+            if (_menu->placeholder.length()) p.addString(fbapi::input_field_placeholder(), _menu->placeholder);
+        }
+    }
+
+    void _trim(String& s) const {
         if (s[s.length() - 1] == ';') s.remove(s.length() - 1);
     }
 };
