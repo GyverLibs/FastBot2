@@ -24,8 +24,7 @@ class TextEdit : private Message {
     using Message::chatID;
     using Message::mode;
     using Message::preview;
-    using Message::removeMenu;
-    using Message::setMenu;
+    using Message::setInlineMenu;
     using Message::text;
 
    protected:
@@ -36,12 +35,12 @@ class TextEdit : private Message {
 };
 
 // https://core.telegram.org/bots/api#editmessagereplymarkup
-class KeyboardEdit : private Message {
+class MenuEdit : private Message {
     friend class ::FastBot2;
 
    public:
-    KeyboardEdit() {}
-    KeyboardEdit(uint32_t messageID, const su::Value& chatID) : messageID(messageID) {
+    MenuEdit() {}
+    MenuEdit(uint32_t messageID, const su::Value& chatID) : messageID(messageID) {
         this->chatID = chatID;
     }
 
@@ -49,8 +48,7 @@ class KeyboardEdit : private Message {
     uint32_t messageID;
 
     using Message::chatID;
-    using Message::removeMenu;
-    using Message::setMenu;
+    using Message::setInlineMenu;
 
    protected:
     void makePacket(fb::Packet& p) const {
@@ -77,8 +75,7 @@ class CaptionEdit : private Message {
 
     using Message::chatID;
     using Message::mode;
-    using Message::removeMenu;
-    using Message::setMenu;
+    using Message::setInlineMenu;
 
    protected:
     void makePacket(fb::Packet& p) const {
@@ -117,8 +114,7 @@ class LocationEdit : private Message {
     uint32_t proximityAlertRadius = 0;
 
     using Message::chatID;
-    using Message::removeMenu;
-    using Message::setMenu;
+    using Message::setInlineMenu;
 
    protected:
     void makePacket(fb::Packet& p) const {
@@ -146,8 +142,7 @@ class LocationStop : private Message {
     uint32_t messageID;
 
     using Message::chatID;
-    using Message::removeMenu;
-    using Message::setMenu;
+    using Message::setInlineMenu;
 
    protected:
     void makePacket(fb::Packet& p) const {

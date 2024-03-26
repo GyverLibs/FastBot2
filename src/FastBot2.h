@@ -307,7 +307,7 @@ class FastBot2 {
 
     // редактировать текст
     bool editText(const fb::TextEdit& m, bool wait = false) {
-        if (!m.text.length() || !m.chatID.valid() || m.messageID < 0) return 0;
+        if (!m.text.length() || !m.chatID.valid()) return 0;
         fb::Packet p(fbcmd::editMessageText(), _token);
         m.makePacket(p);
         return sendPacket(p, wait);
@@ -315,15 +315,15 @@ class FastBot2 {
 
     // редактировать заголовок
     bool editCaption(const fb::CaptionEdit& m, bool wait = false) {
-        if (!m.caption.length() || !m.chatID.valid() || m.messageID < 0) return 0;
+        if (!m.caption.length() || !m.chatID.valid()) return 0;
         fb::Packet p(fbcmd::editMessageCaption(), _token);
         m.makePacket(p);
         return sendPacket(p, wait);
     }
 
-    // редактировать клавиатуру
-    bool editKeyboard(const fb::KeyboardEdit& m, bool wait = false) {
-        if (!m.chatID.valid() || m.messageID < 0) return 0;
+    // редактировать меню
+    bool editMenu(const fb::MenuEdit& m, bool wait = false) {
+        if (!m.chatID.valid()) return 0;
         fb::Packet p(fbcmd::editMessageReplyMarkup(), _token);
         m.makePacket(p);
         return sendPacket(p, wait);
@@ -331,7 +331,7 @@ class FastBot2 {
 
     // редактировать геолокацию
     bool editLocation(const fb::LocationEdit& m, bool wait = false) {
-        if (!m.chatID.valid() || m.messageID < 0) return 0;
+        if (!m.chatID.valid()) return 0;
         fb::Packet p(fbcmd::editMessageLiveLocation(), _token);
         m.makePacket(p);
         return sendPacket(p, wait);
@@ -339,7 +339,7 @@ class FastBot2 {
 
     // остановить геолокацию
     bool stopLocation(const fb::LocationStop& m, bool wait = false) {
-        if (!m.chatID.valid() || m.messageID < 0) return 0;
+        if (!m.chatID.valid()) return 0;
         fb::Packet p(fbcmd::stopMessageLiveLocation(), _token);
         m.makePacket(p);
         return sendPacket(p, wait);

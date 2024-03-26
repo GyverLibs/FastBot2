@@ -44,27 +44,27 @@ void cb(fb::Update& u) {
         // Serial.println(u.message().date());
         Serial.println(u.message().text());
         Serial.println(u.message().text().toString(true));  // decode unicode
-        // Serial.println(u.message().from().username());
+        Serial.println(u.message().from().username());
 
         // эхо, вариант 1
         // fb::Message msg;
-        // msg.text = u.message().text();
-        // msg.chatId = u.message().chat().id();
+        // msg.text = (String)u.message().text();
+        // msg.chatID = u.message().chat().id();
         // bot.sendMessage(msg);
 
         // эхо, вариант 2
-        // bot.sendMessage(u.message().text(), u.message().chat().id());
-        // bot.deleteMessage(u.message().chat().id(), u.message().id());
+        bot.sendMessage(fb::Message(u.message().text(), u.message().chat().id()));
+        bot.deleteMessage(u.message().chat().id(), u.message().id());
 
         // edit
         // if (bot.lastBotMessage()) {
-        //     fb::EditText et;
+        //     fb::TextEdit et;
         //     et.text = u.message().text().toString();
         //     et.chatID = u.message().chat().id();
         //     et.messageID = bot.lastBotMessage();
         //     bot.editText(et);
         // } else {
-        //     bot.sendMessage(u.message().text(), u.message().chat().id());
+        //     bot.sendMessage(fb::Message(u.message().text(), u.message().chat().id()));
         // }
     }
 
@@ -117,12 +117,12 @@ void setup() {
 
     // ============================
     // выбор типа обновлений
-    // bot.updates.clearAll();
-    // bot.updates.set(fb::Updates::Type::message | fb::Updates::Type::channel_post);
+    bot.updates.clearAll();
+    bot.updates.set(fb::Updates::Type::Message | fb::Updates::Type::ChannelPost);
 
     // ============================
     // настройка режима опроса
-    // bot.setPollMode(FastBot2::Poll::Sync, 4000); // умолч
+    // bot.setPollMode(FastBot2::Poll::Sync, 4000);  // умолч
     // bot.setPollMode(FastBot2::Poll::Async, 4000);
     // bot.setPollMode(FastBot2::Poll::Long, 10000);
 
@@ -150,6 +150,7 @@ void setup() {
     // bot.sendPacket(p);
     // таким образом можно отправить любой API запрос
 
+    // ============================
     // send+edit url gif
     // fb::File f("file.txt", fb::File::Type::document, "https://compote.slate.com/images/697b023b-64a5-49a0-8059-27b963453fb1.gif");
     // f.chatID = CHAT_ID;
@@ -190,7 +191,7 @@ void loop() {
         // сообщение, вариант 2
         // fb::Message msg;
         // msg.text = Serial.readString();
-        // msg.chatId = CHAT_ID;
+        // msg.chatID = CHAT_ID;
 
         // =============================
         // меню, вариант 1
@@ -198,27 +199,28 @@ void loop() {
         // menu.text = "kek 1 ; kek 2 ; kek 3 \n kek 4 ; kek 5";
         // menu.resize = 1;
         // menu.placeholder = "Fancy placeholder";
+        // msg.setMenu(menu);
 
         // =============================
         // меню, вариант 2
         // fb::Menu menu;
         // menu.addButton("kek 1").addButton("kek 2").newRow();
         // menu.addButton("kek 3");
+        // msg.setMenu(menu);
 
         // =============================
         // inline menu, вариант 1
-        fb::MenuInline menu("kek 1 ; kek 2 ; kek 3 \n kek 4 ; kek 5", "test;pest;lol;https://www.google.ru/;https://www.yandex.ru/");
+        fb::InlineMenu menu("kek 1 ; kek 2 ; kek 3 \n kek 4 ; kek 5", "test;pest;lol;https://www.google.ru/;https://www.yandex.ru/");
+        msg.setInlineMenu(menu);
 
         // =============================
         // inline menu, вариант 2
-        // fb::MenuInline menu;
+        // fb::InlineMenu menu;
         // menu.addButton("BUTTON 1");  // data == text
         // menu.addButton("BUTTON 2", "data_2");
         // menu.newRow();
         // menu.addButton("BUTTON 3", "https://www.google.ru/");
-
-        // =============================
-        msg.setMenu(menu);
+        // msg.setInlineMenu(menu);
 
         bot.sendMessage(msg);
     }

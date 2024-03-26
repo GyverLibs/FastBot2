@@ -5,7 +5,7 @@
 
 #include "FastBot2_class.h"
 #include "Menu.h"
-#include "MenuInline.h"
+#include "InlineMenu.h"
 #include "core/api.h"
 #include "core/packet.h"
 
@@ -63,7 +63,7 @@ class Message {
     }
 
     // добавить инлайн меню
-    void setMenu(fb::MenuInline& menu) {
+    void setInlineMenu(fb::InlineMenu& menu) {
         if (menu.text.length() && menu.data.length()) _menu_inline = &menu;
     }
 
@@ -89,7 +89,7 @@ class Message {
    private:
     bool _remove_menu = 0;
     fb::Menu* _menu = nullptr;
-    fb::MenuInline* _menu_inline = nullptr;
+    fb::InlineMenu* _menu_inline = nullptr;
 
    protected:
     void makePacket(fb::Packet& p) const {
@@ -151,60 +151,9 @@ class Message {
     }
 
     void makeMenu(fb::Packet& p) const {
-        // REMOVE MENU
-        if (_remove_menu) {
-            p.addBool(fbapi::remove_keyboard(), true);
-
-            // INLINE MENU
-        } else if (_menu_inline) {
-            p.beginArr(fbapi::inline_keyboard());
-            _trim(_menu_inline->text);
-            _trim(_menu_inline->data);
-            su::TextParser rows(_menu_inline->text, '\n');
-            su::TextParser data(_menu_inline->data, ';');
-            while (rows.parse()) {
-                su::TextParser cols(rows, ';');
-                p.beginArr();
-                while (cols.parse()) {
-                    data.parse();
-                    p.beginObj();
-                    p.addStringEsc(fbapi::text(), cols);
-                    // url or callback_data
-                    if (data.startsWith(F("http://")) ||
-                        data.startsWith(F("https://")) ||
-                        data.startsWith(F("tg://"))) {
-                        p.addString(fbapi::url(), data);
-                    } else {
-                        p.addString(fbapi::callback_data(), data);
-                    }
-                    p.endObj();
-                }
-                p.endArr();
-            }
-            p.endArr();
-
-            // REPLY MENU
-        } else {
-            p.beginArr(fbapi::keyboard());
-            _trim(_menu->text);
-            su::TextParser rows(_menu->text, '\n');
-            while (rows.parse()) {
-                su::TextParser cols(rows, ';');
-                p.beginArr();
-                while (cols.parse()) p.addString(cols);
-                p.endArr();
-            }
-            p.endArr();
-            if (_menu->persistent) p.addBool(fbapi::is_persistent(), true);
-            if (_menu->resize) p.addBool(fbapi::resize_keyboard(), true);
-            if (_menu->oneTime) p.addBool(fbapi::one_time_keyboard(), true);
-            if (_menu->selective) p.addBool(fbapi::selective(), true);
-            if (_menu->placeholder.length()) p.addString(fbapi::input_field_placeholder(), _menu->placeholder);
-        }
-    }
-
-    void _trim(String& s) const {
-        if (s[s.length() - 1] == ';') s.remove(s.length() - 1);
+        if (_remove_menu) p.addBool(fbapi::remove_keyboard(), true);
+        else if (_menu_inline) _menu_inline->_toJson(p);
+        else if (_menu) _menu->_toJson(p);
     }
 };
 

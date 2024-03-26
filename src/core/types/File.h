@@ -35,9 +35,8 @@ class File : protected Message {
     using Message::mode;
     using Message::notification;
     using Message::protect;
-    using Message::removeMenu;
     using Message::reply;
-    using Message::setMenu;
+    using Message::setInlineMenu;
     using Message::threadID;
 
     // заголовок
@@ -84,8 +83,7 @@ class FileEdit : protected File {
     using File::caption;
     using File::chatID;
     using File::multipart;
-    using File::removeMenu;
-    using File::setMenu;
+    using Message::setInlineMenu;
 
    protected:
     void makePacket(fb::Packet& p) const {

@@ -4,6 +4,7 @@
 #include <StringUtils.h>
 
 #include "core/api.h"
+#include "core/packet.h"
 
 namespace fb {
 
@@ -56,6 +57,29 @@ struct Menu {
 
     // показывать только упомянутым в сообщении юзерам (умолч. 0)
     static bool selectiveDefault;
+
+    void _toJson(Packet& p) {
+        p.beginArr(fbapi::keyboard());
+        _trim(text);
+        su::TextParser rows(text, '\n');
+        while (rows.parse()) {
+            su::TextParser cols(rows, ';');
+            p.beginArr();
+            while (cols.parse()) p.addString(cols);
+            p.endArr();
+        }
+        p.endArr();
+        if (persistent) p.addBool(fbapi::is_persistent(), true);
+        if (resize) p.addBool(fbapi::resize_keyboard(), true);
+        if (oneTime) p.addBool(fbapi::one_time_keyboard(), true);
+        if (selective) p.addBool(fbapi::selective(), true);
+        if (placeholder.length()) p.addString(fbapi::input_field_placeholder(), placeholder);
+    }
+
+   private:
+    void _trim(String& s) const {
+        if (s[s.length() - 1] == ';') s.remove(s.length() - 1);
+    }
 };
 
 }  // namespace fb

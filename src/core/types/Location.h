@@ -23,6 +23,7 @@ class Location : private Message {
     using Message::protect;
     using Message::removeMenu;
     using Message::reply;
+    using Message::setInlineMenu;
     using Message::setMenu;
     using Message::threadID;
 

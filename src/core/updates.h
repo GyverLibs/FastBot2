@@ -9,20 +9,20 @@ namespace fb {
 class Updates {
    public:
     enum Type : uint16_t {
-        message = (1 << 0),
-        editedMessage = (1 << 1),
-        channelPost = (1 << 2),
-        editedChannelPost = (1 << 3),
-        inlineQuery = (1 << 4),
-        chosenInlineResult = (1 << 5),
-        callbackQuery = (1 << 6),
-        shippingQuery = (1 << 7),
-        preCheckoutQuery = (1 << 8),
-        poll = (1 << 9),
-        pollAnswer = (1 << 10),
-        myChatMember = (1 << 11),
-        chatMember = (1 << 12),
-        chatJoinRequest = (1 << 13),
+        Message = (1 << 0),
+        EditedMessage = (1 << 1),
+        ChannelPost = (1 << 2),
+        EditedChannelPost = (1 << 3),
+        InlineQuery = (1 << 4),
+        ChosenInlineResult = (1 << 5),
+        CallbackQuery = (1 << 6),
+        ShippingQuery = (1 << 7),
+        PreCheckoutQuery = (1 << 8),
+        Poll = (1 << 9),
+        PollAnswer = (1 << 10),
+        MyChatMember = (1 << 11),
+        ChatMember = (1 << 12),
+        ChatJoinRequest = (1 << 13),
     };
 
     void set(uint16_t nmods) {

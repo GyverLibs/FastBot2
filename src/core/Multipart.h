@@ -116,11 +116,11 @@ class Multipart : public Printable {
 #endif
         if (_bytes) {
             size_t length = _length;
-            const uint8_t* bytes = _bytes;
+            const uint8_t* bytesp = _bytes;
             while (length) {
                 size_t curlen = min((size_t)FB_BLOCK_SIZE, length);
-                printed += p.write(bytes, curlen);
-                bytes += curlen;
+                printed += p.write(bytesp, curlen);
+                bytesp += curlen;
                 length -= curlen;
             }
         }
@@ -138,7 +138,7 @@ class Multipart : public Printable {
    protected:
     const su::Text _name;
     const Type _type;
-    su::Text _urlid;
+    const su::Text _urlid;
 #ifdef FB_ESP_BUILD
     ::File* _file = nullptr;
 #endif
