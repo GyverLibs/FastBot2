@@ -22,7 +22,7 @@ class File : protected Message {
         video_note,
     };
 
-#ifdef FB_ESP_BUILD
+#ifdef FS_H
     File(const su::Text& name, Type type, ::File& file) : File(name, type, file, false) {}
 #endif
     File(const su::Text& name, Type type, uint8_t* bytes, size_t length) : File(name, type, bytes, length, false) {}
@@ -56,7 +56,7 @@ class File : protected Message {
         }
     }
 
-#ifdef FB_ESP_BUILD
+#ifdef FS_H
     File(const su::Text& name, Type type, ::File& file, bool edit) : multipart(name, (Multipart::Type)type, file, edit) {}
 #endif
     File(const su::Text& name, Type type, uint8_t* bytes, size_t length, bool edit) : multipart(name, (Multipart::Type)type, bytes, length, edit) {}
@@ -68,7 +68,7 @@ class FileEdit : protected File {
     friend class ::FastBot2;
 
    public:
-#ifdef FB_ESP_BUILD
+#ifdef FS_H
     FileEdit(const su::Text& name, Type type, ::File& file) : File(name, type, file, true) {}
 #endif
     FileEdit(const su::Text& name, Type type, uint8_t* bytes, size_t length) : File(name, type, bytes, length, true) {}

@@ -5,9 +5,9 @@
 #include "core/api.h"
 #include "core/config.h"
 
-#ifdef FB_ESP_BUILD
-#include <FS.h>
-#endif
+// #ifdef FB_ESP_BUILD
+// #include <FS.h>
+// #endif
 
 #define FB_ATTACH "attach://"
 #define FB_ATTACH_LEN 9
@@ -26,7 +26,7 @@ class Multipart : public Printable {
         video_note,
     };
 
-#ifdef FB_ESP_BUILD
+#ifdef FS_H
     Multipart(const su::Text& name, Type type, ::File& file, bool edit) : _name(name), _type(type), _file(&file), _edit(edit) {
         _init();
     }
@@ -101,7 +101,7 @@ class Multipart : public Printable {
     size_t printTo(Print& p) const {
         if (!isFile()) return 0;
         size_t printed = 0;
-#ifdef FB_ESP_BUILD
+#ifdef FS_H
         if (_file) {
             uint8_t buf[FB_BLOCK_SIZE];
             size_t length = _file->size();
@@ -139,7 +139,7 @@ class Multipart : public Printable {
     const su::Text _name;
     const Type _type;
     const su::Text _urlid;
-#ifdef FB_ESP_BUILD
+#ifdef FS_H
     ::File* _file = nullptr;
 #endif
     const uint8_t* _bytes = nullptr;

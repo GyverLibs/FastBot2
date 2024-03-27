@@ -23,7 +23,7 @@ FastBot2 bot;
 // FastBot2 bot(&gsmclient);
 
 // обработчик сырого json String пакета
-void cbs(const String& s) {
+void cbs(const su::Text& s) {
     Serial.println(s);
 }
 
@@ -149,6 +149,17 @@ void setup() {
     p.addInt(fbapi::chat_id(), CHAT_ID);
     // bot.sendPacket(p);
     // таким образом можно отправить любой API запрос
+
+    // ============================
+    // отправка нескольким ID
+    // fb::Message msg;
+    // msg.text = "hello!";
+
+    // su::TextParser ids("546343285;1234853;8796453678;38347567", ';');
+    // while (ids.parse()) {
+    //     msg.chatID = ids;
+    //     bot.sendMessage(msg);
+    // }
 
     // ============================
     // send+edit url gif

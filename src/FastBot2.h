@@ -1,12 +1,12 @@
 #pragma once
 #include <Arduino.h>
 #include <GSON.h>
-
-#define FB_LONG_POLL_TOUT 300
+#include <StringUtils.h>
 
 #include "FastBot2_class.h"
 #include "core/BotClient.h"
 #include "core/api.h"
+#include "core/config.h"
 #include "core/packet.h"
 #include "core/types/File.h"
 #include "core/types/Location.h"
@@ -31,7 +31,7 @@
 
 namespace fb {
 typedef void (*CallbackResult)(gson::Entry& entry);
-typedef void (*CallbackRaw)(const String& res);
+typedef void (*CallbackRaw)(const su::Text& res);
 }  // namespace fb
 
 class FastBot2 {
@@ -170,7 +170,7 @@ class FastBot2 {
 
         if (_client.available()) {
             String s = _client.read(&_error);
-            _parse(s);
+            parse(s);
         }
 
         if (_client.waiting()) {
@@ -228,7 +228,7 @@ class FastBot2 {
     }
 
 // ============================== FILE ==============================
-#ifdef FB_ESP_BUILD
+#ifdef FS_H
     bool sendFile(const fb::File& m, bool wait = false) {
         fb::Packet p(m.multipart, _token);
         m.makePacket(p);
@@ -378,7 +378,7 @@ class FastBot2 {
         while (!_poll_wait && _client.waiting()) {
             if (_client.available()) {
                 String s = _client.read(&_error);
-                _parse(s);
+                parse(s);
             }
             yield();
         }
@@ -387,12 +387,73 @@ class FastBot2 {
 
         if (wait && _allow_send_wait) {
             String s = _client.send_read(p, &_error);
-            _parse(s);
+            parse(s);
             return !hasError();
         } else {
             _client.send(p);
             return 1;
         }
+    }
+
+    // парсить json ответ сервера
+    fb::Error parse(const su::Text& s) {
+        _client.last_ms = millis();
+        _poll_wait = 0;
+
+        switch (_error) {
+            case fb::Error::None:
+                break;
+
+            case fb::Error::MemLimit:
+            case fb::Error::Reserve:
+                _poll_offset = -1;
+            default:
+                return _error;
+        }
+        yield();
+
+        if (_cbs) _cbs(s);
+        yield();
+
+        gson::Parser json(20);
+        if (!json.parse(s)) return _error = fb::Error::Parse;
+        yield();
+
+        json.hashKeys();
+        if (!json[fbh::ok]) return _error = fb::Error::Telegram;
+
+        gson::Entry result = json[fbh::result];
+        if (!result.valid()) return _error = fb::Error::Telegram;
+
+        // ============= UPDATES =============
+        if (result.type() == gson::Type::Array) {
+            uint8_t len = result.length();
+            if (len) _poll_offset = result[0][fbh::update_id].toInt32() + len;
+
+            for (uint8_t i = 0; i < len; i++) {
+                gson::Entry upd = result[i][1];
+                if (!upd.valid()) continue;
+
+                size_t typeHash = upd.keyHash();
+                fb::Update update(upd, typeHash);
+                if (typeHash == fbh::callback_query) _query_answ = 0;
+
+                if (_cbu1) _cbu1(update);
+                if (_cbu2) _cbu2(update);
+
+                if (typeHash == fbh::callback_query && !_query_answ) {
+                    answerCallbackQuery(update.query().id());
+                }
+                yield();
+            }
+        } else {
+            // ============= RESPONSE =============
+            _allow_send_wait = 0;
+            if (result.includes(fbh::message_id)) _last_bot = result[fbh::message_id];
+            if (_cbr) _cbr(result);
+            _allow_send_wait = 1;
+        }
+        return fb::Error::None;
     }
 
     // ============================== ERROR ==============================
@@ -456,71 +517,9 @@ class FastBot2 {
 
         if (_poll_mode == Poll::Sync) {
             String s = _client.send_read(p, &_error);
-            _parse(s);
+            parse(s);
         } else {
             _poll_wait = _client.send(p);
         }
-    }
-
-    // ==============================================
-    fb::Error _parse(String& s) {
-        _client.last_ms = millis();
-        _poll_wait = 0;
-
-        switch (_error) {
-            case fb::Error::None:
-                break;
-
-            case fb::Error::MemLimit:
-            case fb::Error::Reserve:
-                _poll_offset = -1;
-            default:
-                return _error;
-        }
-        yield();
-
-        if (_cbs) _cbs(s);
-        yield();
-
-        gson::Parser json(20);
-        if (!json.parse(s)) return _error = fb::Error::Parse;
-        yield();
-
-        json.hashKeys();
-        if (!json[fbh::ok]) return _error = fb::Error::Telegram;
-
-        gson::Entry result = json[fbh::result];
-        if (!result.valid()) return _error = fb::Error::Telegram;
-
-        // ============= UPDATES =============
-        if (result.type() == gson::Type::Array) {
-            uint8_t len = result.length();
-            if (len) _poll_offset = result[0][fbh::update_id].toInt32() + len;
-
-            for (uint8_t i = 0; i < len; i++) {
-                gson::Entry upd = result[i][1];
-                if (!upd.valid()) continue;
-
-                size_t typeHash = upd.keyHash();
-                fb::Update update(upd, typeHash);
-                if (typeHash == fbh::callback_query) _query_answ = 0;
-
-                if (_cbu1) _cbu1(update);
-                if (_cbu2) _cbu2(update);
-
-                if (typeHash == fbh::callback_query && !_query_answ) {
-                    answerCallbackQuery(update.query().id());
-                }
-                yield();
-            }
-        } else {
-            // ============= RESPONSE =============
-            _allow_send_wait = 0;
-            if (result.includes(fbh::message_id)) _last_bot = result[fbh::message_id];
-            if (_cbr) _cbr(result);
-            _allow_send_wait = 1;
-        }
-
-        return fb::Error::None;
     }
 };

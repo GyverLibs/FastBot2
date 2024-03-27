@@ -5,6 +5,9 @@
 #include "Multipart.h"
 #include "config.h"
 
+#define FB_BOUNDARY "---------FAST_BOT2"
+#define FB_BOUNDARY_LEN 18
+
 namespace fb {
 
 class Packet : public gson::string {
@@ -38,10 +41,11 @@ class Packet : public gson::string {
     void printTo(Print* p) {
         if (multipart && multipart->isFile()) {
             su::Text formName = multipart->getFormName();
+            su::Text fileName = multipart->getFileName();
             uint32_t len = multipart->length();
-            len += 2 + FB_BOUNDARY_LEN + 2;                                              // --FB_BOUNDARYrn
-            len += 38 + formName.length() + 13 + multipart->getFileName().length() + 5;  // Content-Disposition: form-data; name=""; filename=""rnrn
-            len += 2 + 2 + FB_BOUNDARY_LEN + 2;                                          // rn--FB_BOUNDARY--
+            len += 2 + FB_BOUNDARY_LEN + 2;                              // --FB_BOUNDARYrn
+            len += 38 + formName.length() + 13 + fileName.length() + 5;  // Content-Disposition: form-data; name=""; filename=""rnrn
+            len += 2 + 2 + FB_BOUNDARY_LEN + 2;                          // rn--FB_BOUNDARY--
 
             s += F(
                 " HTTP/1.1\r\n"
@@ -58,7 +62,7 @@ class Packet : public gson::string {
                 "Content-Disposition: form-data; name=\"");
             formName.addString(s);
             s += F("\"; filename=\"");
-            multipart->getFileName().addString(s);
+            fileName.addString(s);
             s += F(
                 "\"\r\n"
                 "\r\n");
