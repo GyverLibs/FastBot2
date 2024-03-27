@@ -1,12 +1,15 @@
 #pragma once
 #include <Arduino.h>
 
+#include "VirtualFastBot2_class.h"
 #include "api.h"
 #include "packet.h"
 
 namespace fb {
 
 class Updates {
+    friend class ::VirtualFastBot2;
+
    public:
     enum Type : uint16_t {
         Message = (1 << 0),
@@ -46,6 +49,9 @@ class Updates {
         return updates & (1 << idx);
     }
 
+   private:
+    uint16_t updates = 0xffff;
+
     void fill(fb::Packet& p) {
         if (updates == 0xffff) return;
 
@@ -67,12 +73,9 @@ class Updates {
         };
 
         for (uint8_t i = 0; i < 14; i++) {
-            if (read(i)) p.addString(upd_arr[i]);
+            if (read(i)) p += upd_arr[i];
         }
     }
-
-   private:
-    uint16_t updates = 0xffff;
 };
 
 }  // namespace fb

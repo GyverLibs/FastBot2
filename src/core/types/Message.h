@@ -3,9 +3,9 @@
 #include <GSON.h>
 #include <StringUtils.h>
 
-#include "FastBot2_class.h"
-#include "Menu.h"
 #include "InlineMenu.h"
+#include "Menu.h"
+#include "VirtualFastBot2_class.h"
 #include "core/api.h"
 #include "core/packet.h"
 
@@ -22,7 +22,7 @@ struct ReplyParam {
 
 // https://core.telegram.org/bots/api#sendmessage
 class Message {
-    friend class ::FastBot2;
+    friend class ::VirtualFastBot2;
 
    public:
     enum class Mode : uint8_t {
@@ -93,23 +93,23 @@ class Message {
 
    protected:
     void makePacket(fb::Packet& p) const {
-        p.addInt(fbapi::chat_id(), chatID);
+        p[fbapi::chat_id()] = chatID;
         if (text.length()) p.addStringEsc(fbapi::text(), text);
-        if (threadID >= 0) p.addInt(fbapi::message_thread_id(), threadID);
+        if (threadID >= 0) p[fbapi::message_thread_id()] = threadID;
         if (reply.messageID >= 0) {
             p.beginObj(fbapi::reply_parameters());
-            p.addInt(fbapi::message_id(), reply.messageID);
-            if (reply.chatID.valid()) p.addInt(fbapi::chat_id(), reply.chatID);
+            p[fbapi::message_id()] = reply.messageID;
+            if (reply.chatID.valid()) p[fbapi::chat_id()] = reply.chatID;
             p.endObj();
         }
         if (!preview) {
             p.beginObj(fbapi::link_preview_options());
-            p.addBool(fbapi::is_disabled(), true);
+            p[fbapi::is_disabled()] = true;
             p.endObj();
         }
-        if (!notification) p.addBool(fbapi::disable_notification(), true);
-        if (protect) p.addBool(fbapi::protect_content(), true);
-        if (mode != fb::Message::Mode::Text) p.addString(fbapi::parse_mode(), mode == (fb::Message::Mode::MarkdownV2) ? F("MarkdownV2") : F("HTML"));
+        if (!notification) p[fbapi::disable_notification()] = true;
+        if (protect) p[fbapi::protect_content()] = true;
+        if (mode != fb::Message::Mode::Text) p[fbapi::parse_mode()] = (mode == fb::Message::Mode::MarkdownV2 ? F("MarkdownV2") : F("HTML"));
 
         if (_remove_menu || _menu_inline || _menu) {
             p.beginObj(fbapi::reply_markup());
@@ -125,15 +125,15 @@ class Message {
         if (reply.messageID >= 0) {
             p.beginQS(fbapi::reply_parameters());
             p.beginObj();
-            p.addInt(fbapi::message_id(), reply.messageID);
-            if (reply.chatID.valid()) p.addInt(fbapi::chat_id(), reply.chatID);
+            p[fbapi::message_id()] = reply.messageID;
+            if (reply.chatID.valid()) p[fbapi::chat_id()] = reply.chatID;
             p.endObj();
             p.end();
         }
         if (!preview) {
             p.beginQS(fbapi::link_preview_options());
             p.beginObj();
-            p.addBool(fbapi::is_disabled(), true);
+            p[fbapi::is_disabled()] = true;
             p.endObj();
             p.end();
         }
@@ -151,7 +151,7 @@ class Message {
     }
 
     void makeMenu(fb::Packet& p) const {
-        if (_remove_menu) p.addBool(fbapi::remove_keyboard(), true);
+        if (_remove_menu) p[fbapi::remove_keyboard()] = true;
         else if (_menu_inline) _menu_inline->_toJson(p);
         else if (_menu) _menu->_toJson(p);
     }

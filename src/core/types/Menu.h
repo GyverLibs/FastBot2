@@ -65,15 +65,15 @@ struct Menu {
         while (rows.parse()) {
             su::TextParser cols(rows, ';');
             p.beginArr();
-            while (cols.parse()) p.addString(cols);
+            while (cols.parse()) p.addStringEsc(cols);
             p.endArr();
         }
         p.endArr();
-        if (persistent) p.addBool(fbapi::is_persistent(), true);
-        if (resize) p.addBool(fbapi::resize_keyboard(), true);
-        if (oneTime) p.addBool(fbapi::one_time_keyboard(), true);
-        if (selective) p.addBool(fbapi::selective(), true);
-        if (placeholder.length()) p.addString(fbapi::input_field_placeholder(), placeholder);
+        if (persistent) p[fbapi::is_persistent()] = true;
+        if (resize) p[fbapi::resize_keyboard()] = true;
+        if (oneTime) p[fbapi::one_time_keyboard()] = true;
+        if (selective) p[fbapi::selective()] = true;
+        if (placeholder.length()) p.addStringEsc(fbapi::input_field_placeholder(), placeholder);
     }
 
    private:

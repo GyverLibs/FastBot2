@@ -3,8 +3,8 @@
 #include <GSON.h>
 #include <StringUtils.h>
 
-#include "FastBot2_class.h"
 #include "Message.h"
+#include "VirtualFastBot2_class.h"
 #include "core/api.h"
 #include "core/packet.h"
 
@@ -12,7 +12,7 @@ namespace fb {
 
 // https://core.telegram.org/bots/api#forwardmessage
 class MessageForward {
-    friend class ::FastBot2;
+    friend class ::VirtualFastBot2;
 
    public:
     MessageForward() {}
@@ -42,12 +42,12 @@ class MessageForward {
 
    private:
     void makePacket(fb::Packet& p) const {
-        p.addInt(fbapi::message_id(), messageID);
-        p.addInt(fbapi::from_chat_id(), fromChatID);
-        p.addInt(fbapi::chat_id(), chatID);
-        if (threadID >= 0) p.addInt(fbapi::message_thread_id(), threadID);
-        if (!notification) p.addBool(fbapi::disable_notification(), true);
-        if (protect) p.addBool(fbapi::protect_content(), true);
+        p[fbapi::message_id()] = messageID;
+        p[fbapi::from_chat_id()] = fromChatID;
+        p[fbapi::chat_id()] = chatID;
+        if (threadID >= 0) p[fbapi::message_thread_id()] = (threadID);
+        if (!notification) p[fbapi::disable_notification()] = true;
+        if (protect) p[fbapi::protect_content()] = true;
     }
 };
 

@@ -11,20 +11,21 @@
 #include <WiFi.h>
 #endif
 
+// Нативная версия WiFi esp8266/esp32
 #include <FastBot2.h>
 FastBot2 bot;
-// FastBot2 bot(&myClient); // можно указать другой Client для связи
 
-// например tinygsm
+// версия с другим клиентом, например tinygsm
 // #define TINY_GSM_MODEM_SIM800
 // #include <TinyGsmClient.h>
 // TinyGsm modem(Serial);
 // TinyGsmClient gsmclient(modem);
-// FastBot2 bot(&gsmclient);
+// #include <FastBot2Client.h>
+// FastBot2Client bot(gsmclient);
 
 // обработчик сырого json String пакета
 void cbs(const su::Text& s) {
-    Serial.println(s);
+    // Serial.println(s);
 }
 
 // обработчик ответов сервера
@@ -42,7 +43,7 @@ void cb(fb::Update& u) {
     // сообщение
     if (u.isMessage()) {
         // Serial.println(u.message().date());
-        Serial.println(u.message().text());
+        // Serial.println(u.message().text());
         Serial.println(u.message().text().toString(true));  // decode unicode
         Serial.println(u.message().from().username());
 
@@ -54,7 +55,7 @@ void cb(fb::Update& u) {
 
         // эхо, вариант 2
         bot.sendMessage(fb::Message(u.message().text(), u.message().chat().id()));
-        bot.deleteMessage(u.message().chat().id(), u.message().id());
+        // bot.deleteMessage(u.message().chat().id(), u.message().id());
 
         // edit
         // if (bot.lastBotMessage()) {
@@ -75,7 +76,7 @@ void cb(fb::Update& u) {
         // ответ
         // bot.answerCallbackQuery(u.query().id());
         // bot.answerCallbackQuery(u.query().id(), "hello!");
-        bot.answerCallbackQuery(u.query().id(), "hello!", true);
+        bot.answerCallbackQuery(u.query().id(), "hello!", true, true);
     }
 
     // =================== CUSTOM ===================
@@ -117,14 +118,14 @@ void setup() {
 
     // ============================
     // выбор типа обновлений
-    bot.updates.clearAll();
-    bot.updates.set(fb::Updates::Type::Message | fb::Updates::Type::ChannelPost);
+    // bot.updates.clearAll();
+    // bot.updates.set(fb::Updates::Type::Message | fb::Updates::Type::ChannelPost);
 
     // ============================
     // настройка режима опроса
-    // bot.setPollMode(FastBot2::Poll::Sync, 4000);  // умолч
-    // bot.setPollMode(FastBot2::Poll::Async, 4000);
-    // bot.setPollMode(FastBot2::Poll::Long, 10000);
+    // bot.setPollMode(fb::Poll::Sync, 4000);  // умолч
+    // bot.setPollMode(fb::Poll::Async, 4000);
+    bot.setPollMode(fb::Poll::Long, 10000);
 
     // ============================
     // настройки сообщений по умолчанию

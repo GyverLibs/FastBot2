@@ -13,13 +13,13 @@ namespace fb {
 class Packet : public gson::string {
    public:
     // constructor
-    Packet(const Multipart& multipart, const String& token) : multipart(&multipart) {
+    Packet(const Multipart& multipart, const String& token) : gson::string(200), multipart(&multipart) {
         _begin(multipart.getCmd(), token);
         if (multipart.isFile()) s += '?';
         else _beginJson();
     }
 
-    Packet(const __FlashStringHelper* cmd, const String& token) {
+    Packet(const __FlashStringHelper* cmd, const String& token) : gson::string(200) {
         _begin(cmd, token);
         _beginJson();
     }
@@ -38,7 +38,7 @@ class Packet : public gson::string {
     }
 
     // print
-    void printTo(Print* p) {
+    void printTo(Print& p) {
         if (multipart && multipart->isFile()) {
             su::Text formName = multipart->getFormName();
             su::Text fileName = multipart->getFileName();
@@ -68,9 +68,9 @@ class Packet : public gson::string {
                 "\r\n");
 
             // print
-            p->print(s);
-            p->print(*multipart);
-            p->print(F("\r\n--" FB_BOUNDARY "--"));
+            p.print(s);
+            p.print(*multipart);
+            p.print(F("\r\n--" FB_BOUNDARY "--"));
 
         } else {
             gson::string::endObj();
@@ -84,7 +84,7 @@ class Packet : public gson::string {
             } while (len);
 
             // print
-            p->print(s);
+            p.print(s);
         }
     }
 
@@ -95,6 +95,7 @@ class Packet : public gson::string {
     bool _qs_first = 1;
 
     void _begin(const __FlashStringHelper* cmd, const String& token) {
+        escapeDefault(false);
         s += F("POST /bot");
         s += token;
         s += '/';

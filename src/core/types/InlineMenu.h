@@ -4,6 +4,7 @@
 #include <StringUtils.h>
 
 #include "core/api.h"
+#include "core/packet.h"
 
 namespace fb {
 
@@ -48,21 +49,21 @@ struct InlineMenu {
         _trim(text);
         _trim(data);
         su::TextParser rows(text, '\n');
-        su::TextParser data(data, ';');
+        su::TextParser datap(data, ';');
         while (rows.parse()) {
             su::TextParser cols(rows, ';');
             p.beginArr();
             while (cols.parse()) {
-                data.parse();
+                datap.parse();
                 p.beginObj();
                 p.addStringEsc(fbapi::text(), cols);
                 // url or callback_data
-                if (data.startsWith(F("http://")) ||
-                    data.startsWith(F("https://")) ||
-                    data.startsWith(F("tg://"))) {
-                    p.addString(fbapi::url(), data);
+                if (datap.startsWith(F("http://")) ||
+                    datap.startsWith(F("https://")) ||
+                    datap.startsWith(F("tg://"))) {
+                    p[fbapi::url()] = datap;
                 } else {
-                    p.addString(fbapi::callback_data(), data);
+                    p.addStringEsc(fbapi::callback_data(), datap);
                 }
                 p.endObj();
             }

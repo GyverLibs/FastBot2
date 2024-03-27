@@ -10,7 +10,7 @@
 namespace fb {
 
 class Location : private Message {
-    friend class ::FastBot2;
+    friend class ::VirtualFastBot2;
 
    public:
     Location();
@@ -51,9 +51,9 @@ class Location : private Message {
         p.addFloat(fbapi::latitude(), latitude, 6);
         p.addFloat(fbapi::longitude(), longitude, 6);
         if (!isnan(horizontalAccuracy)) p.addFloat(fbapi::horizontal_accuracy(), horizontalAccuracy, 1);
-        if (livePeriod) p.addInt(fbapi::live_period(), livePeriod);
-        if (heading) p.addInt(fbapi::heading(), heading);
-        if (proximityAlertRadius) p.addInt(fbapi::proximity_alert_radius(), proximityAlertRadius);
+        if (livePeriod) p[fbapi::live_period()] = livePeriod;
+        if (heading) p[fbapi::heading()] = heading;
+        if (proximityAlertRadius) p[fbapi::proximity_alert_radius()] = proximityAlertRadius;
     }
 };
 

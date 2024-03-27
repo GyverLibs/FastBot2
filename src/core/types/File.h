@@ -9,7 +9,7 @@
 namespace fb {
 
 class File : protected Message {
-    friend class ::FastBot2;
+    friend class ::VirtualFastBot2;
 
    public:
     enum class Type : uint8_t {
@@ -23,11 +23,13 @@ class File : protected Message {
     };
 
 #ifdef FS_H
+    // отправить fs::File файл
     File(const su::Text& name, Type type, ::File& file) : File(name, type, file, false) {}
 #endif
+    // отправить данные из byte буфера
     File(const su::Text& name, Type type, uint8_t* bytes, size_t length) : File(name, type, bytes, length, false) {}
 
-    // document by url - GIF, PDF and ZIP
+    // отправить по ID файла в телеге или ссылкой (для document только GIF, PDF и ZIP)
     // https://core.telegram.org/bots/api#sending-files
     File(const su::Text& name, Type type, const su::Text& urlid) : File(name, type, urlid, false) {}
 
@@ -51,24 +53,29 @@ class File : protected Message {
             if (caption.length()) p.addQS(fbapi::caption(), caption);
         } else {
             Message::makePacket(p);
-            p.addString(multipart.getType(), multipart.getUrlid());
+            p[multipart.getType()] = multipart.getUrlid();
             if (caption.length()) p.addStringEsc(fbapi::caption(), caption);
         }
     }
 
 #ifdef FS_H
+    // отправить fs::File файл
     File(const su::Text& name, Type type, ::File& file, bool edit) : multipart(name, (Multipart::Type)type, file, edit) {}
 #endif
+    // отправить данные из byte буфера
     File(const su::Text& name, Type type, uint8_t* bytes, size_t length, bool edit) : multipart(name, (Multipart::Type)type, bytes, length, edit) {}
+
+    // отправить по ID файла в телеге или ссылкой (для document только GIF, PDF и ZIP)
     File(const su::Text& name, Type type, const su::Text& urlid, bool edit) : multipart(name, (Multipart::Type)type, urlid, edit) {}
 };
 
 // https://core.telegram.org/bots/api#editmessagemedia
 class FileEdit : protected File {
-    friend class ::FastBot2;
+    friend class ::VirtualFastBot2;
 
    public:
 #ifdef FS_H
+    // отправить fs::File файл
     FileEdit(const su::Text& name, Type type, ::File& file) : File(name, type, file, true) {}
 #endif
     FileEdit(const su::Text& name, Type type, uint8_t* bytes, size_t length) : File(name, type, bytes, length, true) {}
@@ -93,19 +100,19 @@ class FileEdit : protected File {
             {
                 p.beginQS(fbapi::media());
                 p.beginObj();
-                p.addString(fbapi::type(), multipart.getType());
-                p.addString(fbapi::media(), multipart.getAttachName());
+                p[fbapi::type()] = multipart.getType();
+                p[fbapi::media()] = multipart.getAttachName();
                 if (caption.length()) p.addStringEsc(fbapi::caption(), caption);
                 p.endObj();
                 p.end();
             }
         } else {
             File::Message::makePacket(p);
-            p.addInt(fbapi::message_id(), messageID);
+            p[fbapi::message_id()] = messageID;
             {
                 p.beginObj(fbapi::media());
-                p.addString(fbapi::type(), multipart.getType());
-                p.addString(fbapi::media(), multipart.getUrlid());
+                p[fbapi::type()] = multipart.getType();
+                p[fbapi::media()] = multipart.getUrlid();
                 if (caption.length()) p.addStringEsc(fbapi::caption(), caption);
                 p.endObj();
             }
