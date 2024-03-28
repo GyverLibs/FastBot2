@@ -59,42 +59,42 @@ class Multipart : public Printable {
     const __FlashStringHelper* getType() const {
         switch (_type) {
             case Type::photo:
-                return fbapi::photo();
+                return fb::api::photo;
             case Type::audio:
-                return fbapi::audio();
+                return fb::api::audio;
             case Type::document:
-                return fbapi::document();
+                return fb::api::document;
             case Type::video:
-                return fbapi::video();
+                return fb::api::video;
             case Type::animation:
-                return fbapi::animation();
+                return fb::api::animation;
             case Type::voice:
-                return fbapi::voice();
+                return fb::api::voice;
             case Type::video_note:
-                return fbapi::video_note();
+                return fb::api::video_note;
         }
         return F("");
     }
 
     // return sendXXX or editMessageMedia
     const __FlashStringHelper* getCmd() const {
-        if (_edit) return fbcmd::editMessageMedia();
+        if (_edit) return fb::cmd::editMessageMedia;
 
         switch (_type) {
             case Type::photo:
-                return fbcmd::sendPhoto();
+                return fb::cmd::sendPhoto;
             case Type::audio:
-                return fbcmd::sendAudio();
+                return fb::cmd::sendAudio;
             case Type::document:
-                return fbcmd::sendDocument();
+                return fb::cmd::sendDocument;
             case Type::video:
-                return fbcmd::sendVideo();
+                return fb::cmd::sendVideo;
             case Type::animation:
-                return fbcmd::sendAnimation();
+                return fb::cmd::sendAnimation;
             case Type::voice:
-                return fbcmd::sendVoice();
+                return fb::cmd::sendVoice;
             case Type::video_note:
-                return fbcmd::sendVideoNote();
+                return fb::cmd::sendVideoNote;
             default:
                 return F("");
         }

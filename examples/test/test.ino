@@ -32,23 +32,23 @@ void cbs(const su::Text& s) {
 void cbr(gson::Entry& r) {
     // =================== CUSTOM ===================
     // сюда прилетает разобранный json объект "result:{}" с хешированными ключами!
-    // для доступа использовать хэши API, все доступны в fbh
-    // Serial.println(r[fbh::message_id]);
-    // Serial.println(r[fbh::text]);
-    // Serial.println(r[fbh::from][fbh::username]);
+    // для доступа использовать хэши API, все доступны в fbh::api
+    // Serial.println(r[fbh::api::message_id]);
+    // Serial.println(r[fbh::api::text]);
+    // Serial.println(r[fbh::api::from][fbh::api::username]);
 
     // можно узнать последнюю отправленную команду
-    // switch (bot.lastCmd()) {
-    //     case fbcmdh::sendMessage:
-    //         Serial.println("sendMessage");
-    //         break;
-    //     case fbcmdh::sendDocument:
-    //         Serial.println("sendDocument");
-    //         break;
-    //     case fbcmdh::editMessageMedia:
-    //         Serial.println("editMessageMedia");
-    //         break;
-    // }
+    switch (bot.lastCmd()) {
+        case fbh::cmd::sendMessage:
+            Serial.println("sendMessage");
+            break;
+        case fbh::cmd::sendDocument:
+            Serial.println("sendDocument");
+            break;
+        case fbh::cmd::editMessageMedia:
+            Serial.println("editMessageMedia");
+            break;
+    }
 }
 
 // обработчик обновлений
@@ -105,7 +105,7 @@ void cb(fb::Update& u) {
 
     // доступ к json пакету, здесь u.entry - api объект типа u.type()
     // Например для сообщения:
-    Serial.println(u.entry[fbh::from][fbh::username]);
+    Serial.println(u.entry[fbh::api::from][fbh::api::username]);
 }
 
 void setup() {
@@ -157,10 +157,10 @@ void setup() {
     // ============================
     // отправка сообщения вручную. Начнём с команды
     // fb::Packet p = bot.beginPacket(F("sendMessage"));   // как F-строка
-    fb::Packet p = bot.beginPacket(fbcmd::sendMessage());  // Все команды API Telegram доступны в fbcmd
+    fb::Packet p = bot.beginPacket(fb::cmd::sendMessage);  // Все команды API Telegram доступны в fb::cmd
 
-    p.addString(fbapi::text(), "message text");  // все ключи объектов API Telegram доступны в fbapi
-    p.addInt(fbapi::chat_id(), CHAT_ID);
+    p.addString(fb::api::text, "message text");  // все ключи объектов API Telegram доступны в fb::api
+    p.addInt(fb::api::chat_id, CHAT_ID);
     // bot.sendPacket(p);
     // таким образом можно отправить любой API запрос
 
@@ -177,16 +177,16 @@ void setup() {
 
     // ============================
     // send+edit url gif
-    fb::File f("file.txt", fb::File::Type::document, "https://compote.slate.com/images/697b023b-64a5-49a0-8059-27b963453fb1.gif");
-    f.chatID = CHAT_ID;
-    bot.sendFile(f, true);
-    delay(1000);
-    {
-        fb::FileEdit f("file.txt", fb::File::Type::document, "https://user-images.githubusercontent.com/14011726/94132137-7d4fc100-fe7c-11ea-8512-69f90cb65e48.gif");
-        f.messageID = bot.lastBotMessage();
-        f.chatID = CHAT_ID;
-        bot.editFile(f, true);
-    }
+    // fb::File f("file.txt", fb::File::Type::document, "https://compote.slate.com/images/697b023b-64a5-49a0-8059-27b963453fb1.gif");
+    // f.chatID = CHAT_ID;
+    // bot.sendFile(f, true);
+    // delay(1000);
+    // {
+    //     fb::FileEdit f("file.txt", fb::File::Type::document, "https://user-images.githubusercontent.com/14011726/94132137-7d4fc100-fe7c-11ea-8512-69f90cb65e48.gif");
+    //     f.messageID = bot.lastBotMessage();
+    //     f.chatID = CHAT_ID;
+    //     bot.editFile(f, true);
+    // }
 
     // send+edit file
     // char str[] = "hello text v1";

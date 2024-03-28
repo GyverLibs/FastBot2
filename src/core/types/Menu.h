@@ -59,7 +59,7 @@ struct Menu {
     static bool selectiveDefault;
 
     void _toJson(Packet& p) {
-        p.beginArr(fbapi::keyboard());
+        p.beginArr(fb::api::keyboard);
         _trim(text);
         su::TextParser rows(text, '\n');
         while (rows.parse()) {
@@ -69,11 +69,11 @@ struct Menu {
             p.endArr();
         }
         p.endArr();
-        if (persistent) p[fbapi::is_persistent()] = true;
-        if (resize) p[fbapi::resize_keyboard()] = true;
-        if (oneTime) p[fbapi::one_time_keyboard()] = true;
-        if (selective) p[fbapi::selective()] = true;
-        if (placeholder.length()) p.addStringEsc(fbapi::input_field_placeholder(), placeholder);
+        if (persistent) p[fb::api::is_persistent] = true;
+        if (resize) p[fb::api::resize_keyboard] = true;
+        if (oneTime) p[fb::api::one_time_keyboard] = true;
+        if (selective) p[fb::api::selective] = true;
+        if (placeholder.length()) p.addStringEsc(fb::api::input_field_placeholder, placeholder);
     }
 
    private:

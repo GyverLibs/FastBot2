@@ -15,22 +15,22 @@ struct QueryRead {
 
     // callback id
     su::Text id() {
-        return entry[fbh::id];
+        return entry[fbh::api::id];
     }
 
     // callback data
     su::Text data() {
-        return entry[fbh::data];
+        return entry[fbh::api::data];
     }
 
     // отправитель коллбэка
     UserRead from() {
-        return UserRead(entry[fbh::from]);
+        return UserRead(entry[fbh::api::from]);
     }
 
     // сообщение
     MessageRead message() {
-        return MessageRead(entry[fbh::message]);
+        return MessageRead(entry[fbh::api::message]);
     }
 
     // доступ к пакету данных

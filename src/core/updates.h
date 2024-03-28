@@ -56,20 +56,20 @@ class Updates {
         if (updates == 0xffff) return;
 
         const __FlashStringHelper* upd_arr[] = {
-            fbapi::message(),
-            fbapi::edited_message(),
-            fbapi::channel_post(),
-            fbapi::edited_channel_post(),
-            fbapi::inline_query(),
-            fbapi::chosen_inline_result(),
-            fbapi::callback_query(),
-            fbapi::shipping_query(),
-            fbapi::pre_checkout_query(),
-            fbapi::poll(),
-            fbapi::poll_answer(),
-            fbapi::my_chat_member(),
-            fbapi::chat_member(),
-            fbapi::chat_join_request(),
+            fb::api::message,
+            fb::api::edited_message,
+            fb::api::channel_post,
+            fb::api::edited_channel_post,
+            fb::api::inline_query,
+            fb::api::chosen_inline_result,
+            fb::api::callback_query,
+            fb::api::shipping_query,
+            fb::api::pre_checkout_query,
+            fb::api::poll,
+            fb::api::poll_answer,
+            fb::api::my_chat_member,
+            fb::api::chat_member,
+            fb::api::chat_join_request,
         };
 
         for (uint8_t i = 0; i < 14; i++) {

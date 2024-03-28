@@ -30,7 +30,7 @@ class TextEdit : private Message {
    protected:
     void makePacket(fb::Packet& p) const {
         Message::makePacket(p);
-        p[fbapi::message_id()] = messageID;
+        p[fb::api::message_id] = messageID;
     }
 };
 
@@ -53,7 +53,7 @@ class MenuEdit : private Message {
    protected:
     void makePacket(fb::Packet& p) const {
         Message::makePacket(p);
-        p[fbapi::message_id()] = messageID;
+        p[fb::api::message_id] = messageID;
     }
 };
 
@@ -80,8 +80,8 @@ class CaptionEdit : private Message {
    protected:
     void makePacket(fb::Packet& p) const {
         Message::makePacket(p);
-        p[fbapi::message_id()] = messageID;
-        p.addStringEsc(fbapi::caption(), caption);
+        p[fb::api::message_id] = messageID;
+        p.addStringEsc(fb::api::caption, caption);
     }
 };
 
@@ -119,12 +119,12 @@ class LocationEdit : private Message {
    protected:
     void makePacket(fb::Packet& p) const {
         Message::makePacket(p);
-        p[fbapi::message_id()] = messageID;
-        p.addFloat(fbapi::latitude(), latitude, 6);
-        p.addFloat(fbapi::longitude(), longitude, 6);
-        if (!isnan(horizontalAccuracy)) p.addFloat(fbapi::horizontal_accuracy(), horizontalAccuracy, 1);
-        if (heading) p[fbapi::heading()] = heading;
-        if (proximityAlertRadius) p[fbapi::proximity_alert_radius()] = proximityAlertRadius;
+        p[fb::api::message_id] = messageID;
+        p.addFloat(fb::api::latitude, latitude, 6);
+        p.addFloat(fb::api::longitude, longitude, 6);
+        if (!isnan(horizontalAccuracy)) p.addFloat(fb::api::horizontal_accuracy, horizontalAccuracy, 1);
+        if (heading) p[fb::api::heading] = heading;
+        if (proximityAlertRadius) p[fb::api::proximity_alert_radius] = proximityAlertRadius;
     }
 };
 
@@ -147,7 +147,7 @@ class LocationStop : private Message {
    protected:
     void makePacket(fb::Packet& p) const {
         Message::makePacket(p);
-        p[fbapi::message_id()] = messageID;
+        p[fb::api::message_id] = messageID;
     }
 };
 

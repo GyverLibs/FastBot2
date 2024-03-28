@@ -20,42 +20,42 @@ struct ChatRead {
 
     // id чата
     su::Text id() {
-        return entry[fbh::id];
+        return entry[fbh::api::id];
     }
 
     // тип чата: private_chat, group, supergroup, channel
     Type type() {
-        return (Type)entry[fbh::type].hash();
+        return (Type)entry[fbh::api::type].hash();
     }
 
     // название чата (для supergroups, channels, group chats)
     su::Text title() {
-        return entry[fbh::title];
+        return entry[fbh::api::title];
     }
 
     // имя чата (для private chats, supergroups, channels)
     su::Text username() {
-        return entry[fbh::username];
+        return entry[fbh::api::username];
     }
 
     // имя (для private chat)
     su::Text firstName() {
-        return entry[fbh::first_name];
+        return entry[fbh::api::first_name];
     }
 
     // фамилия (для private chat)
     su::Text lastName() {
-        return entry[fbh::last_name];
+        return entry[fbh::api::last_name];
     }
 
     // описание чата
     su::Text description() {
-        return entry[fbh::description];
+        return entry[fbh::api::description];
     }
 
     // в supergroup включены темы
     su::Text isForum() {
-        return entry[fbh::is_forum];
+        return entry[fbh::api::is_forum];
     }
 
     // доступ к пакету данных

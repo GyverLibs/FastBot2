@@ -48,12 +48,12 @@ class Location : private Message {
    protected:
     void makePacket(fb::Packet& p) const {
         Message::makePacket(p);
-        p.addFloat(fbapi::latitude(), latitude, 6);
-        p.addFloat(fbapi::longitude(), longitude, 6);
-        if (!isnan(horizontalAccuracy)) p.addFloat(fbapi::horizontal_accuracy(), horizontalAccuracy, 1);
-        if (livePeriod) p[fbapi::live_period()] = livePeriod;
-        if (heading) p[fbapi::heading()] = heading;
-        if (proximityAlertRadius) p[fbapi::proximity_alert_radius()] = proximityAlertRadius;
+        p.addFloat(fb::api::latitude, latitude, 6);
+        p.addFloat(fb::api::longitude, longitude, 6);
+        if (!isnan(horizontalAccuracy)) p.addFloat(fb::api::horizontal_accuracy, horizontalAccuracy, 1);
+        if (livePeriod) p[fb::api::live_period] = livePeriod;
+        if (heading) p[fb::api::heading] = heading;
+        if (proximityAlertRadius) p[fb::api::proximity_alert_radius] = proximityAlertRadius;
     }
 };
 

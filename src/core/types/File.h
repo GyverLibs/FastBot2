@@ -51,11 +51,11 @@ class File : protected Message {
     void makePacket(fb::Packet& p) const {
         if (multipart.isFile()) {
             Message::makeQS(p);
-            if (caption.length()) p.addQS(fbapi::caption(), caption);
+            if (caption.length()) p.addQS(fb::api::caption, caption);
         } else {
             Message::makePacket(p);
             p[multipart.getType()] = multipart.getUrlid();
-            if (caption.length()) p.addStringEsc(fbapi::caption(), caption);
+            if (caption.length()) p.addStringEsc(fb::api::caption, caption);
         }
     }
 
@@ -97,24 +97,24 @@ class FileEdit : protected File {
     void makePacket(fb::Packet& p) const {
         if (multipart.isFile()) {
             File::Message::makeQS(p);
-            p.addQS(fbapi::message_id(), messageID);
+            p.addQS(fb::api::message_id, messageID);
             {
-                p.beginQS(fbapi::media());
+                p.beginQS(fb::api::media);
                 p.beginObj();
-                p[fbapi::type()] = multipart.getType();
-                p[fbapi::media()] = multipart.getAttachName();
-                if (caption.length()) p.addStringEsc(fbapi::caption(), caption);
+                p[fb::api::type] = multipart.getType();
+                p[fb::api::media] = multipart.getAttachName();
+                if (caption.length()) p.addStringEsc(fb::api::caption, caption);
                 p.endObj();
                 p.end();
             }
         } else {
             File::Message::makePacket(p);
-            p[fbapi::message_id()] = messageID;
+            p[fb::api::message_id] = messageID;
             {
-                p.beginObj(fbapi::media());
-                p[fbapi::type()] = multipart.getType();
-                p[fbapi::media()] = multipart.getUrlid();
-                if (caption.length()) p.addStringEsc(fbapi::caption(), caption);
+                p.beginObj(fb::api::media);
+                p[fb::api::type] = multipart.getType();
+                p[fb::api::media] = multipart.getUrlid();
+                if (caption.length()) p.addStringEsc(fb::api::caption, caption);
                 p.endObj();
             }
         }

@@ -161,11 +161,11 @@ class VirtualFastBot2 {
         } else {
             if (millis() - _last_send >= (_poll_mode == fb::Poll::Long ? FB_LONG_POLL_TOUT : _poll_prd)) {
                 fb::Packet p;
-                _lastCmd = p.beginCmd(fbcmd::getUpdates(), _token);
-                if (_poll_mode == fb::Poll::Long) p[fbapi::timeout()] = (uint16_t)(_poll_prd / 1000);
-                p[fbapi::limit()] = _poll_limit;
-                p[fbapi::offset()] = _poll_offset;
-                p.beginArr(fbapi::allowed_updates());
+                _lastCmd = p.beginCmd(fb::cmd::getUpdates, _token);
+                if (_poll_mode == fb::Poll::Long) p[fb::api::timeout] = (uint16_t)(_poll_prd / 1000);
+                p[fb::api::limit] = _poll_limit;
+                p[fb::api::offset] = _poll_offset;
+                p.beginArr(fb::api::allowed_updates);
                 updates.fill(p);
                 p.endArr();
 
@@ -186,10 +186,10 @@ class VirtualFastBot2 {
     bool answerCallbackQuery(const su::Text& id, su::Text text = su::Text(), bool show_alert = false, bool wait = false) {
         _query_answ = true;
         fb::Packet p;
-        _lastCmd = p.beginCmd(fbcmd::answerCallbackQuery(), _token);
-        p[fbapi::callback_query_id()] = id;
-        if (text.valid()) p.addStringEsc(fbapi::text(), text);
-        if (show_alert) p[fbapi::show_alert()] = true;
+        _lastCmd = p.beginCmd(fb::cmd::answerCallbackQuery, _token);
+        p[fb::api::callback_query_id] = id;
+        if (text.valid()) p.addStringEsc(fb::api::text, text);
+        if (show_alert) p[fb::api::show_alert] = true;
         return sendPacket(p, wait);
     }
 
@@ -197,7 +197,7 @@ class VirtualFastBot2 {
     bool forwardMessage(const fb::MessageForward& m, bool wait = false) {
         if (!m.chatID.valid() || !m.fromChatID.valid()) return 0;
         fb::Packet p;
-        _lastCmd = p.beginCmd(fbcmd::sendMessage(), _token);
+        _lastCmd = p.beginCmd(fb::cmd::sendMessage, _token);
         m.makePacket(p);
         return sendPacket(p, wait);
     }
@@ -206,7 +206,7 @@ class VirtualFastBot2 {
     bool sendMessage(const fb::Message& m, bool wait = false) {
         if (!m.text.length() || !m.chatID.valid()) return 0;
         fb::Packet p;
-        _lastCmd = p.beginCmd(fbcmd::sendMessage(), _token);
+        _lastCmd = p.beginCmd(fb::cmd::sendMessage, _token);
         m.makePacket(p);
         return sendPacket(p, wait);
     }
@@ -215,7 +215,7 @@ class VirtualFastBot2 {
     bool sendLocation(const fb::Location& m, bool wait = false) {
         if (!m.chatID.valid()) return 0;
         fb::Packet p;
-        _lastCmd = p.beginCmd(fbcmd::sendLocation(), _token);
+        _lastCmd = p.beginCmd(fb::cmd::sendLocation, _token);
         m.makePacket(p);
         return sendPacket(p, wait);
     }
@@ -245,10 +245,10 @@ class VirtualFastBot2 {
     bool setTyping(su::Value chatID, su::Value threadID = su::Value(), bool wait = false) {
         if (!chatID.valid()) return 0;
         fb::Packet p;
-        _lastCmd = p.beginCmd(fbcmd::sendChatAction(), _token);
-        p[fbapi::chat_id()] = chatID;
-        p[fbapi::action()] = F("typing");
-        if (threadID.valid()) p[fbapi::message_thread_id()] = threadID;
+        _lastCmd = p.beginCmd(fb::cmd::sendChatAction, _token);
+        p[fb::api::chat_id] = chatID;
+        p[fb::api::action] = F("typing");
+        if (threadID.valid()) p[fb::api::message_thread_id] = threadID;
         return sendPacket(p, wait);
     }
 
@@ -256,9 +256,9 @@ class VirtualFastBot2 {
     bool setChatTitle(su::Value chatID, su::Text title, bool wait = false) {
         if (!chatID.valid()) return 0;
         fb::Packet p;
-        _lastCmd = p.beginCmd(fbcmd::setChatTitle(), _token);
-        p[fbapi::chat_id()] = chatID;
-        p.addStringEsc(fbapi::title(), title);
+        _lastCmd = p.beginCmd(fb::cmd::setChatTitle, _token);
+        p[fb::api::chat_id] = chatID;
+        p.addStringEsc(fb::api::title, title);
         return sendPacket(p, wait);
     }
 
@@ -266,9 +266,9 @@ class VirtualFastBot2 {
     bool setChatDescription(su::Value chatID, su::Text description, bool wait = false) {
         if (!chatID.valid()) return 0;
         fb::Packet p;
-        _lastCmd = p.beginCmd(fbcmd::setChatDescription(), _token);
-        p[fbapi::chat_id()] = chatID;
-        p.addStringEsc(fbapi::description(), description);
+        _lastCmd = p.beginCmd(fb::cmd::setChatDescription, _token);
+        p[fb::api::chat_id] = chatID;
+        p.addStringEsc(fb::api::description, description);
         return sendPacket(p, wait);
     }
 
@@ -278,10 +278,10 @@ class VirtualFastBot2 {
     bool pinChatMessage(su::Value chatID, su::Value messageID, bool notify = true, bool wait = false) {
         if (!chatID.valid()) return 0;
         fb::Packet p;
-        _lastCmd = p.beginCmd(fbcmd::pinChatMessage(), _token);
-        p[fbapi::chat_id()] = chatID;
-        p[fbapi::message_id()] = messageID;
-        p[fbapi::disable_notification()] = notify;
+        _lastCmd = p.beginCmd(fb::cmd::pinChatMessage, _token);
+        p[fb::api::chat_id] = chatID;
+        p[fb::api::message_id] = messageID;
+        p[fb::api::disable_notification] = notify;
         return sendPacket(p, wait);
     }
 
@@ -289,9 +289,9 @@ class VirtualFastBot2 {
     bool unpinChatMessage(su::Value chatID, su::Value messageID, bool wait = false) {
         if (!chatID.valid()) return 0;
         fb::Packet p;
-        _lastCmd = p.beginCmd(fbcmd::unpinChatMessage(), _token);
-        p[fbapi::chat_id()] = chatID;
-        p[fbapi::message_id()] = messageID;
+        _lastCmd = p.beginCmd(fb::cmd::unpinChatMessage, _token);
+        p[fb::api::chat_id] = chatID;
+        p[fb::api::message_id] = messageID;
         return sendPacket(p, wait);
     }
 
@@ -299,8 +299,8 @@ class VirtualFastBot2 {
     bool unpinAllChatMessages(su::Value chatID, bool wait = false) {
         if (!chatID.valid()) return 0;
         fb::Packet p;
-        _lastCmd = p.beginCmd(fbcmd::unpinAllChatMessages(), _token);
-        p[fbapi::chat_id()] = chatID;
+        _lastCmd = p.beginCmd(fb::cmd::unpinAllChatMessages, _token);
+        p[fb::api::chat_id] = chatID;
         return sendPacket(p, wait);
     }
 
@@ -310,7 +310,7 @@ class VirtualFastBot2 {
     bool editText(const fb::TextEdit& m, bool wait = false) {
         if (!m.text.length() || !m.chatID.valid()) return 0;
         fb::Packet p;
-        _lastCmd = p.beginCmd(fbcmd::editMessageText(), _token);
+        _lastCmd = p.beginCmd(fb::cmd::editMessageText, _token);
         m.makePacket(p);
         return sendPacket(p, wait);
     }
@@ -319,7 +319,7 @@ class VirtualFastBot2 {
     bool editCaption(const fb::CaptionEdit& m, bool wait = false) {
         if (!m.caption.length() || !m.chatID.valid()) return 0;
         fb::Packet p;
-        _lastCmd = p.beginCmd(fbcmd::editMessageCaption(), _token);
+        _lastCmd = p.beginCmd(fb::cmd::editMessageCaption, _token);
         m.makePacket(p);
         return sendPacket(p, wait);
     }
@@ -328,7 +328,7 @@ class VirtualFastBot2 {
     bool editMenu(const fb::MenuEdit& m, bool wait = false) {
         if (!m.chatID.valid()) return 0;
         fb::Packet p;
-        _lastCmd = p.beginCmd(fbcmd::editMessageReplyMarkup(), _token);
+        _lastCmd = p.beginCmd(fb::cmd::editMessageReplyMarkup, _token);
         m.makePacket(p);
         return sendPacket(p, wait);
     }
@@ -337,7 +337,7 @@ class VirtualFastBot2 {
     bool editLocation(const fb::LocationEdit& m, bool wait = false) {
         if (!m.chatID.valid()) return 0;
         fb::Packet p;
-        _lastCmd = p.beginCmd(fbcmd::editMessageLiveLocation(), _token);
+        _lastCmd = p.beginCmd(fb::cmd::editMessageLiveLocation, _token);
         m.makePacket(p);
         return sendPacket(p, wait);
     }
@@ -346,7 +346,7 @@ class VirtualFastBot2 {
     bool stopLocation(const fb::LocationStop& m, bool wait = false) {
         if (!m.chatID.valid()) return 0;
         fb::Packet p;
-        _lastCmd = p.beginCmd(fbcmd::stopMessageLiveLocation(), _token);
+        _lastCmd = p.beginCmd(fb::cmd::stopMessageLiveLocation, _token);
         m.makePacket(p);
         return sendPacket(p, wait);
     }
@@ -356,18 +356,18 @@ class VirtualFastBot2 {
     // удалить сообщение
     bool deleteMessage(su::Value chatID, su::Value messageID, bool wait = false) {
         fb::Packet p;
-        _lastCmd = p.beginCmd(fbcmd::deleteMessage(), _token);
-        p[fbapi::chat_id()] = chatID;
-        p[fbapi::message_id()] = messageID;
+        _lastCmd = p.beginCmd(fb::cmd::deleteMessage, _token);
+        p[fb::api::chat_id] = chatID;
+        p[fb::api::message_id] = messageID;
         return sendPacket(p, wait);
     }
 
     // удалить сообщения
     bool deleteMessages(su::Value chatID, uint32_t* messageIDs, uint16_t amount, bool wait = false) {
         fb::Packet p;
-        _lastCmd = p.beginCmd(fbcmd::deleteMessages(), _token);
-        p[fbapi::chat_id()] = chatID;
-        p.beginArr(fbapi::message_ids());
+        _lastCmd = p.beginCmd(fb::cmd::deleteMessages, _token);
+        p[fb::api::chat_id] = chatID;
+        p.beginArr(fb::api::message_ids);
         for (uint16_t i = 0; i < amount; i++) p += messageIDs[i];
         p.endArr();
         return sendPacket(p, wait);
@@ -398,9 +398,9 @@ class VirtualFastBot2 {
         if (!json.parse(s)) return 0;
         json.hashKeys();
 
-        if (!json[fbh::ok]) return 0;
+        if (!json[fbh::api::ok]) return 0;
 
-        gson::Entry result = json[fbh::result];
+        gson::Entry result = json[fbh::api::result];
         if (!result.valid()) return 0;
 
         if (useYield) yield();
@@ -408,7 +408,7 @@ class VirtualFastBot2 {
         // ============= UPDATES =============
         if (result.type() == gson::Type::Array) {
             uint8_t len = result.length();
-            if (len) _poll_offset = result[0][fbh::update_id].toInt32() + len;
+            if (len) _poll_offset = result[0][fbh::api::update_id].toInt32() + len;
 
             for (uint8_t i = 0; i < len; i++) {
                 gson::Entry upd = result[i][1];
@@ -416,19 +416,19 @@ class VirtualFastBot2 {
 
                 size_t typeHash = upd.keyHash();
                 fb::Update update(upd, typeHash);
-                if (typeHash == fbh::callback_query) _query_answ = 0;
+                if (typeHash == fbh::api::callback_query) _query_answ = 0;
 
                 if (_cbu1) _cbu1(update);
                 if (_cbu2) _cbu2(update);
 
-                if (typeHash == fbh::callback_query && !_query_answ) {
+                if (typeHash == fbh::api::callback_query && !_query_answ) {
                     answerCallbackQuery(update.query().id());
                 }
                 if (useYield) yield();
             }
         } else {
             // ============= RESPONSE =============
-            if (result.includes(fbh::message_id)) _last_bot = result[fbh::message_id];
+            if (result.includes(fbh::api::message_id)) _last_bot = result[fbh::api::message_id];
             if (_cbr) _cbr(result);
         }
         return 1;

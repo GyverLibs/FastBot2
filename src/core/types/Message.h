@@ -93,56 +93,56 @@ class Message {
 
    protected:
     void makePacket(fb::Packet& p) const {
-        p[fbapi::chat_id()] = chatID;
-        if (text.length()) p.addStringEsc(fbapi::text(), text);
-        if (threadID >= 0) p[fbapi::message_thread_id()] = threadID;
+        p[fb::api::chat_id] = chatID;
+        if (text.length()) p.addStringEsc(fb::api::text, text);
+        if (threadID >= 0) p[fb::api::message_thread_id] = threadID;
         if (reply.messageID >= 0) {
-            p.beginObj(fbapi::reply_parameters());
-            p[fbapi::message_id()] = reply.messageID;
-            if (reply.chatID.valid()) p[fbapi::chat_id()] = reply.chatID;
+            p.beginObj(fb::api::reply_parameters);
+            p[fb::api::message_id] = reply.messageID;
+            if (reply.chatID.valid()) p[fb::api::chat_id] = reply.chatID;
             p.endObj();
         }
         if (!preview) {
-            p.beginObj(fbapi::link_preview_options());
-            p[fbapi::is_disabled()] = true;
+            p.beginObj(fb::api::link_preview_options);
+            p[fb::api::is_disabled] = true;
             p.endObj();
         }
-        if (!notification) p[fbapi::disable_notification()] = true;
-        if (protect) p[fbapi::protect_content()] = true;
-        if (mode != fb::Message::Mode::Text) p[fbapi::parse_mode()] = (mode == fb::Message::Mode::MarkdownV2 ? F("MarkdownV2") : F("HTML"));
+        if (!notification) p[fb::api::disable_notification] = true;
+        if (protect) p[fb::api::protect_content] = true;
+        if (mode != fb::Message::Mode::Text) p[fb::api::parse_mode] = (mode == fb::Message::Mode::MarkdownV2 ? F("MarkdownV2") : F("HTML"));
 
         if (_remove_menu || _menu_inline || _menu) {
-            p.beginObj(fbapi::reply_markup());
+            p.beginObj(fb::api::reply_markup);
             makeMenu(p);
             p.endObj();
         }
     }
 
     void makeQS(fb::Packet& p) const {
-        p.addQS(fbapi::chat_id(), chatID);
-        if (text.length()) p.addQS(fbapi::text(), text);
-        if (threadID >= 0) p.addQS(fbapi::message_thread_id(), threadID);
+        p.addQS(fb::api::chat_id, chatID);
+        if (text.length()) p.addQS(fb::api::text, text);
+        if (threadID >= 0) p.addQS(fb::api::message_thread_id, threadID);
         if (reply.messageID >= 0) {
-            p.beginQS(fbapi::reply_parameters());
+            p.beginQS(fb::api::reply_parameters);
             p.beginObj();
-            p[fbapi::message_id()] = reply.messageID;
-            if (reply.chatID.valid()) p[fbapi::chat_id()] = reply.chatID;
+            p[fb::api::message_id] = reply.messageID;
+            if (reply.chatID.valid()) p[fb::api::chat_id] = reply.chatID;
             p.endObj();
             p.end();
         }
         if (!preview) {
-            p.beginQS(fbapi::link_preview_options());
+            p.beginQS(fb::api::link_preview_options);
             p.beginObj();
-            p[fbapi::is_disabled()] = true;
+            p[fb::api::is_disabled] = true;
             p.endObj();
             p.end();
         }
-        if (!notification) p.addQS(fbapi::disable_notification(), true);
-        if (protect) p.addQS(fbapi::protect_content(), true);
-        if (mode != fb::Message::Mode::Text) p.addQS(fbapi::parse_mode(), mode == (fb::Message::Mode::MarkdownV2) ? F("MarkdownV2") : F("HTML"));
+        if (!notification) p.addQS(fb::api::disable_notification, true);
+        if (protect) p.addQS(fb::api::protect_content, true);
+        if (mode != fb::Message::Mode::Text) p.addQS(fb::api::parse_mode, mode == (fb::Message::Mode::MarkdownV2) ? F("MarkdownV2") : F("HTML"));
 
         if (_remove_menu || _menu_inline || _menu) {
-            p.beginQS(fbapi::reply_markup());
+            p.beginQS(fb::api::reply_markup);
             p.beginObj();
             makeMenu(p);
             p.endObj();
@@ -151,7 +151,7 @@ class Message {
     }
 
     void makeMenu(fb::Packet& p) const {
-        if (_remove_menu) p[fbapi::remove_keyboard()] = true;
+        if (_remove_menu) p[fb::api::remove_keyboard] = true;
         else if (_menu_inline) _menu_inline->_toJson(p);
         else if (_menu) _menu->_toJson(p);
     }

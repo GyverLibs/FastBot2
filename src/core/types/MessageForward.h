@@ -42,12 +42,12 @@ class MessageForward {
 
    private:
     void makePacket(fb::Packet& p) const {
-        p[fbapi::message_id()] = messageID;
-        p[fbapi::from_chat_id()] = fromChatID;
-        p[fbapi::chat_id()] = chatID;
-        if (threadID >= 0) p[fbapi::message_thread_id()] = (threadID);
-        if (!notification) p[fbapi::disable_notification()] = true;
-        if (protect) p[fbapi::protect_content()] = true;
+        p[fb::api::message_id] = messageID;
+        p[fb::api::from_chat_id] = fromChatID;
+        p[fb::api::chat_id] = chatID;
+        if (threadID >= 0) p[fb::api::message_thread_id] = (threadID);
+        if (!notification) p[fb::api::disable_notification] = true;
+        if (protect) p[fb::api::protect_content] = true;
     }
 };
 

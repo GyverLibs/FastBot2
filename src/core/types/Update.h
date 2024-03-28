@@ -12,20 +12,20 @@ namespace fb {
 class Update {
    public:
     enum class Type : size_t {
-        message = fbh::message,
-        editedMessage = fbh::edited_message,
-        channelPost = fbh::channel_post,
-        editedChannelPost = fbh::edited_channel_post,
-        inlineQuery = fbh::inline_query,
-        chosenInlineResult = fbh::chosen_inline_result,
-        callbackQuery = fbh::callback_query,
-        shippingQuery = fbh::shipping_query,
-        preCheckoutQuery = fbh::pre_checkout_query,
-        poll = fbh::poll,
-        pollAnswer = fbh::poll_answer,
-        myChatMember = fbh::my_chat_member,
-        chatMember = fbh::chat_member,
-        chatJoinRequest = fbh::chat_join_request,
+        message = fbh::api::message,
+        editedMessage = fbh::api::edited_message,
+        channelPost = fbh::api::channel_post,
+        editedChannelPost = fbh::api::edited_channel_post,
+        inlineQuery = fbh::api::inline_query,
+        chosenInlineResult = fbh::api::chosen_inline_result,
+        callbackQuery = fbh::api::callback_query,
+        shippingQuery = fbh::api::shipping_query,
+        preCheckoutQuery = fbh::api::pre_checkout_query,
+        poll = fbh::api::poll,
+        pollAnswer = fbh::api::poll_answer,
+        myChatMember = fbh::api::my_chat_member,
+        chatMember = fbh::api::chat_member,
+        chatJoinRequest = fbh::api::chat_join_request,
     };
 
     Update(gson::Entry& entry, size_t type) : entry(entry), _type((Type)type) {}

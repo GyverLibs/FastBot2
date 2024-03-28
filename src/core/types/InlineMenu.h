@@ -45,7 +45,7 @@ struct InlineMenu {
     }
 
     void _toJson(Packet& p) {
-        p.beginArr(fbapi::inline_keyboard());
+        p.beginArr(fb::api::inline_keyboard);
         _trim(text);
         _trim(data);
         su::TextParser rows(text, '\n');
@@ -56,14 +56,14 @@ struct InlineMenu {
             while (cols.parse()) {
                 datap.parse();
                 p.beginObj();
-                p.addStringEsc(fbapi::text(), cols);
+                p.addStringEsc(fb::api::text, cols);
                 // url or callback_data
                 if (datap.startsWith(F("http://")) ||
                     datap.startsWith(F("https://")) ||
                     datap.startsWith(F("tg://"))) {
-                    p[fbapi::url()] = datap;
+                    p[fb::api::url] = datap;
                 } else {
-                    p.addStringEsc(fbapi::callback_data(), datap);
+                    p.addStringEsc(fb::api::callback_data, datap);
                 }
                 p.endObj();
             }
