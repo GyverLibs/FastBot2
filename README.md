@@ -1,7 +1,7 @@
 # FastBot2 [beta]
 Библиотека Telegram бота для Arduino, ESP8266, ESP32:
 - Несколько режимов опроса (long polling, short polling, async short)
-- Быстрый парсинг ответов сервера ([в 6 раз быстрее](https://github.com/GyverLibs/GSON?tab=readme-ov-file#%D1%82%D0%B5%D1%81%D1%82%D1%8B) других библиотек)
+- Быстрый парсинг ответов сервера ([в 6 раз быстрее](https://github.com/GyverLibs/GSON?tab=readme-ov-file#%D1%82%D0%B5%D1%81%D1%82%D1%8B) других библиотек на базе ArduinoJSON, в 2-3 раза быстрее первой версии [FastBot](https://github.com/GyverLibs/FastBot))
 - Все самые нужные инструменты обёрнуты в удобные классы
 - В "ручном режиме" доступен полностью весь [Telegram Bot API](https://core.telegram.org/bots/api)
 - Лёгкий вес, эффективное использование оперативной памяти
