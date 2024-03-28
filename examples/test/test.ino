@@ -36,6 +36,19 @@ void cbr(gson::Entry& r) {
     // Serial.println(r[fbh::message_id]);
     // Serial.println(r[fbh::text]);
     // Serial.println(r[fbh::from][fbh::username]);
+
+    // можно узнать последнюю отправленную команду
+    // switch (bot.lastCmd()) {
+    //     case fbcmdh::sendMessage:
+    //         Serial.println("sendMessage");
+    //         break;
+    //     case fbcmdh::sendDocument:
+    //         Serial.println("sendDocument");
+    //         break;
+    //     case fbcmdh::editMessageMedia:
+    //         Serial.println("editMessageMedia");
+    //         break;
+    // }
 }
 
 // обработчик обновлений
@@ -43,9 +56,9 @@ void cb(fb::Update& u) {
     // сообщение
     if (u.isMessage()) {
         // Serial.println(u.message().date());
-        // Serial.println(u.message().text());
-        Serial.println(u.message().text().toString(true));  // decode unicode
-        Serial.println(u.message().from().username());
+        Serial.println(u.message().text());
+        // Serial.println(u.message().text().toString(true));  // decode unicode
+        // Serial.println(u.message().from().username());
 
         // эхо, вариант 1
         // fb::Message msg;
@@ -164,16 +177,16 @@ void setup() {
 
     // ============================
     // send+edit url gif
-    // fb::File f("file.txt", fb::File::Type::document, "https://compote.slate.com/images/697b023b-64a5-49a0-8059-27b963453fb1.gif");
-    // f.chatID = CHAT_ID;
-    // bot.sendFile(f, true);
-    // delay(1000);
-    // {
-    //     fb::FileEdit f("file.txt", fb::File::Type::document, "https://user-images.githubusercontent.com/14011726/94132137-7d4fc100-fe7c-11ea-8512-69f90cb65e48.gif");
-    //     f.messageID = bot.lastBotMessage();
-    //     f.chatID = CHAT_ID;
-    //     bot.editFile(f, true);
-    // }
+    fb::File f("file.txt", fb::File::Type::document, "https://compote.slate.com/images/697b023b-64a5-49a0-8059-27b963453fb1.gif");
+    f.chatID = CHAT_ID;
+    bot.sendFile(f, true);
+    delay(1000);
+    {
+        fb::FileEdit f("file.txt", fb::File::Type::document, "https://user-images.githubusercontent.com/14011726/94132137-7d4fc100-fe7c-11ea-8512-69f90cb65e48.gif");
+        f.messageID = bot.lastBotMessage();
+        f.chatID = CHAT_ID;
+        bot.editFile(f, true);
+    }
 
     // send+edit file
     // char str[] = "hello text v1";

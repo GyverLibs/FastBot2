@@ -9,6 +9,7 @@
 // #include <FS.h>
 // #endif
 
+#ifndef FB_NO_FILE
 #define FB_ATTACH "attach://"
 #define FB_ATTACH_LEN 9
 
@@ -94,8 +95,9 @@ class Multipart : public Printable {
                 return fbcmd::sendVoice();
             case Type::video_note:
                 return fbcmd::sendVideoNote();
+            default:
+                return F("");
         }
-        return F("");
     }
 
     size_t printTo(Print& p) const {
@@ -153,3 +155,4 @@ class Multipart : public Printable {
 };
 
 }  // namespace fb
+#endif

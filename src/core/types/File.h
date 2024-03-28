@@ -6,6 +6,7 @@
 #include "Message.h"
 #include "core/Multipart.h"
 
+#ifndef FB_NO_FILE
 namespace fb {
 
 class File : protected Message {
@@ -121,3 +122,4 @@ class FileEdit : protected File {
 };
 
 }  // namespace fb
+#endif
