@@ -11,7 +11,6 @@
 
 #ifndef FB_NO_FILE
 #define FB_ATTACH "attach://"
-#define FB_ATTACH_LEN 9
 
 namespace fb {
 
@@ -48,7 +47,7 @@ class Multipart : public Printable {
     }
 
     su::Text getFormName() const {
-        if (_edit) return _attachName + FB_ATTACH_LEN;
+        if (_edit) return _attachName + su::SL(FB_ATTACH);
         else return getType();
     }
 
@@ -150,7 +149,7 @@ class Multipart : public Printable {
     char _attachName[20] = FB_ATTACH;
 
     void _init() {
-        ultoa(random(), _attachName + FB_ATTACH_LEN, HEX);
+        ultoa(random(), _attachName + su::SL(FB_ATTACH), HEX);
     }
 };
 

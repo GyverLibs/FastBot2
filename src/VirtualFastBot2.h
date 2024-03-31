@@ -3,6 +3,7 @@
 #include <GSON.h>
 #include <StringUtils.h>
 
+#include "core/Fetcher.h"
 #include "core/api.h"
 #include "core/config.h"
 #include "core/packet.h"
@@ -29,6 +30,7 @@ class VirtualFastBot2 {
     typedef void (*CallbackResult)(gson::Entry& entry);
     typedef void (*CallbackRaw)(const su::Text& res);
     typedef void (*CallbackUpdate)(fb::Update& upd);
+    typedef void (*CallbackFetch)(Stream& stream);
 
    public:
     // разрешение и запрет типов обновлений
@@ -106,52 +108,60 @@ class VirtualFastBot2 {
 
     // подключить обработчик обновлений вида void cb(fb::Update& u) {}
     void attachUpdate(CallbackUpdate callback) {
-        _cbu1 = callback;
+        _cbUpdate1 = callback;
     }
 
     // отключить обработчик обновлений
     void detachUpdate() {
-        _cbu1 = nullptr;
+        _cbUpdate1 = nullptr;
     }
 
     // подключить второй обработчик обновлений вида void cb(fb::Update& u) {}
     void attachUpdate2(CallbackUpdate callback) {
-        _cbu2 = callback;
+        _cbUpdate2 = callback;
     }
 
     // отключить второй обработчик обновлений
     void detachUpdate2() {
-        _cbu2 = nullptr;
+        _cbUpdate2 = nullptr;
     }
 
     // подключить обработчик результата вида void cb(gson::Entry& r) {}
     // здесь нельзя отправлять сообщения с флагом wait
     void attachResult(CallbackResult callback) {
-        _cbr = callback;
+        _cbResult = callback;
     }
 
     // отключить обработчик результата
     void detachResult() {
-        _cbr = nullptr;
+        _cbResult = nullptr;
     }
 
     // подключить обработчик сырых json данных Telegram вида void cb(const String& r) {}
     void attachRaw(CallbackRaw callback) {
-        _cbs = callback;
+        _cbRaw = callback;
     }
 
     // отключить обработчик сырых данных
     void detachRaw() {
-        _cbs = nullptr;
+        _cbRaw = nullptr;
+    }
+
+    // подключить обработчик скачивания файлов вида void cb(Stream& stream, size_t length) {}
+    void attachFetch(CallbackFetch callback) {
+        _cbFetch = callback;
+    }
+
+    // отключить обработчик скачивания файлов
+    void detachFetch() {
+        _cbFetch = nullptr;
     }
 
     // ============================== TICK ==============================
 
     // тикер, вызывать в loop
-    void tick() {
-        if (!_state) return;
-
-        clientTick();
+    bool tick() {
+        if (!_state) return 0;
 
         if (clientWaiting()) {
             if (millis() - _last_send >= (_poll_wait ? (_poll_prd + clientTimeout) : clientTimeout)) {
@@ -160,24 +170,41 @@ class VirtualFastBot2 {
             }
         } else {
             if (millis() - _last_send >= (_poll_mode == fb::Poll::Long ? FB_LONG_POLL_TOUT : _poll_prd)) {
-                fb::Packet p;
-                _lastCmd = p.beginCmd(fb::cmd::getUpdates, _token);
-                if (_poll_mode == fb::Poll::Long) p[fb::api::timeout] = (uint16_t)(_poll_prd / 1000);
-                p[fb::api::limit] = _poll_limit;
-                p[fb::api::offset] = _poll_offset;
-                p.beginArr(fb::api::allowed_updates);
-                updates.fill(p);
-                p.endArr();
-
-                if (_poll_mode == fb::Poll::Sync) sendPacket(p, true);
-                else _poll_wait = sendPacket(p, false);
+                getUpdates(false);
             }
         }
+
+        return clientTick();
     }
 
     // система ждёт ответа с обновлениями
     bool isPolling() {
         return _poll_wait;
+    }
+
+    // отправить запрос на обновление
+    bool getUpdates(bool wait = false) {
+        fb::Packet p;
+        _lastCmd = p.beginJson(fb::cmd::getUpdates, _token);
+        if (_poll_mode == fb::Poll::Long) p[fb::api::timeout] = (uint16_t)(_poll_prd / 1000);
+        p[fb::api::limit] = _poll_limit;
+        p[fb::api::offset] = _poll_offset;
+        p.beginArr(fb::api::allowed_updates);
+        updates.fill(p);
+        p.endArr();
+
+        if (_poll_mode == fb::Poll::Sync || wait) return sendPacket(p, true);
+        else return _poll_wait = sendPacket(p, false);
+    }
+
+    // запросить перезагрузку устройства
+    void reboot() {
+        _reboot = fb::Fetcher::Reboot::Triggered;
+    }
+
+    // можно перезагрузить устройство
+    bool canReboot() {
+        return _reboot == fb::Fetcher::Reboot::CanReboot;
     }
 
     // ============================== SEND ==============================
@@ -186,7 +213,7 @@ class VirtualFastBot2 {
     bool answerCallbackQuery(const su::Text& id, su::Text text = su::Text(), bool show_alert = false, bool wait = false) {
         _query_answ = true;
         fb::Packet p;
-        _lastCmd = p.beginCmd(fb::cmd::answerCallbackQuery, _token);
+        _lastCmd = p.beginJson(fb::cmd::answerCallbackQuery, _token);
         p[fb::api::callback_query_id] = id;
         if (text.valid()) p.addStringEsc(fb::api::text, text);
         if (show_alert) p[fb::api::show_alert] = true;
@@ -197,7 +224,7 @@ class VirtualFastBot2 {
     bool forwardMessage(const fb::MessageForward& m, bool wait = false) {
         if (!m.chatID.valid() || !m.fromChatID.valid()) return 0;
         fb::Packet p;
-        _lastCmd = p.beginCmd(fb::cmd::sendMessage, _token);
+        _lastCmd = p.beginJson(fb::cmd::sendMessage, _token);
         m.makePacket(p);
         return sendPacket(p, wait);
     }
@@ -206,7 +233,7 @@ class VirtualFastBot2 {
     bool sendMessage(const fb::Message& m, bool wait = false) {
         if (!m.text.length() || !m.chatID.valid()) return 0;
         fb::Packet p;
-        _lastCmd = p.beginCmd(fb::cmd::sendMessage, _token);
+        _lastCmd = p.beginJson(fb::cmd::sendMessage, _token);
         m.makePacket(p);
         return sendPacket(p, wait);
     }
@@ -215,7 +242,7 @@ class VirtualFastBot2 {
     bool sendLocation(const fb::Location& m, bool wait = false) {
         if (!m.chatID.valid()) return 0;
         fb::Packet p;
-        _lastCmd = p.beginCmd(fb::cmd::sendLocation, _token);
+        _lastCmd = p.beginJson(fb::cmd::sendLocation, _token);
         m.makePacket(p);
         return sendPacket(p, wait);
     }
@@ -224,7 +251,7 @@ class VirtualFastBot2 {
 #ifndef FB_NO_FILE
     bool sendFile(const fb::File& m, bool wait = false) {
         fb::Packet p;
-        _lastCmd = p.beginFile(m.multipart, _token);
+        _lastCmd = p.beginMultipart(m.multipart, _token);
         m.makePacket(p);
         return sendPacket(p, wait);
     }
@@ -233,22 +260,44 @@ class VirtualFastBot2 {
     bool editFile(const fb::FileEdit& m, bool wait = false) {
         if (!m.chatID.valid()) return 0;
         fb::Packet p;
-        _lastCmd = p.beginFile(m.multipart, _token);
+        _lastCmd = p.beginMultipart(m.multipart, _token);
         m.makePacket(p);
         return sendPacket(p, wait);
+    }
+
+    // запросить файл (придёт в обработчик attachFetch)
+    bool getFile(const su::Text& fileID, bool wait = false) {
+        fb::Packet p;
+        _lastCmd = p.beginJson(fb::cmd::getFile, _token);
+        p[fb::api::file_id] = fileID;
+        _lastFileID = fileID.hash();
+        return sendPacket(p, wait);
+    }
+
+    // скачать файл
+    fb::Fetcher downloadFile(const su::Text& fileID) {
+        fb::Packet p;
+        _lastCmd = p.beginJson(fb::cmd::getFile, _token);
+        p[fb::api::file_id] = fileID;
+        _lastFileID = fileID.hash();
+
+        fb::Fetcher fetcher(&_reboot);
+        _fetcher = &fetcher;
+        sendPacket(p, true);
+        _fetcher = nullptr;
+        return fetcher;
     }
 #endif
 
     // ============================== SET ==============================
 
     // отправить статус "набирает сообщение" на 5 секунд
-    bool setTyping(su::Value chatID, su::Value threadID = su::Value(), bool wait = false) {
+    bool setTyping(su::Value chatID, bool wait = false) {
         if (!chatID.valid()) return 0;
         fb::Packet p;
-        _lastCmd = p.beginCmd(fb::cmd::sendChatAction, _token);
+        _lastCmd = p.beginJson(fb::cmd::sendChatAction, _token);
         p[fb::api::chat_id] = chatID;
         p[fb::api::action] = F("typing");
-        if (threadID.valid()) p[fb::api::message_thread_id] = threadID;
         return sendPacket(p, wait);
     }
 
@@ -256,7 +305,7 @@ class VirtualFastBot2 {
     bool setChatTitle(su::Value chatID, su::Text title, bool wait = false) {
         if (!chatID.valid()) return 0;
         fb::Packet p;
-        _lastCmd = p.beginCmd(fb::cmd::setChatTitle, _token);
+        _lastCmd = p.beginJson(fb::cmd::setChatTitle, _token);
         p[fb::api::chat_id] = chatID;
         p.addStringEsc(fb::api::title, title);
         return sendPacket(p, wait);
@@ -266,7 +315,7 @@ class VirtualFastBot2 {
     bool setChatDescription(su::Value chatID, su::Text description, bool wait = false) {
         if (!chatID.valid()) return 0;
         fb::Packet p;
-        _lastCmd = p.beginCmd(fb::cmd::setChatDescription, _token);
+        _lastCmd = p.beginJson(fb::cmd::setChatDescription, _token);
         p[fb::api::chat_id] = chatID;
         p.addStringEsc(fb::api::description, description);
         return sendPacket(p, wait);
@@ -278,7 +327,7 @@ class VirtualFastBot2 {
     bool pinChatMessage(su::Value chatID, su::Value messageID, bool notify = true, bool wait = false) {
         if (!chatID.valid()) return 0;
         fb::Packet p;
-        _lastCmd = p.beginCmd(fb::cmd::pinChatMessage, _token);
+        _lastCmd = p.beginJson(fb::cmd::pinChatMessage, _token);
         p[fb::api::chat_id] = chatID;
         p[fb::api::message_id] = messageID;
         p[fb::api::disable_notification] = notify;
@@ -289,7 +338,7 @@ class VirtualFastBot2 {
     bool unpinChatMessage(su::Value chatID, su::Value messageID, bool wait = false) {
         if (!chatID.valid()) return 0;
         fb::Packet p;
-        _lastCmd = p.beginCmd(fb::cmd::unpinChatMessage, _token);
+        _lastCmd = p.beginJson(fb::cmd::unpinChatMessage, _token);
         p[fb::api::chat_id] = chatID;
         p[fb::api::message_id] = messageID;
         return sendPacket(p, wait);
@@ -299,7 +348,7 @@ class VirtualFastBot2 {
     bool unpinAllChatMessages(su::Value chatID, bool wait = false) {
         if (!chatID.valid()) return 0;
         fb::Packet p;
-        _lastCmd = p.beginCmd(fb::cmd::unpinAllChatMessages, _token);
+        _lastCmd = p.beginJson(fb::cmd::unpinAllChatMessages, _token);
         p[fb::api::chat_id] = chatID;
         return sendPacket(p, wait);
     }
@@ -310,7 +359,7 @@ class VirtualFastBot2 {
     bool editText(const fb::TextEdit& m, bool wait = false) {
         if (!m.text.length() || !m.chatID.valid()) return 0;
         fb::Packet p;
-        _lastCmd = p.beginCmd(fb::cmd::editMessageText, _token);
+        _lastCmd = p.beginJson(fb::cmd::editMessageText, _token);
         m.makePacket(p);
         return sendPacket(p, wait);
     }
@@ -319,7 +368,7 @@ class VirtualFastBot2 {
     bool editCaption(const fb::CaptionEdit& m, bool wait = false) {
         if (!m.caption.length() || !m.chatID.valid()) return 0;
         fb::Packet p;
-        _lastCmd = p.beginCmd(fb::cmd::editMessageCaption, _token);
+        _lastCmd = p.beginJson(fb::cmd::editMessageCaption, _token);
         m.makePacket(p);
         return sendPacket(p, wait);
     }
@@ -328,7 +377,7 @@ class VirtualFastBot2 {
     bool editMenu(const fb::MenuEdit& m, bool wait = false) {
         if (!m.chatID.valid()) return 0;
         fb::Packet p;
-        _lastCmd = p.beginCmd(fb::cmd::editMessageReplyMarkup, _token);
+        _lastCmd = p.beginJson(fb::cmd::editMessageReplyMarkup, _token);
         m.makePacket(p);
         return sendPacket(p, wait);
     }
@@ -337,7 +386,7 @@ class VirtualFastBot2 {
     bool editLocation(const fb::LocationEdit& m, bool wait = false) {
         if (!m.chatID.valid()) return 0;
         fb::Packet p;
-        _lastCmd = p.beginCmd(fb::cmd::editMessageLiveLocation, _token);
+        _lastCmd = p.beginJson(fb::cmd::editMessageLiveLocation, _token);
         m.makePacket(p);
         return sendPacket(p, wait);
     }
@@ -346,7 +395,7 @@ class VirtualFastBot2 {
     bool stopLocation(const fb::LocationStop& m, bool wait = false) {
         if (!m.chatID.valid()) return 0;
         fb::Packet p;
-        _lastCmd = p.beginCmd(fb::cmd::stopMessageLiveLocation, _token);
+        _lastCmd = p.beginJson(fb::cmd::stopMessageLiveLocation, _token);
         m.makePacket(p);
         return sendPacket(p, wait);
     }
@@ -356,7 +405,7 @@ class VirtualFastBot2 {
     // удалить сообщение
     bool deleteMessage(su::Value chatID, su::Value messageID, bool wait = false) {
         fb::Packet p;
-        _lastCmd = p.beginCmd(fb::cmd::deleteMessage, _token);
+        _lastCmd = p.beginJson(fb::cmd::deleteMessage, _token);
         p[fb::api::chat_id] = chatID;
         p[fb::api::message_id] = messageID;
         return sendPacket(p, wait);
@@ -365,7 +414,7 @@ class VirtualFastBot2 {
     // удалить сообщения
     bool deleteMessages(su::Value chatID, uint32_t* messageIDs, uint16_t amount, bool wait = false) {
         fb::Packet p;
-        _lastCmd = p.beginCmd(fb::cmd::deleteMessages, _token);
+        _lastCmd = p.beginJson(fb::cmd::deleteMessages, _token);
         p[fb::api::chat_id] = chatID;
         p.beginArr(fb::api::message_ids);
         for (uint16_t i = 0; i < amount; i++) p += messageIDs[i];
@@ -378,7 +427,7 @@ class VirtualFastBot2 {
     // начать пакет для ручной отправки в API
     fb::Packet beginPacket(const __FlashStringHelper* cmd) {
         fb::Packet p;
-        _lastCmd = p.beginCmd(cmd, _token);
+        _lastCmd = p.beginJson(cmd, _token);
         return p;
     }
 
@@ -389,10 +438,15 @@ class VirtualFastBot2 {
         return clientSend(packet, wait);
     }
 
+    // принять файл в коллбэк
+    void handleFile(Stream& stream) {
+        if (_cbFetch) _cbFetch(stream);
+    }
+
     // парсить json ответ сервера
     bool parsePacket(const su::Text& s, bool useYield = true) {
         _poll_wait = 0;
-        if (_cbs) _cbs(s);
+        if (_cbRaw) _cbRaw(s);
 
         gson::Parser json(20);
         if (!json.parse(s)) return 0;
@@ -407,10 +461,18 @@ class VirtualFastBot2 {
 
         // ============= UPDATES =============
         if (result.type() == gson::Type::Array) {
+            if (_reboot == fb::Fetcher::Reboot::WaitUpdate) {
+                _reboot = fb::Fetcher::Reboot::CanReboot;
+#ifdef FB_ESP_BUILD
+                ESP.restart();
+#endif
+                return 1;
+            }
             uint8_t len = result.length();
-            if (len) _poll_offset = result[0][fbh::api::update_id].toInt32() + len;
+            if (len) _poll_offset = result[0][fbh::api::update_id].toInt32();
 
             for (uint8_t i = 0; i < len; i++) {
+                _poll_offset++;
                 gson::Entry upd = result[i][1];
                 if (!upd.valid()) continue;
 
@@ -418,27 +480,42 @@ class VirtualFastBot2 {
                 fb::Update update(upd, typeHash);
                 if (typeHash == fbh::api::callback_query) _query_answ = 0;
 
-                if (_cbu1) _cbu1(update);
-                if (_cbu2) _cbu2(update);
+                if (_cbUpdate1) _cbUpdate1(update);
+                if (_cbUpdate2) _cbUpdate2(update);
 
                 if (typeHash == fbh::api::callback_query && !_query_answ) {
                     answerCallbackQuery(update.query().id());
                 }
                 if (useYield) yield();
+                if (_reboot == fb::Fetcher::Reboot::Triggered) {
+                    _reboot = fb::Fetcher::Reboot::WaitUpdate;
+                    return 1;
+                }
             }
         } else {
             // ============= RESPONSE =============
             if (result.includes(fbh::api::message_id)) _last_bot = result[fbh::api::message_id];
-            if (_cbr) _cbr(result);
+            if (result.includes(fbh::api::file_id) && result[fbh::api::file_id].hash() == _lastFileID) {
+                _lastFileID = 0;
+                fb::Packet p;
+                p.beginDownload(result[fbh::api::file_path], _token);
+                if (_fetcher) {
+                    clientStream(p, &_fetcher->_stream);
+                } else {
+                    sendPacket(p, 0);
+                }
+            }
+            if (_cbResult) _cbResult(result);
         }
         return 1;
     }
 
    protected:
     virtual bool clientSend(fb::Packet& packet, bool wait) = 0;
-    virtual bool clientWaiting() = 0;
+    virtual bool clientStream(fb::Packet& packet, Stream** stream) = 0;
+    virtual bool clientWaiting() { return 0; }
+    virtual bool clientTick() { return 0; }
     virtual void clientStop() {}
-    virtual void clientTick() {}
 
     uint16_t clientTimeout = 3000;
 
@@ -455,9 +532,13 @@ class VirtualFastBot2 {
     uint32_t _last_bot = 0;
     uint32_t _last_send = 0;
     size_t _lastCmd = 0;
+    size_t _lastFileID = 0;
+    fb::Fetcher* _fetcher = nullptr;
+    fb::Fetcher::Reboot _reboot = fb::Fetcher::Reboot::Idle;
 
-    CallbackUpdate _cbu1 = nullptr;
-    CallbackUpdate _cbu2 = nullptr;
-    CallbackResult _cbr = nullptr;
-    CallbackRaw _cbs = nullptr;
+    CallbackUpdate _cbUpdate1 = nullptr;
+    CallbackUpdate _cbUpdate2 = nullptr;
+    CallbackResult _cbResult = nullptr;
+    CallbackRaw _cbRaw = nullptr;
+    CallbackFetch _cbFetch = nullptr;
 };

@@ -24,12 +24,19 @@ FastBot2 bot;
 // FastBot2Client bot(gsmclient);
 
 // обработчик сырого json String пакета
-void cbs(const su::Text& s) {
+void rawh(const su::Text& s) {
     // Serial.println(s);
 }
 
+// обработчик скачивания файлов (байтовый поток)
+void fetchh(Stream& s) {
+    Serial.println("got file:");
+    while (s.available()) Serial.print((char)s.read());
+    Serial.println();
+}
+
 // обработчик ответов сервера
-void cbr(gson::Entry& r) {
+void responseh(gson::Entry& r) {
     // =================== CUSTOM ===================
     // сюда прилетает разобранный json объект "result:{}" с хешированными ключами!
     // для доступа использовать хэши API, все доступны в fbh::api
@@ -49,10 +56,12 @@ void cbr(gson::Entry& r) {
             Serial.println("editMessageMedia");
             break;
     }
+
+    // r.stringify(Serial);
 }
 
 // обработчик обновлений
-void cb(fb::Update& u) {
+void updateh(fb::Update& u) {
     // сообщение
     if (u.isMessage()) {
         // Serial.println(u.message().date());
@@ -67,7 +76,7 @@ void cb(fb::Update& u) {
         // bot.sendMessage(msg);
 
         // эхо, вариант 2
-        bot.sendMessage(fb::Message(u.message().text(), u.message().chat().id()));
+        // bot.sendMessage(fb::Message(u.message().text(), u.message().chat().id()));
         // bot.deleteMessage(u.message().chat().id(), u.message().id());
 
         // edit
@@ -80,6 +89,39 @@ void cb(fb::Update& u) {
         // } else {
         //     bot.sendMessage(fb::Message(u.message().text(), u.message().chat().id()));
         // }
+
+        if (u.message().hasDocument()) {
+            // bot.getFile(u.message().document().id());  // получить вруную в обработчик fetch
+
+            // ИЛИ
+
+            Serial.println(u.message().document().name());
+            bool ota = u.message().document().name().endsWith(".bin");
+            if (ota) bot.sendMessage(fb::Message("OTA begin", u.message().chat().id()), true);
+
+            fb::Fetcher fetch = bot.downloadFile(u.message().document().id());
+            // между вызовом downloadFile и writeTo/updateFlash/updateFS не должно быть отправки сообщений!
+            if (fetch) {
+                if (ota) {
+                    // ота обновление
+                    if (fetch.updateFlash()) {
+                        Serial.println("OTA done");
+                        bot.sendMessage(fb::Message("OTA done", u.message().chat().id()), true);
+                    } else {
+                        Serial.println("OTA error");
+                        bot.sendMessage(fb::Message("OTA error", u.message().chat().id()), true);
+                    }
+                } else {
+                    // вывести в сериал
+                    fetch.writeTo(Serial);
+                    Serial.println();
+
+                    // записать в файл
+                    // File file = LittleFS.open("file.txt", "w");
+                    // f.writeTo(file);
+                }
+            }
+        }
     }
 
     // ответ на query
@@ -105,13 +147,16 @@ void cb(fb::Update& u) {
 
     // доступ к json пакету, здесь u.entry - api объект типа u.type()
     // Например для сообщения:
-    Serial.println(u.entry[fbh::api::from][fbh::api::username]);
+    // Serial.println(u.entry[fbh::api::from][fbh::api::username]);
+
+    FB_LOG("update end");
 }
 
 void setup() {
     Serial.begin(115200);
     Serial.setTimeout(20);
     Serial.println();
+    Serial.println("version 2");
 
     WiFi.begin(WIFI_SSID, WIFI_PASS);
     while (WiFi.status() != WL_CONNECTED) {
@@ -121,9 +166,10 @@ void setup() {
     Serial.println("Connected");
 
     // attach
-    bot.attachUpdate(cb);
-    bot.attachResult(cbr);
-    bot.attachRaw(cbs);
+    bot.attachUpdate(updateh);
+    bot.attachResult(responseh);
+    bot.attachRaw(rawh);
+    bot.attachFetch(fetchh);
 
     // system
     bot.setToken(F(BOT_TOKEN));
@@ -157,10 +203,10 @@ void setup() {
     // ============================
     // отправка сообщения вручную. Начнём с команды
     // fb::Packet p = bot.beginPacket(F("sendMessage"));   // как F-строка
-    fb::Packet p = bot.beginPacket(fb::cmd::sendMessage);  // Все команды API Telegram доступны в fb::cmd
+    // fb::Packet p = bot.beginPacket(fb::cmd::sendMessage);  // Все команды API Telegram доступны в fb::cmd
 
-    p.addString(fb::api::text, "message text");  // все ключи объектов API Telegram доступны в fb::api
-    p.addInt(fb::api::chat_id, CHAT_ID);
+    // p.addString(fb::api::text, "message text");  // все ключи объектов API Telegram доступны в fb::api
+    // p.addInt(fb::api::chat_id, CHAT_ID);
     // bot.sendPacket(p);
     // таким образом можно отправить любой API запрос
 
@@ -201,11 +247,14 @@ void setup() {
     //     f.chatID = CHAT_ID;
     //     bot.editFile(f);
     // }
+
+    bot.sendMessage(fb::Message("Hello!", CHAT_ID));
 }
 
 void loop() {
     // тикаем в loop!
     bot.tick();
+    if (bot.canReboot()) ESP.restart();
 
     // отправка сообщения текстом из Serial
     if (Serial.available()) {

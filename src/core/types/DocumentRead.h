@@ -3,20 +3,23 @@
 #include <GSON.h>
 #include <StringUtils.h>
 
+#include "VirtualFastBot2_class.h"
 #include "core/api.h"
 
 namespace fb {
+
+typedef void (*DownloadHook)(void* bot, const su::Text& id);
 
 // https://core.telegram.org/bots/api#document
 struct DocumentRead {
     DocumentRead(gson::Entry entry) : entry(entry) {}
 
-    // id документа
+    // id документа, можно использовать для скачивания
     su::Text id() {
         return entry[fbh::api::file_id];
     }
 
-    // уникальный id документа
+    // уникальный id документа в системе
     su::Text uniqueID() {
         return entry[fbh::api::file_unique_id];
     }
@@ -26,7 +29,7 @@ struct DocumentRead {
         return entry[fbh::api::file_name];
     }
 
-    // тип документа
+    // MIME тип документа
     su::Text type() {
         return entry[fbh::api::mime_type];
     }

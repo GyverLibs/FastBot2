@@ -6,7 +6,6 @@
 #include "config.h"
 
 #define FB_BOUNDARY "---------FAST_BOT2"
-#define FB_BOUNDARY_LEN 18
 
 namespace fb {
 
@@ -21,7 +20,8 @@ class Packet : public gson::string {
     Packet() : gson::string(200) {}
 
 #ifndef FB_NO_FILE
-    size_t beginFile(const Multipart& multipart, const String& token) {
+    // отправка файла через multipart/form-data
+    size_t beginMultipart(const Multipart& multipart, const String& token) {
         this->multipart = &multipart;
         _begin(multipart.getCmd(), token);
 
@@ -36,14 +36,16 @@ class Packet : public gson::string {
     }
 #endif
 
-    size_t beginCmd(const __FlashStringHelper* cmd, const String& token) {
+    // команда с JSON пакетом
+    size_t beginJson(const __FlashStringHelper* cmd, const String& token) {
         _type = Type::Json;
         _begin(cmd, token);
         _beginJson();
         return su::hash_P((PGM_P)cmd);
     }
 
-    size_t beginPath(const su::Text& path, const String& token) {
+    // запрос на скачивание файла вида /file/bot.../<path>
+    size_t beginDownload(const su::Text& path, const String& token) {
         _type = Type::Simple;
         s += F("GET /file/bot");
         s += token;
@@ -76,9 +78,10 @@ class Packet : public gson::string {
                 su::Text formName = multipart->getFormName();
                 su::Text fileName = multipart->getFileName();
                 uint32_t len = multipart->length();
-                len += 2 + FB_BOUNDARY_LEN + 2;                              // --FB_BOUNDARYrn
-                len += 38 + formName.length() + 13 + fileName.length() + 5;  // Content-Disposition: form-data; name=""; filename=""rnrn
-                len += 2 + 2 + FB_BOUNDARY_LEN + 2;                          // rn--FB_BOUNDARY--
+
+                len += su::SL("--" FB_BOUNDARY "\r\n");
+                len += su::SL("Content-Disposition: form-data; name=\"") + formName.length() + su::SL("\"; filename=\"") + fileName.length() + su::SL("\"\r\n\r\n");
+                len += su::SL("\r\n--" FB_BOUNDARY "--");
 
                 s += F(
                     " HTTP/1.1\r\n"
