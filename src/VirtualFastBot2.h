@@ -461,53 +461,8 @@ class VirtualFastBot2 {
         if (useYield) yield();
 
         // ============= UPDATES =============
-        if (result.type() == gson::Type::Array) {
-            if (_reboot == fb::Fetcher::Reboot::WaitUpdate) {
-                _reboot = fb::Fetcher::Reboot::CanReboot;
-#ifdef FB_ESP_BUILD
-                ESP.restart();
-#endif
-                return 1;
-            }
-            uint8_t len = result.length();
-            if (len) _poll_offset = result[0][fbh::api::update_id].toInt32();
-
-            for (uint8_t i = 0; i < len; i++) {
-                _poll_offset++;
-                gson::Entry upd = result[i][1];
-                if (!upd.valid()) continue;
-
-                size_t typeHash = upd.keyHash();
-                fb::Update update(upd, typeHash);
-                if (typeHash == fbh::api::callback_query) _query_answ = 0;
-
-                if (_cbUpdate1) _cbUpdate1(update);
-                if (_cbUpdate2) _cbUpdate2(update);
-
-                if (typeHash == fbh::api::callback_query && !_query_answ) {
-                    answerCallbackQuery(update.query().id());
-                }
-                if (useYield) yield();
-                if (_reboot == fb::Fetcher::Reboot::Triggered) {
-                    _reboot = fb::Fetcher::Reboot::WaitUpdate;
-                    return 1;
-                }
-            }
-        } else {
-            // ============= RESPONSE =============
-            if (result.includes(fbh::api::message_id)) _last_bot = result[fbh::api::message_id];
-            if (result.includes(fbh::api::file_id) && result[fbh::api::file_id].hash() == _lastFileID) {
-                _lastFileID = 0;
-                fb::Packet p;
-                p.beginDownload(result[fbh::api::file_path], _token);
-                if (_fetcher) {
-                    clientSendRead(p, &_fetcher->stream);
-                } else {
-                    sendPacket(p, 0);
-                }
-            }
-            if (_cbResult) _cbResult(result);
-        }
+        if (result.type() == gson::Type::Array) _parseUpdates(result, useYield);
+        else _parseResponse(result);
         return 1;
     }
 
@@ -542,4 +497,52 @@ class VirtualFastBot2 {
     CallbackResult _cbResult = nullptr;
     CallbackRaw _cbRaw = nullptr;
     CallbackFetch _cbFetch = nullptr;
+
+    void _parseUpdates(gson::Entry& result, bool useYield) {
+        if (_reboot == fb::Fetcher::Reboot::WaitUpdate) {
+            _reboot = fb::Fetcher::Reboot::CanReboot;
+#ifdef FB_ESP_BUILD
+            ESP.restart();
+#endif
+            return;
+        }
+        uint8_t len = result.length();
+        if (len) _poll_offset = result[0][fbh::api::update_id].toInt32();
+
+        for (uint8_t i = 0; i < len; i++) {
+            _poll_offset++;
+            gson::Entry upd = result[i][1];
+            if (!upd.valid()) continue;
+
+            size_t typeHash = upd.keyHash();
+            fb::Update update(upd, typeHash);
+            if (typeHash == fbh::api::callback_query) _query_answ = 0;
+
+            if (_cbUpdate1) _cbUpdate1(update);
+            if (_cbUpdate2) _cbUpdate2(update);
+
+            if (typeHash == fbh::api::callback_query && !_query_answ) {
+                answerCallbackQuery(update.query().id());
+            }
+            if (useYield) yield();
+            if (_reboot == fb::Fetcher::Reboot::Triggered) {
+                _reboot = fb::Fetcher::Reboot::WaitUpdate;
+                return;
+            }
+        }
+    }
+    void _parseResponse(gson::Entry& result) {
+        if (result.includes(fbh::api::message_id)) _last_bot = result[fbh::api::message_id];
+        if (result.includes(fbh::api::file_id) && result[fbh::api::file_id].hash() == _lastFileID) {
+            _lastFileID = 0;
+            fb::Packet p;
+            p.beginDownload(result[fbh::api::file_path], _token);
+            if (_fetcher) {
+                clientSendRead(p, &_fetcher->stream);
+            } else {
+                sendPacket(p, 0);
+            }
+        }
+        if (_cbResult) _cbResult(result);
+    }
 };

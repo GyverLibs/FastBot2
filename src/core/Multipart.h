@@ -5,9 +5,9 @@
 #include "core/api.h"
 #include "core/config.h"
 
-// #ifdef FB_ESP_BUILD
-// #include <FS.h>
-// #endif
+#ifdef FB_ESP_BUILD
+#include <FS.h>
+#endif
 
 #ifndef FB_NO_FILE
 #define FB_ATTACH "attach://"
@@ -146,10 +146,11 @@ class Multipart : public Printable {
     const uint8_t* _bytes = nullptr;
     const size_t _length = 0;
     const bool _edit;
-    char _attachName[20] = FB_ATTACH;
+    char _attachName[su::SL(FB_ATTACH) + su::SL("ffffffff") + 1];
 
     void _init() {
-        ultoa(random(), _attachName + su::SL(FB_ATTACH), HEX);
+        strcpy(_attachName, FB_ATTACH);
+        ltoa(random(0xffffffff), _attachName + su::SL(FB_ATTACH), HEX);
     }
 };
 

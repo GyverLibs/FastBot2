@@ -35,7 +35,7 @@ class AsyncHTTP : public Stream {
             uint32_t ms = millis();
             while (!client.available()) {
                 if (millis() - ms >= _timeout) {
-                    FB_LOG("available-read timeout");
+                    FB_LOG("client available timeout");
                     flush();
                     return -1;
                 }
@@ -48,7 +48,7 @@ class AsyncHTTP : public Stream {
                 _length--;
                 if (!_length) flush();  // last
             } else {
-                FB_LOG("wrong read");
+                FB_LOG("client read error");
                 flush();
                 r = -1;
             }
@@ -126,7 +126,7 @@ class AsyncHTTP : public Stream {
         uint32_t ms = millis();
         while (!client.available()) {
             if (millis() - ms >= _timeout) {
-                FB_LOG("timeout error");
+                FB_LOG("client timeout error");
                 flush();
                 return 0;
             }
@@ -172,7 +172,7 @@ class AsyncHTTP : public Stream {
             yield();
         }
         if (!eolF || !_length) {  // !eolF == error/disconnected
-            FB_LOG("headers error");
+            FB_LOG("client headers error");
             flush();
             return 0;
         }
@@ -186,7 +186,7 @@ class AsyncHTTP : public Stream {
     // парсить пакет в буфер размера available()
     bool readBytes(char* buf) {
         bool ok = (client.readBytes(buf, _length) == _length);
-        if (!ok) FB_LOG("read error");
+        if (!ok) FB_LOG("client read error");
         flush();
         return ok;
     }
@@ -198,6 +198,7 @@ class AsyncHTTP : public Stream {
 
     // остановить клиента
     void stop() {
+        FB_LOG("client stop");
         client.stop();
         _wait = 0;
         _length = 0;

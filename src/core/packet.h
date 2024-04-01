@@ -125,9 +125,9 @@ class Packet : public gson::string {
                 p.print(s);
             } break;
 
-            case Type::Simple: {
+            case Type::Simple:
                 p.print(s);
-            } break;
+                break;
 
             default:
                 break;

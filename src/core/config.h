@@ -12,7 +12,7 @@
 #define FB_ESP_BUILD 1
 #endif
 
-#define FB_USE_LOG Serial
+// #define FB_USE_LOG Serial
 
 #ifdef FB_USE_LOG
 #define FB_LOG(x)                                   \

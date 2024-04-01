@@ -28,7 +28,7 @@ void rawh(const su::Text& s) {
     // Serial.println(s);
 }
 
-// обработчик скачивания файлов (байтовый поток)
+// обработчик скачивания файлов (байтовый поток) из getFile
 void fetchh(Stream& s) {
     Serial.println("got file:");
     while (s.available()) Serial.print((char)s.read());
@@ -37,14 +37,13 @@ void fetchh(Stream& s) {
 
 // обработчик ответов сервера
 void responseh(gson::Entry& r) {
-    // =================== CUSTOM ===================
     // сюда прилетает разобранный json объект "result:{}" с хешированными ключами!
     // для доступа использовать хэши API, все доступны в fbh::api
     // Serial.println(r[fbh::api::message_id]);
     // Serial.println(r[fbh::api::text]);
     // Serial.println(r[fbh::api::from][fbh::api::username]);
 
-    // можно узнать последнюю отправленную команду
+    // можно узнать последнюю отправленную команду (результат её выполнения как раз в ответе сервера)
     switch (bot.lastCmd()) {
         case fbh::cmd::sendMessage:
             Serial.println("sendMessage");
@@ -57,17 +56,16 @@ void responseh(gson::Entry& r) {
             break;
     }
 
+    // вывести в serial как json
     // r.stringify(Serial);
 }
 
-// обработчик обновлений
-void updateh(fb::Update& u) {
-    // сообщение
+void foo1(fb::Update& u) {
     if (u.isMessage()) {
-        // Serial.println(u.message().date());
+        Serial.println(u.message().date());
         Serial.println(u.message().text());
-        // Serial.println(u.message().text().toString(true));  // decode unicode
-        // Serial.println(u.message().from().username());
+        Serial.println(u.message().text().toString(true));  // decode unicode
+        Serial.println(u.message().from().username());
 
         // эхо, вариант 1
         // fb::Message msg;
@@ -76,7 +74,9 @@ void updateh(fb::Update& u) {
         // bot.sendMessage(msg);
 
         // эхо, вариант 2
-        // bot.sendMessage(fb::Message(u.message().text(), u.message().chat().id()));
+        bot.sendMessage(fb::Message(u.message().text(), u.message().chat().id()));
+
+        // удалить сообщение юзера
         // bot.deleteMessage(u.message().chat().id(), u.message().id());
 
         // edit
@@ -89,42 +89,37 @@ void updateh(fb::Update& u) {
         // } else {
         //     bot.sendMessage(fb::Message(u.message().text(), u.message().chat().id()));
         // }
+    }
+}
+void foo2(fb::Update& u) {
+    if (u.isMessage() && u.message().hasDocument()) {
+        if (u.message().document().name().endsWith(".bin")) {
+            // .bin - значит это ОТА
+            bot.sendMessage(fb::Message("OTA begin", u.message().chat().id()), true);
 
-        if (u.message().hasDocument()) {
-            // bot.getFile(u.message().document().id());  // получить вруную в обработчик fetch
-
-            // ИЛИ
-
-            Serial.println(u.message().document().name());
-            bool ota = u.message().document().name().endsWith(".bin");
-            if (ota) bot.sendMessage(fb::Message("OTA begin", u.message().chat().id()), true);
-
+            // между downloadFile и updateFlash/updateFS/writeTo не должно быть отправки сообщений!
             fb::Fetcher fetch = bot.downloadFile(u.message().document().id());
-            // между вызовом downloadFile и writeTo/updateFlash/updateFS не должно быть отправки сообщений!
-            if (fetch) {
-                if (ota) {
-                    // ота обновление
-                    if (fetch.updateFlash()) {
-                        Serial.println("OTA done");
-                        bot.sendMessage(fb::Message("OTA done", u.message().chat().id()), true);
-                    } else {
-                        Serial.println("OTA error");
-                        bot.sendMessage(fb::Message("OTA error", u.message().chat().id()), true);
-                    }
-                } else {
-                    // вывести в сериал
-                    fetch.writeTo(Serial);
-                    Serial.println();
-
-                    // записать в файл
-                    // File file = LittleFS.open("file.txt", "w");
-                    // f.writeTo(file);
-                }
+            if (fetch.updateFlash()) {
+                Serial.println("OTA done");
+                bot.sendMessage(fb::Message("OTA done", u.message().chat().id()), true);
+            } else {
+                Serial.println("OTA error");
+                bot.sendMessage(fb::Message("OTA error", u.message().chat().id()), true);
             }
+        } else {
+            // это просто файл, выведем содержимое
+            fb::Fetcher fetch = bot.downloadFile(u.message().document().id());
+            // вывести в сериал
+            fetch.writeTo(Serial);
+            Serial.println();
+
+            // записать в файл
+            // File file = LittleFS.open("file.txt", "w");
+            // f.writeTo(file);
         }
     }
-
-    // ответ на query
+}
+void foo3(fb::Update& u) {
     if (u.isQuery()) {
         Serial.println(u.query().data());
 
@@ -133,7 +128,8 @@ void updateh(fb::Update& u) {
         // bot.answerCallbackQuery(u.query().id(), "hello!");
         bot.answerCallbackQuery(u.query().id(), "hello!", true, true);
     }
-
+}
+void foo4(fb::Update& u) {
     // =================== CUSTOM ===================
     // полное определение типа обновления:
     switch (u.type()) {
@@ -148,8 +144,15 @@ void updateh(fb::Update& u) {
     // доступ к json пакету, здесь u.entry - api объект типа u.type()
     // Например для сообщения:
     // Serial.println(u.entry[fbh::api::from][fbh::api::username]);
+}
 
-    FB_LOG("update end");
+// обработчик обновлений
+void updateh(fb::Update& u) {
+    // разбил на функции, чтобы не переполнять стек esp8266!
+    foo1(u);
+    foo2(u);
+    foo3(u);
+    foo4(u);
 }
 
 void setup() {
@@ -174,6 +177,9 @@ void setup() {
     // system
     bot.setToken(F(BOT_TOKEN));
     bot.skipUpdates();
+
+    // у 8266 можно уменьшить буфер клиента до минимума, его вполне хватает
+    bot.client.setBufferSizes(512, 512);
 
     // ============================
     // выбор типа обновлений
@@ -248,7 +254,7 @@ void setup() {
     //     bot.editFile(f);
     // }
 
-    bot.sendMessage(fb::Message("Hello!", CHAT_ID));
+    bot.sendMessage(fb::Message("Привет", CHAT_ID));
 }
 
 void loop() {
