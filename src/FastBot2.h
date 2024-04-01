@@ -18,10 +18,10 @@ class FastBot2 : public FastBot2Client {
         client.setInsecure();
     }
 
-   private:
 #if defined(ESP8266)
     BearSSL::WiFiClientSecure client;
 #elif defined(ESP32)
     WiFiClientSecure client;
 #endif
+   private:
 };

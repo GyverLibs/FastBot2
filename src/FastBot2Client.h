@@ -20,26 +20,19 @@ class FastBot2Client : public VirtualFastBot2 {
         _limit = limit;
     }
 
-   private:
     AsyncHTTP http;
+
+   private:
     uint16_t _limit = 20000;
 
-    // override
+    // =========== override ===========
     bool clientSend(fb::Packet& packet, bool wait) {
-        if (http.isWaiting()) FB_LOG("client wait");
-
-        while (http.isWaiting()) {
-            _checkAndRead();
-            yield();
-        }
+        if (http.isWaiting() && http.waitAnswer()) _readAndParse();
         return wait ? _sendAndWait(packet) : _send(packet);
     }
 
-    bool clientStream(fb::Packet& packet, Stream** stream) {
-        while (http.isWaiting()) {
-            _checkAndRead();
-            yield();
-        }
+    bool clientSendRead(fb::Packet& packet, Stream** stream) {
+        if (http.isWaiting() && http.waitAnswer()) _readAndParse();
 
         if (_send(packet) && http.waitAnswer() && http.beginParse()) {
             if (http.getType() == AsyncHTTP::ContentType::File) {
@@ -67,15 +60,10 @@ class FastBot2Client : public VirtualFastBot2 {
         return _checkAndRead();
     }
 
-    // func
+    // =========== func ===========
     bool _checkAndRead() {
-        if (http.clientAvailable()) {
-            if (http.beginParse()) {
-                return _readAndParse();
-            } else {
-                FB_LOG("begin parse error");
-                return 0;
-            }
+        if (http.client.available()) {
+            return _readAndParse();
         }
         return 0;
     }
@@ -88,10 +76,15 @@ class FastBot2Client : public VirtualFastBot2 {
         return 0;
     }
     bool _sendAndWait(fb::Packet& packet) {
-        return _send(packet) && http.waitAnswer() && http.beginParse() && _readAndParse();
+        return _send(packet) && http.waitAnswer() && _readAndParse();
     }
+
     bool _readAndParse() {
-        // headers уже прочитаны тут
+        if (!http.beginParse()) {
+            FB_LOG("begin parse error");
+            return 0;
+        }
+
         switch (http.getType()) {
             case AsyncHTTP::ContentType::Json:
                 if (_limit && http.available() > _limit) {
@@ -104,7 +97,7 @@ class FastBot2Client : public VirtualFastBot2 {
                     size_t len = http.available();
                     char* buf = new char[len];
                     if (buf) {
-                        if (http.parse(buf)) {
+                        if (http.readBytes(buf)) {
                             su::Text txt(buf, len);
                             ok = parsePacket(txt);
                         }

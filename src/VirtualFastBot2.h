@@ -160,8 +160,10 @@ class VirtualFastBot2 {
     // ============================== TICK ==============================
 
     // тикер, вызывать в loop
-    bool tick() {
-        if (!_state) return 0;
+    void tick() {
+        if (!_state) return;
+
+        clientTick();
 
         if (clientWaiting()) {
             if (millis() - _last_send >= (_poll_wait ? (_poll_prd + clientTimeout) : clientTimeout)) {
@@ -173,8 +175,6 @@ class VirtualFastBot2 {
                 getUpdates(false);
             }
         }
-
-        return clientTick();
     }
 
     // система ждёт ответа с обновлениями
@@ -193,6 +193,7 @@ class VirtualFastBot2 {
         updates.fill(p);
         p.endArr();
 
+        _poll_wait = 0;
         if (_poll_mode == fb::Poll::Sync || wait) return sendPacket(p, true);
         else return _poll_wait = sendPacket(p, false);
     }
@@ -500,7 +501,7 @@ class VirtualFastBot2 {
                 fb::Packet p;
                 p.beginDownload(result[fbh::api::file_path], _token);
                 if (_fetcher) {
-                    clientStream(p, &_fetcher->_stream);
+                    clientSendRead(p, &_fetcher->stream);
                 } else {
                     sendPacket(p, 0);
                 }
@@ -512,7 +513,7 @@ class VirtualFastBot2 {
 
    protected:
     virtual bool clientSend(fb::Packet& packet, bool wait) = 0;
-    virtual bool clientStream(fb::Packet& packet, Stream** stream) = 0;
+    virtual bool clientSendRead(fb::Packet& packet, Stream** stream) = 0;
     virtual bool clientWaiting() { return 0; }
     virtual bool clientTick() { return 0; }
     virtual void clientStop() {}

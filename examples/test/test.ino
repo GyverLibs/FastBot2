@@ -226,7 +226,7 @@ void setup() {
     // fb::File f("file.txt", fb::File::Type::document, "https://compote.slate.com/images/697b023b-64a5-49a0-8059-27b963453fb1.gif");
     // f.chatID = CHAT_ID;
     // bot.sendFile(f, true);
-    // delay(1000);
+    // delay(2000);
     // {
     //     fb::FileEdit f("file.txt", fb::File::Type::document, "https://user-images.githubusercontent.com/14011726/94132137-7d4fc100-fe7c-11ea-8512-69f90cb65e48.gif");
     //     f.messageID = bot.lastBotMessage();

@@ -20,7 +20,12 @@ class AsyncHTTP : public Stream {
     AsyncHTTP(Client& client, const char* host, uint16_t port) : client(client), _host(host), _port(port) {
         setTimeout(ASYNC_HTTP_DEF_TIMEOUT);
     }
+    AsyncHTTP(Client& client, const IPAddress& ip, uint16_t port) : client(client), _host(nullptr), _ip(ip), _port(port) {
+        setTimeout(ASYNC_HTTP_DEF_TIMEOUT);
+    }
 
+    // ============== STREAM IMPL ==============
+    // оставшийся content-length, если клиент ждёт ответа
     int available() {
         return isWaiting() ? _length : 0;
     }
@@ -59,8 +64,32 @@ class AsyncHTTP : public Stream {
         return 1;
     }
 
-    bool clientAvailable() {
-        return client.available();
+    // ==========================
+
+    // установить новый хост и порт
+    void setHost(const char* host, uint16_t port) {
+        if (client.connected()) {
+            flush();
+            stop();
+        }
+        _host = host;
+        _port = port;
+    }
+
+    // установить новый хост и порт
+    void setHost(const IPAddress& ip, uint16_t port) {
+        setHost(nullptr, port);
+        _ip = ip;
+    }
+
+    // установить новый клиент для связи
+    void setClient(Client& client) {
+        if (this->client.connected()) {
+            flush();
+            stop();
+        }
+        this->client = client;
+        client.setTimeout(_timeout);
     }
 
     // установить таймаут ответа сервера, умолч. 2000 мс
@@ -69,16 +98,22 @@ class AsyncHTTP : public Stream {
         _timeout = tout;
     }
 
+    // ==========================
+
     // начать отправку. Дальше нужно вручную сделать client.print
     bool beginSend() {
-        if (_wait_f) stop();  // принудительно завершить прошлый сеанс
-        if (!client.connected()) client.connect(_host, _port);
+        if (_wait) stop();
+
+        if (!client.connected()) {
+            if (_host) client.connect(_host, _port);
+            else client.connect(_ip, _port);
+        }
 
         if (client.connected()) {
-            _wait_f = 1;
+            _wait = 1;
             return 1;
         } else {
-            FB_LOG("connect error");
+            FB_LOG("client connect error");
             return 0;
         }
     }
@@ -92,6 +127,7 @@ class AsyncHTTP : public Stream {
         while (!client.available()) {
             if (millis() - ms >= _timeout) {
                 FB_LOG("timeout error");
+                flush();
                 return 0;
             }
             yield();
@@ -111,7 +147,7 @@ class AsyncHTTP : public Stream {
         while (client.connected()) {
             size_t len = client.readBytesUntil('\n', buffer, ASYNC_HTTP_BUF_SIZE);
             if (!len || buffer[len - 1] != '\r') break;
-            if (len == 1) {
+            if (len == 1) {  // line == \r
                 eolF = 1;
                 break;
             }
@@ -147,8 +183,8 @@ class AsyncHTTP : public Stream {
         return _type;
     }
 
-    // парсить пакет в буфер размера length()
-    bool parse(char* buf) {
+    // парсить пакет в буфер размера available()
+    bool readBytes(char* buf) {
         bool ok = (client.readBytes(buf, _length) == _length);
         if (!ok) FB_LOG("read error");
         flush();
@@ -157,13 +193,13 @@ class AsyncHTTP : public Stream {
 
     // клиент ждёт ответа
     bool isWaiting() {
-        return client.connected() && _wait_f;
+        return client.connected() && _wait;
     }
 
     // остановить клиента
     void stop() {
         client.stop();
-        _wait_f = 0;
+        _wait = 0;
         _length = 0;
     }
 
@@ -174,16 +210,17 @@ class AsyncHTTP : public Stream {
             yield();
         }
         if (_close) stop();
-        _wait_f = 0;
+        _wait = 0;
         _length = 0;
     }
 
     Client& client;
 
    private:
-    const char* _host;
+    const char* _host = nullptr;
+    IPAddress _ip;
     uint16_t _port;
-    bool _wait_f = 0;
+    bool _wait = 0;
     uint16_t _timeout;
     bool _close = 0;
     size_t _length = 0, _readLength = 0;
