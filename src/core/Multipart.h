@@ -27,7 +27,7 @@ class Multipart : public Printable {
     };
 
 #ifdef FS_H
-    Multipart(const su::Text& name, Type type, ::File& file, bool edit) : _name(name), _type(type), _file(&file), _edit(edit) {
+    Multipart(const su::Text& name, Type type, ::File& file, bool edit) : _name(name), _type(type), _file(&file), _length(file.size()), _edit(edit) {
         _init();
     }
 #endif
@@ -102,21 +102,22 @@ class Multipart : public Printable {
     size_t printTo(Print& p) const {
         if (!isFile()) return 0;
         size_t printed = 0;
+        size_t length = _length;
 #ifdef FS_H
         if (_file) {
-            uint8_t buf[FB_BLOCK_SIZE];
-            size_t length = _file->size();
+            uint8_t* buf = new uint8_t[FB_BLOCK_SIZE];
+            if (!buf) return 0;
             while (length) {
                 size_t curlen = min((size_t)FB_BLOCK_SIZE, length);
-                _file->read(buf, curlen);
-                printed += p.write(buf, curlen);
+                size_t read = _file->read(buf, curlen);
+                printed += p.write(buf, read);
                 length -= curlen;
             }
+            delete[] buf;
             return printed;
         }
 #endif
         if (_bytes) {
-            size_t length = _length;
             const uint8_t* bytesp = _bytes;
             while (length) {
                 size_t curlen = min((size_t)FB_BLOCK_SIZE, length);

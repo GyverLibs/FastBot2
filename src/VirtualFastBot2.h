@@ -160,10 +160,8 @@ class VirtualFastBot2 {
     // ============================== TICK ==============================
 
     // тикер, вызывать в loop
-    void tick() {
-        if (!_state) return;
-
-        clientTick();
+    bool tick() {
+        if (!_state) return 0;
 
         if (clientWaiting()) {
             if (millis() - _last_send >= (_poll_wait ? (_poll_prd + clientTimeout) : clientTimeout)) {
@@ -175,6 +173,8 @@ class VirtualFastBot2 {
                 getUpdates(false);
             }
         }
+
+        return clientTick();
     }
 
     // система ждёт ответа с обновлениями
