@@ -11,6 +11,8 @@
 #include <WiFi.h>
 #endif
 
+#include <LittleFS.h>
+
 // Нативная версия WiFi esp8266/esp32
 #include <FastBot2.h>
 FastBot2 bot;
@@ -74,7 +76,7 @@ void foo1(fb::Update& u) {
         // bot.sendMessage(msg);
 
         // эхо, вариант 2
-        bot.sendMessage(fb::Message(u.message().text(), u.message().chat().id()));
+        bot.sendMessage(fb::Message(u.message().text().toString(true), u.message().chat().id()));
 
         // удалить сообщение юзера
         // bot.deleteMessage(u.message().chat().id(), u.message().id());
@@ -254,7 +256,14 @@ void setup() {
     //     bot.editFile(f);
     // }
 
-    bot.sendMessage(fb::Message("Привет", CHAT_ID));
+    // file from fs
+    // LittleFS.begin();
+    // File file = LittleFS.open("/image.jpg", "r");
+    // fb::File f("file.txt", fb::File::Type::photo, file);
+    // f.chatID = CHAT_ID;
+    // bot.sendFile(f, true);
+
+    // bot.sendMessage(fb::Message("Привет", CHAT_ID));
 }
 
 void loop() {

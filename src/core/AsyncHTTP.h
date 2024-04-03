@@ -142,7 +142,13 @@ class AsyncHTTP : public Stream {
         _type = ContentType::None;
         bool connF = 0, typeF = 0;
         bool eolF = 0;
-        uint8_t buffer[ASYNC_HTTP_BUF_SIZE];
+
+        uint8_t* buffer = new uint8_t[ASYNC_HTTP_BUF_SIZE];
+        if (!buffer) {
+            FB_LOG("client allocation error");
+            flush();
+            return 0;
+        }
 
         while (client.connected()) {
             size_t len = client.readBytesUntil('\n', buffer, ASYNC_HTTP_BUF_SIZE);
@@ -171,6 +177,8 @@ class AsyncHTTP : public Stream {
             }
             yield();
         }
+        
+        delete[] buffer;
         if (!eolF || !_length) {  // !eolF == error/disconnected
             FB_LOG("client headers error");
             flush();
