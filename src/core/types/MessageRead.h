@@ -118,6 +118,10 @@ struct MessageRead {
         return DocumentRead(entry[fbh::api::document]);
     }
 
+    su::Text isFromOffline() {
+        return entry[fbh::api::is_from_offline];
+    }
+
     // доступ к пакету данных
     gson::Entry entry;
 };

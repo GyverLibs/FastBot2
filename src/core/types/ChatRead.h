@@ -58,6 +58,10 @@ struct ChatRead {
         return entry[fbh::api::is_forum];
     }
 
+    ChatRead personalChat() {
+        return ChatRead(entry[fbh::api::personal_chat]);
+    }
+
     // доступ к пакету данных
     gson::Entry entry;
 };

@@ -497,6 +497,9 @@ FB_MAKE_EXTERN(photo_size)
 FB_MAKE_EXTERN(can_send_video_notes)
 FB_MAKE_EXTERN(is_video)
 FB_MAKE_EXTERN(send_phone_number_to_provider)
+FB_MAKE_EXTERN(is_from_offline)
+FB_MAKE_EXTERN(can_connect_to_business)
+FB_MAKE_EXTERN(personal_chat)
 }  // namespace api
 
 namespace cmd {
@@ -1113,6 +1116,9 @@ FB_MAKE_HASH(photo_size)
 FB_MAKE_HASH(can_send_video_notes)
 FB_MAKE_HASH(is_video)
 FB_MAKE_HASH(send_phone_number_to_provider)
+FB_MAKE_HASH(is_from_offline)
+FB_MAKE_HASH(can_connect_to_business)
+FB_MAKE_HASH(personal_chat)
 }  // namespace api
 
 namespace cmd {

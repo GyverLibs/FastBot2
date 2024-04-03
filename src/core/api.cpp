@@ -494,6 +494,9 @@ FB_MAKE_FSTR(photo_size)
 FB_MAKE_FSTR(can_send_video_notes)
 FB_MAKE_FSTR(is_video)
 FB_MAKE_FSTR(send_phone_number_to_provider)
+FB_MAKE_FSTR(is_from_offline)
+FB_MAKE_FSTR(can_connect_to_business)
+FB_MAKE_FSTR(personal_chat)
 }  // namespace api
 
 namespace cmd {

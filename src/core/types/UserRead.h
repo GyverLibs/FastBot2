@@ -46,6 +46,10 @@ struct UserRead {
         return entry[fbh::api::is_premium];
     }
 
+    su::Text canConnectToBusiness() {
+        return entry[fbh::api::can_connect_to_business]
+    }
+
     // доступ к пакету данных
     gson::Entry entry;
 };
