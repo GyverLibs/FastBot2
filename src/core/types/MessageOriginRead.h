@@ -10,8 +10,8 @@
 namespace fb {
 
 // https://core.telegram.org/bots/api#messageorigin
-struct MessageOriginRead {
-    MessageOriginRead(gson::Entry entry) : entry(entry) {}
+struct MessageOriginRead : public gson::Entry {
+    MessageOriginRead(gson::Entry entry) : gson::Entry(entry) {}
 
     enum class Type : size_t {
         user = su::SH("user"),
@@ -22,31 +22,28 @@ struct MessageOriginRead {
 
     // тип отправителя: user, hidden_user, chat, channel
     Type type() {
-        return (Type)entry[fbh::api::type].hash();
+        return (Type)(*this)[fbh::api::type].hash();
     }
 
     // дата оригинального сообщения
     su::Text date() {
-        return entry[fbh::api::date];
+        return (*this)[fbh::api::date];
     }
 
     // отправитель type == user
     UserRead senderUser() {
-        return UserRead(entry[fbh::api::sender_user]);
+        return UserRead((*this)[fbh::api::sender_user]);
     }
 
     // отправитель type == chat
     ChatRead senderChat() {
-        return ChatRead(entry[fbh::api::sender_chat]);
+        return ChatRead((*this)[fbh::api::sender_chat]);
     }
 
     // отправитель type == channel
     ChatRead chat() {
-        return ChatRead(entry[fbh::api::chat]);
+        return ChatRead((*this)[fbh::api::chat]);
     }
-
-    // доступ к пакету данных
-    gson::Entry entry;
 };
 
 }  // namespace fb

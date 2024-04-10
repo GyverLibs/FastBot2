@@ -9,7 +9,7 @@
 namespace fb {
 
 // https://core.telegram.org/bots/api#update
-class Update {
+class Update : public gson::Entry {
    public:
     enum class Type : size_t {
         message = fbh::api::message,
@@ -36,7 +36,7 @@ class Update {
         removedChatBoost = fbh::api::removed_chat_boost,
     };
 
-    Update(gson::Entry& entry, size_t type) : entry(entry), _type((Type)type) {}
+    Update(gson::Entry& entry, size_t type) : gson::Entry(entry), _type((Type)type) {}
 
     // тип апдейта
     Type type() {
@@ -52,14 +52,14 @@ class Update {
 
     // query
     QueryRead query() {
-        return QueryRead(entry);
+        return QueryRead(*this);
     }
 
     // ================ MESSAGE ================
 
     // сообщение
     MessageRead message() {
-        return MessageRead(entry);
+        return MessageRead(*this);
     }
 
     // это сообщение
@@ -78,7 +78,7 @@ class Update {
     }
 
     // доступ к пакету данных
-    gson::Entry& entry;
+    // gson::Entry& entry;
 
    private:
     Type _type;

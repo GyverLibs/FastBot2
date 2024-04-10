@@ -10,31 +10,28 @@
 namespace fb {
 
 // https://core.telegram.org/bots/api#callbackquery
-struct QueryRead {
-    QueryRead(gson::Entry entry) : entry(entry) {}
+struct QueryRead : public gson::Entry {
+    QueryRead(gson::Entry entry) : gson::Entry(entry) {}
 
     // callback id
     su::Text id() {
-        return entry[fbh::api::id];
+        return (*this)[fbh::api::id];
     }
 
     // callback data
     su::Text data() {
-        return entry[fbh::api::data];
+        return (*this)[fbh::api::data];
     }
 
     // отправитель коллбэка
     UserRead from() {
-        return UserRead(entry[fbh::api::from]);
+        return UserRead((*this)[fbh::api::from]);
     }
 
     // сообщение
     MessageRead message() {
-        return MessageRead(entry[fbh::api::message]);
+        return MessageRead((*this)[fbh::api::message]);
     }
-
-    // доступ к пакету данных
-    gson::Entry entry;
 };
 
 }  // namespace fb

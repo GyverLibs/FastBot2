@@ -8,8 +8,8 @@
 namespace fb {
 
 // https://core.telegram.org/bots/api#chat
-struct ChatRead {
-    ChatRead(gson::Entry entry) : entry(entry) {}
+struct ChatRead : public gson::Entry {
+    ChatRead(gson::Entry entry) : gson::Entry(entry) {}
 
     enum class Type : size_t {
         privateChat = su::SH("private"),
@@ -20,46 +20,43 @@ struct ChatRead {
 
     // id чата
     su::Text id() {
-        return entry[fbh::api::id];
+        return (*this)[fbh::api::id];
     }
 
     // тип чата: private_chat, group, supergroup, channel
     Type type() {
-        return (Type)entry[fbh::api::type].hash();
+        return (Type)(*this)[fbh::api::type].hash();
     }
 
     // название чата (для supergroups, channels, group chats)
     su::Text title() {
-        return entry[fbh::api::title];
+        return (*this)[fbh::api::title];
     }
 
     // имя чата (для private chats, supergroups, channels)
     su::Text username() {
-        return entry[fbh::api::username];
+        return (*this)[fbh::api::username];
     }
 
     // имя (для private chat)
     su::Text firstName() {
-        return entry[fbh::api::first_name];
+        return (*this)[fbh::api::first_name];
     }
 
     // фамилия (для private chat)
     su::Text lastName() {
-        return entry[fbh::api::last_name];
+        return (*this)[fbh::api::last_name];
     }
 
     // описание чата
     su::Text description() {
-        return entry[fbh::api::description];
+        return (*this)[fbh::api::description];
     }
 
     // в supergroup включены темы
     su::Text isForum() {
-        return entry[fbh::api::is_forum];
+        return (*this)[fbh::api::is_forum];
     }
-
-    // доступ к пакету данных
-    gson::Entry entry;
 };
 
 }  // namespace fb

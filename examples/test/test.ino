@@ -65,9 +65,11 @@ void responseh(gson::Entry& r) {
 void foo1(fb::Update& u) {
     if (u.isMessage()) {
         Serial.println(u.message().date());
-        Serial.println(u.message().text());
+        Serial.println(u[fbh::api::message][fbh::api::text]);
+        // Serial.println(u.message().text());
         Serial.println(u.message().text().toString(true));  // decode unicode
         Serial.println(u.message().from().username());
+        Serial.println(u.message().from().id());
 
         // эхо, вариант 1
         // fb::Message msg;
@@ -143,9 +145,9 @@ void foo4(fb::Update& u) {
             break;
     }
 
-    // доступ к json пакету, здесь u.entry - api объект типа u.type()
+    // доступ к json пакету
     // Например для сообщения:
-    // Serial.println(u.entry[fbh::api::from][fbh::api::username]);
+    // Serial.println(u[fbh::api::from][fbh::api::username]);
 }
 
 // обработчик обновлений
