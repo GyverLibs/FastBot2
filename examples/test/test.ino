@@ -275,6 +275,7 @@ void setup() {
     //     {"command":"restart","description":"Перезагрзка контроллера"}
     // )");
     // p.endArr();
+    // bot.sendPacket(p);
 
     // setMyCommands v2
     // fb::Packet p = bot.beginPacket(fb::cmd::setMyCommands);
@@ -282,17 +283,7 @@ void setup() {
     // p.beginObj().addString(fb::api::command, "help").addString(fb::api::description, "Помощь по командам").endObj();
     // p.beginObj().addString(fb::api::command, "info").addString(fb::api::description, "Информация о настройках").endObj();
     // p.endArr();
-    // bot.sendPacket(p, false);
-
-    // p.addText(fb::api::commands,
-    // 	"["
-    // 	"{"command":"help", "description":"Помощь по командам"},"
-    // 	"{"command":"info", "description":"Информация о настройках"},"
-    // 	"{"command":"status","description":"Показания датчиков"},"
-    // 	"{"command":"restart","description":"Перезагрзка контроллера"}"
-    // 	"]"
-    // );
-    // bot.sendPacket(p, false);
+    // bot.sendPacket(p);
 }
 
 void loop() {
