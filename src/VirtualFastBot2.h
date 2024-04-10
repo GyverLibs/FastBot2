@@ -84,9 +84,9 @@ class VirtualFastBot2 {
         clientStop();
     }
 
-    // пропустить непрочитанные сообщения. Вызывать однократно
-    void skipUpdates() {
-        _poll_offset = -1;
+    // пропустить непрочитанные сообщения. Вызывать однократно https://core.telegram.org/bots/api#getupdates
+    void skipUpdates(int32_t offset = -1) {
+        _poll_offset = offset;
     }
 
     // пропустить следующее сообщение (сдвинуть оффсет на 1)

@@ -16,6 +16,12 @@ class Update {
         editedMessage = fbh::api::edited_message,
         channelPost = fbh::api::channel_post,
         editedChannelPost = fbh::api::edited_channel_post,
+        businessСonnection = fbh::api::business_connection,
+        businessMessage = fbh::api::business_message,
+        editedBusinessMessage = fbh::api::edited_business_message,
+        deletedBusinessMessages = fbh::api::deleted_business_messages,
+        messageReaction = fbh::api::message_reaction,
+        messageReactionCount = fbh::api::message_reaction_count,
         inlineQuery = fbh::api::inline_query,
         chosenInlineResult = fbh::api::chosen_inline_result,
         callbackQuery = fbh::api::callback_query,
@@ -26,6 +32,8 @@ class Update {
         myChatMember = fbh::api::my_chat_member,
         chatMember = fbh::api::chat_member,
         chatJoinRequest = fbh::api::chat_join_request,
+        chatBoost = fbh::api::chat_boost,
+        removedChatBoost = fbh::api::removed_chat_boost,
     };
 
     Update(gson::Entry& entry, size_t type) : entry(entry), _type((Type)type) {}
