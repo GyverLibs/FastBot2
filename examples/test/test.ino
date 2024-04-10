@@ -264,6 +264,35 @@ void setup() {
     // bot.sendFile(f, true);
 
     // bot.sendMessage(fb::Message("Привет", CHAT_ID));
+
+    // setMyCommands v1
+    // fb::Packet p = bot.beginPacket(fb::cmd::setMyCommands);
+    // p.beginArr(fb::api::commands);
+    // p.addText(R"(
+    //     {"command":"help","description":"Помощь по командам"},
+    //     {"command":"info","description":"Информация о настройках"},
+    //     {"command":"status","description":"Показания датчиков"},
+    //     {"command":"restart","description":"Перезагрзка контроллера"}
+    // )");
+    // p.endArr();
+
+    // setMyCommands v2
+    // fb::Packet p = bot.beginPacket(fb::cmd::setMyCommands);
+    // p.beginArr(fb::api::commands);
+    // p.beginObj().addString(fb::api::command, "help").addString(fb::api::description, "Помощь по командам").endObj();
+    // p.beginObj().addString(fb::api::command, "info").addString(fb::api::description, "Информация о настройках").endObj();
+    // p.endArr();
+    // bot.sendPacket(p, false);
+
+    // p.addText(fb::api::commands,
+    // 	"["
+    // 	"{"command":"help", "description":"Помощь по командам"},"
+    // 	"{"command":"info", "description":"Информация о настройках"},"
+    // 	"{"command":"status","description":"Показания датчиков"},"
+    // 	"{"command":"restart","description":"Перезагрзка контроллера"}"
+    // 	"]"
+    // );
+    // bot.sendPacket(p, false);
 }
 
 void loop() {

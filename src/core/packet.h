@@ -61,13 +61,13 @@ class Packet : public gson::string {
     void beginQS(const __FlashStringHelper* key) {
         if (_qs_first) _qs_first = 0;
         else s += '&';
-        addText(key);
+        addTextRaw(key);
         s += '=';
     }
 
     void addQS(const __FlashStringHelper* key, const su::Value& value) {
         beginQS(key);
-        addText(value);
+        addTextRaw(value);
     }
 
     // print

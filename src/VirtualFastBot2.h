@@ -433,7 +433,7 @@ class VirtualFastBot2 {
     }
 
     // отправить пакет
-    bool sendPacket(fb::Packet& packet, bool wait) {
+    bool sendPacket(fb::Packet& packet, bool wait = false) {
         _last_send = millis();
         if (_poll_wait) clientStop();
         return clientSend(packet, wait);
