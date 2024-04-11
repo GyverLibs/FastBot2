@@ -48,14 +48,14 @@ class File : protected Message {
     Multipart multipart;
 
    protected:
-    void makePacket(fb::Packet& p) const {
+    void makePacket(Packet& p) const {
         if (multipart.isFile()) {
             Message::makeQS(p);
-            if (caption.length()) p.addQS(fb::api::caption, caption);
+            if (caption.length()) p.addQS(api::caption, caption);
         } else {
             Message::makePacket(p);
             p[multipart.getType()] = multipart.getUrlid();
-            if (caption.length()) p.addStringEsc(fb::api::caption, caption);
+            if (caption.length()) p.addStringEsc(api::caption, caption);
         }
     }
 
@@ -94,27 +94,27 @@ class FileEdit : protected File {
     using Message::setInlineMenu;
 
    protected:
-    void makePacket(fb::Packet& p) const {
+    void makePacket(Packet& p) const {
         if (multipart.isFile()) {
             File::Message::makeQS(p);
-            p.addQS(fb::api::message_id, messageID);
+            p.addQS(api::message_id, messageID);
             {
-                p.beginQS(fb::api::media);
+                p.beginQS(api::media);
                 p.beginObj();
-                p[fb::api::type] = multipart.getType();
-                p[fb::api::media] = multipart.getAttachName();
-                if (caption.length()) p.addStringEsc(fb::api::caption, caption);
+                p[api::type] = multipart.getType();
+                p[api::media] = multipart.getAttachName();
+                if (caption.length()) p.addStringEsc(api::caption, caption);
                 p.endObj();
                 p.end();
             }
         } else {
             File::Message::makePacket(p);
-            p[fb::api::message_id] = messageID;
+            p[api::message_id] = messageID;
             {
-                p.beginObj(fb::api::media);
-                p[fb::api::type] = multipart.getType();
-                p[fb::api::media] = multipart.getUrlid();
-                if (caption.length()) p.addStringEsc(fb::api::caption, caption);
+                p.beginObj(api::media);
+                p[api::type] = multipart.getType();
+                p[api::media] = multipart.getUrlid();
+                if (caption.length()) p.addStringEsc(api::caption, caption);
                 p.endObj();
             }
         }

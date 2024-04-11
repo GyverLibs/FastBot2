@@ -17,10 +17,10 @@ struct InlineMenu {
     }
 
     // надписи кнопок. Гор. разделитель - ;, верт. - \n (кнопка_1 ; кнопка_2 \n кнопка_3 ; кнопка_4)
-    String text;
+    String text = "";
 
     // callback data кнопок с разделителем ; . Поддерживаются url адреса
-    String data;
+    String data = "";
 
     // зарезервировать строки
     void reserve(uint16_t len) {
@@ -30,24 +30,27 @@ struct InlineMenu {
 
     // добавить кнопку
     InlineMenu& addButton(su::Text text, su::Text data = su::Text()) {
+        if (_first) _first = false;
+        else {
+            this->text += ';';
+            this->data += ';';
+        }
+
         text.addString(this->text);
         if (data.valid()) data.addString(this->data);
         else text.addString(this->data);
-        this->text += ';';
-        this->data += ';';
         return *this;
     }
 
     // перенести строку
     InlineMenu& newRow() {
         if (text.length()) text[text.length() - 1] = '\n';
+        _first = true;
         return *this;
     }
 
     void _toJson(Packet& p) {
-        p.beginArr(fb::api::inline_keyboard);
-        _trim(text);
-        _trim(data);
+        p.beginArr(api::inline_keyboard);
         su::TextParser rows(text, '\n');
         su::TextParser datap(data, ';');
         while (rows.parse()) {
@@ -56,14 +59,14 @@ struct InlineMenu {
             while (cols.parse()) {
                 datap.parse();
                 p.beginObj();
-                p.addStringEsc(fb::api::text, cols);
+                p.addStringEsc(api::text, cols);
                 // url or callback_data
                 if (datap.startsWith(F("http://")) ||
                     datap.startsWith(F("https://")) ||
                     datap.startsWith(F("tg://"))) {
-                    p[fb::api::url] = datap;
+                    p[api::url] = datap;
                 } else {
-                    p.addStringEsc(fb::api::callback_data, datap);
+                    p.addStringEsc(api::callback_data, datap);
                 }
                 p.endObj();
             }
@@ -73,9 +76,7 @@ struct InlineMenu {
     }
 
    private:
-    void _trim(String& s) const {
-        if (s[s.length() - 1] == ';') s.remove(s.length() - 1);
-    }
+    bool _first = true;
 };
 
 }  // namespace fb

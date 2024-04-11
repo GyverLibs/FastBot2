@@ -14,10 +14,10 @@ struct Menu {
     Menu(const String& text) : text(text) {}
 
     // надписи кнопок. Гор. разделитель - ;, верт. - \n (кнопка_1 ; кнопка_2 \n кнопка_3 ; кнопка_4)
-    String text;
+    String text = "";
 
     // подсказка, показывается в поле ввода при открытой клавиатуре (до 64 символов)
-    String placeholder;
+    String placeholder = "";
 
     // принудительно показывать клавиатуру
     bool persistent = persistentDefault;
@@ -33,14 +33,17 @@ struct Menu {
 
     // добавить кнопку
     Menu& addButton(su::Text text) {
+        if (_first) _first = false;
+        else this->text += ';';
+
         text.addString(this->text);
-        this->text += ';';
         return *this;
     }
 
     // перенести строку
     Menu& newRow() {
         if (text.length()) text[text.length() - 1] = '\n';
+        _first = true;
         return *this;
     }
 
@@ -59,8 +62,7 @@ struct Menu {
     static bool selectiveDefault;
 
     void _toJson(Packet& p) {
-        p.beginArr(fb::api::keyboard);
-        _trim(text);
+        p.beginArr(api::keyboard);
         su::TextParser rows(text, '\n');
         while (rows.parse()) {
             su::TextParser cols(rows, ';');
@@ -69,17 +71,15 @@ struct Menu {
             p.endArr();
         }
         p.endArr();
-        if (persistent) p[fb::api::is_persistent] = true;
-        if (resize) p[fb::api::resize_keyboard] = true;
-        if (oneTime) p[fb::api::one_time_keyboard] = true;
-        if (selective) p[fb::api::selective] = true;
-        if (placeholder.length()) p.addStringEsc(fb::api::input_field_placeholder, placeholder);
+        if (persistent) p[api::is_persistent] = true;
+        if (resize) p[api::resize_keyboard] = true;
+        if (oneTime) p[api::one_time_keyboard] = true;
+        if (selective) p[api::selective] = true;
+        if (placeholder.length()) p.addStringEsc(api::input_field_placeholder, placeholder);
     }
 
    private:
-    void _trim(String& s) const {
-        if (s[s.length() - 1] == ';') s.remove(s.length() - 1);
-    }
+    bool _first = true;
 };
 
 }  // namespace fb

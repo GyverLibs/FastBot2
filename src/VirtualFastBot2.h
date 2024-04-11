@@ -13,6 +13,7 @@
 #include "core/types/MessageEdit.h"
 #include "core/types/MessageForward.h"
 #include "core/types/MessageRead.h"
+#include "core/types/MyCommands.h"
 #include "core/types/QueryRead.h"
 #include "core/types/Update.h"
 #include "core/updates.h"
@@ -250,6 +251,7 @@ class VirtualFastBot2 {
 
 // ============================== FILE ==============================
 #ifndef FB_NO_FILE
+    // отправить файл, тип указывается в fb::File
     bool sendFile(const fb::File& m, bool wait = false) {
         fb::Packet p;
         _lastCmd = p.beginMultipart(m.multipart, _token);
@@ -257,7 +259,7 @@ class VirtualFastBot2 {
         return sendPacket(p, wait);
     }
 
-    // редактировать медиа
+    // редактировать файл
     bool editFile(const fb::FileEdit& m, bool wait = false) {
         if (!m.chatID.valid()) return 0;
         fb::Packet p;
@@ -319,6 +321,37 @@ class VirtualFastBot2 {
         _lastCmd = p.beginJson(fb::cmd::setChatDescription, _token);
         p[fb::api::chat_id] = chatID;
         p.addStringEsc(fb::api::description, description);
+        return sendPacket(p, wait);
+    }
+
+    // установить подсказки команд бота
+    bool setMyCommands(const fb::MyCommands& commands, bool wait = false) {
+        fb::Packet p;
+        _lastCmd = p.beginJson(fb::cmd::setMyCommands, _token);
+        commands.makePacket(p);
+        return sendPacket(p, wait);
+    }
+
+    // удалить подсказки команд бота
+    bool deleteMyCommands(bool wait = false) {
+        fb::Packet p;
+        _lastCmd = p.beginJson(fb::cmd::deleteMyCommands, _token);
+        return sendPacket(p, wait);
+    }
+
+    // установить имя бота
+    bool setMyName(const su::Text& name, bool wait = false) {
+        fb::Packet p;
+        _lastCmd = p.beginJson(fb::cmd::setMyName, _token);
+        p[fb::api::name] = name;
+        return sendPacket(p, wait);
+    }
+
+    // установить описание бота
+    bool setMyDescription(const su::Text& description, bool wait = false) {
+        fb::Packet p;
+        _lastCmd = p.beginJson(fb::cmd::setMyDescription, _token);
+        p[fb::api::description] = description;
         return sendPacket(p, wait);
     }
 

@@ -28,9 +28,9 @@ class TextEdit : private Message {
     using Message::text;
 
    protected:
-    void makePacket(fb::Packet& p) const {
+    void makePacket(Packet& p) const {
         Message::makePacket(p);
-        p[fb::api::message_id] = messageID;
+        p[api::message_id] = messageID;
     }
 };
 
@@ -43,6 +43,10 @@ class MenuEdit : private Message {
     MenuEdit(uint32_t messageID, const su::Value& chatID) : messageID(messageID) {
         this->chatID = chatID;
     }
+    MenuEdit(uint32_t messageID, const su::Value& chatID, InlineMenu& menu) : messageID(messageID) {
+        this->chatID = chatID;
+        setInlineMenu(menu);
+    }
 
     // id сообщения
     uint32_t messageID;
@@ -51,9 +55,9 @@ class MenuEdit : private Message {
     using Message::setInlineMenu;
 
    protected:
-    void makePacket(fb::Packet& p) const {
+    void makePacket(Packet& p) const {
         Message::makePacket(p);
-        p[fb::api::message_id] = messageID;
+        p[api::message_id] = messageID;
     }
 };
 
@@ -78,10 +82,10 @@ class CaptionEdit : private Message {
     using Message::setInlineMenu;
 
    protected:
-    void makePacket(fb::Packet& p) const {
+    void makePacket(Packet& p) const {
         Message::makePacket(p);
-        p[fb::api::message_id] = messageID;
-        p.addStringEsc(fb::api::caption, caption);
+        p[api::message_id] = messageID;
+        p.addStringEsc(api::caption, caption);
     }
 };
 
@@ -117,14 +121,14 @@ class LocationEdit : private Message {
     using Message::setInlineMenu;
 
    protected:
-    void makePacket(fb::Packet& p) const {
+    void makePacket(Packet& p) const {
         Message::makePacket(p);
-        p[fb::api::message_id] = messageID;
-        p.addFloat(fb::api::latitude, latitude, 6);
-        p.addFloat(fb::api::longitude, longitude, 6);
-        if (!isnan(horizontalAccuracy)) p.addFloat(fb::api::horizontal_accuracy, horizontalAccuracy, 1);
-        if (heading) p[fb::api::heading] = heading;
-        if (proximityAlertRadius) p[fb::api::proximity_alert_radius] = proximityAlertRadius;
+        p[api::message_id] = messageID;
+        p.addFloat(api::latitude, latitude, 6);
+        p.addFloat(api::longitude, longitude, 6);
+        if (!isnan(horizontalAccuracy)) p.addFloat(api::horizontal_accuracy, horizontalAccuracy, 1);
+        if (heading) p[api::heading] = heading;
+        if (proximityAlertRadius) p[api::proximity_alert_radius] = proximityAlertRadius;
     }
 };
 
@@ -145,9 +149,9 @@ class LocationStop : private Message {
     using Message::setInlineMenu;
 
    protected:
-    void makePacket(fb::Packet& p) const {
+    void makePacket(Packet& p) const {
         Message::makePacket(p);
-        p[fb::api::message_id] = messageID;
+        p[api::message_id] = messageID;
     }
 };
 

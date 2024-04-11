@@ -16,8 +16,16 @@
 
 > Библиотека в разработке! Руководствуйтесь примером и подсказками IDE
 
+### Совместимость
+Любые Arduino
+
 ## Установка
 Библиотека не в релизе, качайте репозиторий zip архивом (кнопка Code справа вверху) или по [прямой ссылке](https://github.com/GyverLibs/FastBot2/archive/refs/heads/main.zip) на загрузку.
+
+## Вывод графики
+Используйте библиотеку [CharDisplay](https://github.com/GyverLibs/CharDisplay) для вывода графиков и рисования в чате!  
+
+![](https://github.com/GyverLibs/CharDisplay/blob/main/docs/plots.png)
 
 Для работы FastBot2 нужно установить библиотеки:
 - [GSON](https://github.com/GyverLibs/GSON) v1.4.10+

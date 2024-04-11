@@ -58,12 +58,12 @@ class Message {
     Mode mode = modeDefault;
 
     // добавить обычное меню
-    void setMenu(fb::Menu& menu) {
+    void setMenu(Menu& menu) {
         if (menu.text.length()) _menu = &menu;
     }
 
     // добавить инлайн меню
-    void setInlineMenu(fb::InlineMenu& menu) {
+    void setInlineMenu(InlineMenu& menu) {
         if (menu.text.length() && menu.data.length()) _menu_inline = &menu;
     }
 
@@ -88,61 +88,61 @@ class Message {
 
    private:
     bool _remove_menu = 0;
-    fb::Menu* _menu = nullptr;
-    fb::InlineMenu* _menu_inline = nullptr;
+    Menu* _menu = nullptr;
+    InlineMenu* _menu_inline = nullptr;
 
    protected:
-    void makePacket(fb::Packet& p) const {
-        p[fb::api::chat_id] = chatID;
-        if (text.length()) p.addStringEsc(fb::api::text, text);
-        if (threadID >= 0) p[fb::api::message_thread_id] = threadID;
+    void makePacket(Packet& p) const {
+        p[api::chat_id] = chatID;
+        if (text.length()) p.addStringEsc(api::text, text);
+        if (threadID >= 0) p[api::message_thread_id] = threadID;
         if (reply.messageID >= 0) {
-            p.beginObj(fb::api::reply_parameters);
-            p[fb::api::message_id] = reply.messageID;
-            if (reply.chatID.valid()) p[fb::api::chat_id] = reply.chatID;
+            p.beginObj(api::reply_parameters);
+            p[api::message_id] = reply.messageID;
+            if (reply.chatID.valid()) p[api::chat_id] = reply.chatID;
             p.endObj();
         }
         if (!preview) {
-            p.beginObj(fb::api::link_preview_options);
-            p[fb::api::is_disabled] = true;
+            p.beginObj(api::link_preview_options);
+            p[api::is_disabled] = true;
             p.endObj();
         }
-        if (!notification) p[fb::api::disable_notification] = true;
-        if (protect) p[fb::api::protect_content] = true;
-        if (mode != fb::Message::Mode::Text) p[fb::api::parse_mode] = (mode == fb::Message::Mode::MarkdownV2 ? F("MarkdownV2") : F("HTML"));
+        if (!notification) p[api::disable_notification] = true;
+        if (protect) p[api::protect_content] = true;
+        if (mode != Message::Mode::Text) p[api::parse_mode] = (mode == Message::Mode::MarkdownV2 ? F("MarkdownV2") : F("HTML"));
 
         if (_remove_menu || _menu_inline || _menu) {
-            p.beginObj(fb::api::reply_markup);
+            p.beginObj(api::reply_markup);
             makeMenu(p);
             p.endObj();
         }
     }
 
-    void makeQS(fb::Packet& p) const {
-        p.addQS(fb::api::chat_id, chatID);
-        if (text.length()) p.addQS(fb::api::text, text);
-        if (threadID >= 0) p.addQS(fb::api::message_thread_id, threadID);
+    void makeQS(Packet& p) const {
+        p.addQS(api::chat_id, chatID);
+        if (text.length()) p.addQS(api::text, text);
+        if (threadID >= 0) p.addQS(api::message_thread_id, threadID);
         if (reply.messageID >= 0) {
-            p.beginQS(fb::api::reply_parameters);
+            p.beginQS(api::reply_parameters);
             p.beginObj();
-            p[fb::api::message_id] = reply.messageID;
-            if (reply.chatID.valid()) p[fb::api::chat_id] = reply.chatID;
+            p[api::message_id] = reply.messageID;
+            if (reply.chatID.valid()) p[api::chat_id] = reply.chatID;
             p.endObj();
             p.end();
         }
         if (!preview) {
-            p.beginQS(fb::api::link_preview_options);
+            p.beginQS(api::link_preview_options);
             p.beginObj();
-            p[fb::api::is_disabled] = true;
+            p[api::is_disabled] = true;
             p.endObj();
             p.end();
         }
-        if (!notification) p.addQS(fb::api::disable_notification, true);
-        if (protect) p.addQS(fb::api::protect_content, true);
-        if (mode != fb::Message::Mode::Text) p.addQS(fb::api::parse_mode, mode == (fb::Message::Mode::MarkdownV2) ? F("MarkdownV2") : F("HTML"));
+        if (!notification) p.addQS(api::disable_notification, true);
+        if (protect) p.addQS(api::protect_content, true);
+        if (mode != Message::Mode::Text) p.addQS(api::parse_mode, mode == (Message::Mode::MarkdownV2) ? F("MarkdownV2") : F("HTML"));
 
         if (_remove_menu || _menu_inline || _menu) {
-            p.beginQS(fb::api::reply_markup);
+            p.beginQS(api::reply_markup);
             p.beginObj();
             makeMenu(p);
             p.endObj();
@@ -150,8 +150,8 @@ class Message {
         }
     }
 
-    void makeMenu(fb::Packet& p) const {
-        if (_remove_menu) p[fb::api::remove_keyboard] = true;
+    void makeMenu(Packet& p) const {
+        if (_remove_menu) p[api::remove_keyboard] = true;
         else if (_menu_inline) _menu_inline->_toJson(p);
         else if (_menu) _menu->_toJson(p);
     }

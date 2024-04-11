@@ -41,13 +41,13 @@ class MessageForward {
     bool protect = Message::protectDefault;
 
    private:
-    void makePacket(fb::Packet& p) const {
-        p[fb::api::message_id] = messageID;
-        p[fb::api::from_chat_id] = fromChatID;
-        p[fb::api::chat_id] = chatID;
-        if (threadID >= 0) p[fb::api::message_thread_id] = (threadID);
-        if (!notification) p[fb::api::disable_notification] = true;
-        if (protect) p[fb::api::protect_content] = true;
+    void makePacket(Packet& p) const {
+        p[api::message_id] = messageID;
+        p[api::from_chat_id] = fromChatID;
+        p[api::chat_id] = chatID;
+        if (threadID >= 0) p[api::message_thread_id] = (threadID);
+        if (!notification) p[api::disable_notification] = true;
+        if (protect) p[api::protect_content] = true;
     }
 };
 

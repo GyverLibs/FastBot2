@@ -63,32 +63,32 @@ class Updates {
    private:
     uint32_t updates = FB_UPDATES_FILL;
 
-    void fill(fb::Packet& p) {
+    void fill(Packet& p) {
         if (updates == FB_UPDATES_FILL) return;
 
         const __FlashStringHelper* upd_arr[] = {
-            fb::api::message,
-            fb::api::edited_message,
-            fb::api::channel_post,
-            fb::api::edited_channel_post,
-            fb::api::business_connection,
-            fb::api::business_message,
-            fb::api::edited_business_message,
-            fb::api::deleted_business_messages,
-            fb::api::message_reaction,
-            fb::api::message_reaction_count,
-            fb::api::inline_query,
-            fb::api::chosen_inline_result,
-            fb::api::callback_query,
-            fb::api::shipping_query,
-            fb::api::pre_checkout_query,
-            fb::api::poll,
-            fb::api::poll_answer,
-            fb::api::my_chat_member,
-            fb::api::chat_member,
-            fb::api::chat_join_request,
-            fb::api::chat_boost,
-            fb::api::removed_chat_boost,
+            api::message,
+            api::edited_message,
+            api::channel_post,
+            api::edited_channel_post,
+            api::business_connection,
+            api::business_message,
+            api::edited_business_message,
+            api::deleted_business_messages,
+            api::message_reaction,
+            api::message_reaction_count,
+            api::inline_query,
+            api::chosen_inline_result,
+            api::callback_query,
+            api::shipping_query,
+            api::pre_checkout_query,
+            api::poll,
+            api::poll_answer,
+            api::my_chat_member,
+            api::chat_member,
+            api::chat_join_request,
+            api::chat_boost,
+            api::removed_chat_boost,
         };
 
         for (uint8_t i = 0; i < FB_UPDATES_AMOUNT; i++) {

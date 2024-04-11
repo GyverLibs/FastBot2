@@ -58,42 +58,42 @@ class Multipart : public Printable {
     const __FlashStringHelper* getType() const {
         switch (_type) {
             case Type::photo:
-                return fb::api::photo;
+                return api::photo;
             case Type::audio:
-                return fb::api::audio;
+                return api::audio;
             case Type::document:
-                return fb::api::document;
+                return api::document;
             case Type::video:
-                return fb::api::video;
+                return api::video;
             case Type::animation:
-                return fb::api::animation;
+                return api::animation;
             case Type::voice:
-                return fb::api::voice;
+                return api::voice;
             case Type::video_note:
-                return fb::api::video_note;
+                return api::video_note;
         }
         return F("");
     }
 
     // return sendXXX or editMessageMedia
     const __FlashStringHelper* getCmd() const {
-        if (_edit) return fb::cmd::editMessageMedia;
+        if (_edit) return cmd::editMessageMedia;
 
         switch (_type) {
             case Type::photo:
-                return fb::cmd::sendPhoto;
+                return cmd::sendPhoto;
             case Type::audio:
-                return fb::cmd::sendAudio;
+                return cmd::sendAudio;
             case Type::document:
-                return fb::cmd::sendDocument;
+                return cmd::sendDocument;
             case Type::video:
-                return fb::cmd::sendVideo;
+                return cmd::sendVideo;
             case Type::animation:
-                return fb::cmd::sendAnimation;
+                return cmd::sendAnimation;
             case Type::voice:
-                return fb::cmd::sendVoice;
+                return cmd::sendVoice;
             case Type::video_note:
-                return fb::cmd::sendVideoNote;
+                return cmd::sendVideoNote;
             default:
                 return F("");
         }
