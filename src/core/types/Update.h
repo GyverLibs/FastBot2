@@ -16,7 +16,7 @@ class Update : public gson::Entry {
         editedMessage = fbh::api::edited_message,
         channelPost = fbh::api::channel_post,
         editedChannelPost = fbh::api::edited_channel_post,
-        businessСonnection = fbh::api::business_connection,
+        businessConnection = fbh::api::business_connection,
         businessMessage = fbh::api::business_message,
         editedBusinessMessage = fbh::api::edited_business_message,
         deletedBusinessMessages = fbh::api::deleted_business_messages,
