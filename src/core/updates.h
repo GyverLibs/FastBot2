@@ -19,7 +19,7 @@ class Updates {
         EditedMessage = bit(1),
         ChannelPost = bit(2),
         EditedChannelPost = bit(3),
-        BusinessСonnection = bit(4),
+        BusinessConnection = bit(4),
         BusinessMessage = bit(5),
         EditedBusinessMessage = bit(6),
         DeletedBusinessMessages = bit(7),
