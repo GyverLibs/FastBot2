@@ -3,13 +3,17 @@
 #include <GSON.h>
 #include <StringUtils.h>
 
+#include "Message_class.h"
 #include "core/api.h"
 #include "core/packet.h"
 
 namespace fb {
 
 // https://core.telegram.org/bots/api#inlinekeyboardbutton
-struct InlineMenu {
+class InlineMenu {
+    friend class Message;
+
+   public:
     InlineMenu() {}
     InlineMenu(const String& text, const String& data) : text(text), data(data) {}
     InlineMenu(uint16_t reserve) {
@@ -49,6 +53,9 @@ struct InlineMenu {
         return *this;
     }
 
+   private:
+    bool _first = true;
+
     void _toJson(Packet& p) {
         p.beginArr(api::inline_keyboard);
         su::TextParser rows(text, '\n');
@@ -74,9 +81,6 @@ struct InlineMenu {
         }
         p.endArr();
     }
-
-   private:
-    bool _first = true;
 };
 
 }  // namespace fb

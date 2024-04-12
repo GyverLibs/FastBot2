@@ -3,13 +3,17 @@
 #include <GSON.h>
 #include <StringUtils.h>
 
+#include "Message_class.h"
 #include "core/api.h"
 #include "core/packet.h"
 
 namespace fb {
 
 // https://core.telegram.org/bots/api#replykeyboardmarkup
-struct Menu {
+class Menu {
+    friend class Message;
+
+   public:
     Menu() {}
     Menu(const String& text) : text(text) {}
 
@@ -61,6 +65,9 @@ struct Menu {
     // показывать только упомянутым в сообщении юзерам (умолч. 0)
     static bool selectiveDefault;
 
+   private:
+    bool _first = true;
+
     void _toJson(Packet& p) {
         p.beginArr(api::keyboard);
         su::TextParser rows(text, '\n');
@@ -77,9 +84,6 @@ struct Menu {
         if (selective) p[api::selective] = true;
         if (placeholder.length()) p.addStringEsc(api::input_field_placeholder, placeholder);
     }
-
-   private:
-    bool _first = true;
 };
 
 }  // namespace fb

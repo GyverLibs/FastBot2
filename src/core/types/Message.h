@@ -5,6 +5,7 @@
 
 #include "InlineMenu.h"
 #include "Menu.h"
+#include "Message_class.h"
 #include "VirtualFastBot2_class.h"
 #include "core/api.h"
 #include "core/packet.h"

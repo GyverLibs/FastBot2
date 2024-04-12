@@ -39,23 +39,32 @@ class Updates {
         RemovedChatBoost = bit(21),
     };
 
+    // установить
     void set(uint32_t nmods) {
         updates |= nmods;
     }
+
+    // очистить
     void clear(uint32_t nmods) {
         updates &= ~nmods;
     }
 
+    // включить все
     void setAll() {
         updates = FB_UPDATES_FILL;
     }
+
+    // очистить все
     void clearAll() {
         updates = 0;
     }
 
+    // прочитать по типу
     bool read(Type m) {
         return updates & (uint32_t)m;
     }
+
+    // прочитать по индексу
     bool read(uint8_t idx) {
         return updates & (1 << idx);
     }

@@ -100,7 +100,7 @@ class VirtualFastBot2 {
         return _last_bot;
     }
 
-    // последняя отправленная ботом команда
+    // хэш последней отправленной ботом команды
     size_t lastCmd() {
         return _lastCmd;
     }

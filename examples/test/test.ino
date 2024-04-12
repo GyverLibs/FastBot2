@@ -137,9 +137,9 @@ void foo4(fb::Update& u) {
     // =================== CUSTOM ===================
     // полное определение типа обновления:
     switch (u.type()) {
-        case fb::Update::Type::message:
+        case fb::Update::Type::Message:
             break;
-        case fb::Update::Type::chatJoinRequest:
+        case fb::Update::Type::ChatJoinRequest:
             break;
         default:
             break;
@@ -267,25 +267,21 @@ void setup() {
 
     // bot.sendMessage(fb::Message("Привет", CHAT_ID));
 
-    // setMyCommands v1
-    // fb::Packet p = bot.beginPacket(fb::cmd::setMyCommands);
-    // p.beginArr(fb::api::commands);
-    // p.addText(R"(
-    //     {"command":"help","description":"Помощь по командам"},
-    //     {"command":"info","description":"Информация о настройках"},
-    //     {"command":"status","description":"Показания датчиков"},
-    //     {"command":"restart","description":"Перезагрзка контроллера"}
-    // )");
-    // p.endArr();
-    // bot.sendPacket(p);
+    // установить команды
+    // в конструкторе
+    // fb::MyCommands commands("help;settings", "Помощь;Настройки");
 
-    // setMyCommands v2
-    // fb::Packet p = bot.beginPacket(fb::cmd::setMyCommands);
-    // p.beginArr(fb::api::commands);
-    // p.beginObj().addString(fb::api::command, "help").addString(fb::api::description, "Помощь по командам").endObj();
-    // p.beginObj().addString(fb::api::command, "info").addString(fb::api::description, "Информация о настройках").endObj();
-    // p.endArr();
-    // bot.sendPacket(p);
+    // вручную
+    // fb::MyCommands commands;
+    // commands.commands = "help;settings";
+    // commands.description = "Помощь;Настройки";
+
+    // через билдер
+    fb::MyCommands commands;
+    commands.addCommand("help", "Помощь");
+    commands.addCommand("settings", "Настройки");
+
+    bot.setMyCommands(commands);
 }
 
 void loop() {

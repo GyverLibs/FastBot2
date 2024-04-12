@@ -22,14 +22,14 @@
 ## Установка
 Библиотека не в релизе, качайте репозиторий zip архивом (кнопка Code справа вверху) или по [прямой ссылке](https://github.com/GyverLibs/FastBot2/archive/refs/heads/main.zip) на загрузку.
 
+Для работы FastBot2 нужно установить библиотеки:
+- [GSON](https://github.com/GyverLibs/GSON) v1.4.10+
+- [StringUtils](https://github.com/GyverLibs/StringUtils) v1.4.8+
+
 ## Вывод графики
 Используйте библиотеку [CharDisplay](https://github.com/GyverLibs/CharDisplay) для вывода графиков и рисования в чате!  
 
 ![](https://github.com/GyverLibs/CharDisplay/blob/main/docs/plots.png)
-
-Для работы FastBot2 нужно установить библиотеки:
-- [GSON](https://github.com/GyverLibs/GSON) v1.4.10+
-- [StringUtils](https://github.com/GyverLibs/StringUtils) v1.4.8+
 
 ## Документация
 Находится в [папке docs](https://github.com/GyverLibs/FastBot2/tree/main/docs/1.main.md)

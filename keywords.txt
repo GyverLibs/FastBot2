@@ -6,6 +6,8 @@
 # Datatypes (KEYWORD1)
 #######################################
 FastBot2	KEYWORD1
+VirtualFastBot2	KEYWORD1
+FastBot2Client	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
