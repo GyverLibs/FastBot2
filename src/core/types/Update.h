@@ -4,12 +4,13 @@
 
 #include "MessageRead.h"
 #include "QueryRead.h"
+#include "core/BracketAccess.h"
 #include "core/api.h"
 
 namespace fb {
 
 // https://core.telegram.org/bots/api#update
-class Update : public gson::Entry {
+class Update : public BracketAccess {
    public:
     enum class Type : size_t {
         Message = fbh::api::message,
@@ -36,7 +37,7 @@ class Update : public gson::Entry {
         RemovedChatBoost = fbh::api::removed_chat_boost,
     };
 
-    Update(gson::Entry& entry, size_t type) : gson::Entry(entry), _type((Type)type) {}
+    Update(gson::Entry& entry, size_t type) : BracketAccess(entry), _type((Type)type) {}
 
     // тип апдейта
     Type type() {
@@ -52,14 +53,14 @@ class Update : public gson::Entry {
 
     // query
     QueryRead query() {
-        return QueryRead(*this);
+        return QueryRead(entry);
     }
 
     // ================ MESSAGE ================
 
     // сообщение
     MessageRead message() {
-        return MessageRead(*this);
+        return MessageRead(entry);
     }
 
     // это сообщение
@@ -80,7 +81,5 @@ class Update : public gson::Entry {
    private:
     Type _type;
 };
-
-
 
 }  // namespace fb

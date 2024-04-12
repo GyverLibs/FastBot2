@@ -4,6 +4,7 @@
 #include <StringUtils.h>
 
 #include "VirtualFastBot2_class.h"
+#include "core/BracketAccess.h"
 #include "core/api.h"
 
 namespace fb {
@@ -11,32 +12,32 @@ namespace fb {
 typedef void (*DownloadHook)(void* bot, const su::Text& id);
 
 // https://core.telegram.org/bots/api#document
-struct DocumentRead : public gson::Entry {
-    DocumentRead(gson::Entry entry) : gson::Entry(entry) {}
+struct DocumentRead : public BracketAccess {
+    DocumentRead(gson::Entry entry) : BracketAccess(entry) {}
 
     // id документа, можно использовать для скачивания
     su::Text id() {
-        return (*this)[fbh::api::file_id];
+        return entry[fbh::api::file_id];
     }
 
     // уникальный id документа в системе
     su::Text uniqueID() {
-        return (*this)[fbh::api::file_unique_id];
+        return entry[fbh::api::file_unique_id];
     }
 
     // имя документа
     su::Text name() {
-        return (*this)[fbh::api::file_name];
+        return entry[fbh::api::file_name];
     }
 
     // MIME тип документа
     su::Text type() {
-        return (*this)[fbh::api::mime_type];
+        return entry[fbh::api::mime_type];
     }
 
     // размер документа
     su::Text size() {
-        return (*this)[fbh::api::file_size];
+        return entry[fbh::api::file_size];
     }
 };
 

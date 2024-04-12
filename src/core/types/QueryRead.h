@@ -5,32 +5,33 @@
 
 #include "MessageRead.h"
 #include "UserRead.h"
+#include "core/BracketAccess.h"
 #include "core/api.h"
 
 namespace fb {
 
 // https://core.telegram.org/bots/api#callbackquery
-struct QueryRead : public gson::Entry {
-    QueryRead(gson::Entry entry) : gson::Entry(entry) {}
+struct QueryRead : public BracketAccess {
+    QueryRead(gson::Entry entry) : BracketAccess(entry) {}
 
     // callback id
     su::Text id() {
-        return (*this)[fbh::api::id];
+        return entry[fbh::api::id];
     }
 
     // callback data
     su::Text data() {
-        return (*this)[fbh::api::data];
+        return entry[fbh::api::data];
     }
 
     // отправитель коллбэка
     UserRead from() {
-        return UserRead((*this)[fbh::api::from]);
+        return UserRead(entry[fbh::api::from]);
     }
 
     // сообщение
     MessageRead message() {
-        return MessageRead((*this)[fbh::api::message]);
+        return MessageRead(entry[fbh::api::message]);
     }
 };
 

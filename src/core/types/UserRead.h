@@ -3,47 +3,48 @@
 #include <GSON.h>
 #include <StringUtils.h>
 
+#include "core/BracketAccess.h"
 #include "core/api.h"
 
 namespace fb {
 
 // https://core.telegram.org/bots/api#user
-struct UserRead : public gson::Entry {
-    UserRead(gson::Entry entry) : gson::Entry(entry) {}
+struct UserRead : public BracketAccess {
+    UserRead(gson::Entry entry) : BracketAccess(entry) {}
 
     // id юзера
     su::Text id() {
-        return (*this)[fbh::api::id];
+        return entry[fbh::api::id];
     }
 
     // бот или нет
     su::Text isBot() {
-        return (*this)[fbh::api::is_bot];
+        return entry[fbh::api::is_bot];
     }
 
     // имя
     su::Text firstName() {
-        return (*this)[fbh::api::first_name];
+        return entry[fbh::api::first_name];
     }
 
     // фамилия
     su::Text lastName() {
-        return (*this)[fbh::api::last_name];
+        return entry[fbh::api::last_name];
     }
 
     // юзернейм
     su::Text username() {
-        return (*this)[fbh::api::username];
+        return entry[fbh::api::username];
     }
 
     // код страны https://en.wikipedia.org/wiki/IETF_language_tag
     su::Text languageCode() {
-        return (*this)[fbh::api::language_code];
+        return entry[fbh::api::language_code];
     }
 
     // true - премиум юзер
     su::Text isPremium() {
-        return (*this)[fbh::api::is_premium];
+        return entry[fbh::api::is_premium];
     }
 };
 

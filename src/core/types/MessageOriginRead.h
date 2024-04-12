@@ -5,13 +5,14 @@
 
 #include "ChatRead.h"
 #include "UserRead.h"
+#include "core/BracketAccess.h"
 #include "core/api.h"
 
 namespace fb {
 
 // https://core.telegram.org/bots/api#messageorigin
-struct MessageOriginRead : public gson::Entry {
-    MessageOriginRead(gson::Entry entry) : gson::Entry(entry) {}
+struct MessageOriginRead : public BracketAccess {
+    MessageOriginRead(gson::Entry entry) : BracketAccess(entry) {}
 
     enum class Type : size_t {
         user = su::SH("user"),
@@ -22,27 +23,27 @@ struct MessageOriginRead : public gson::Entry {
 
     // тип отправителя: user, hidden_user, chat, channel
     Type type() {
-        return (Type)(*this)[fbh::api::type].hash();
+        return (Type)entry[fbh::api::type].hash();
     }
 
     // дата оригинального сообщения
     su::Text date() {
-        return (*this)[fbh::api::date];
+        return entry[fbh::api::date];
     }
 
     // отправитель type == user
     UserRead senderUser() {
-        return UserRead((*this)[fbh::api::sender_user]);
+        return UserRead(entry[fbh::api::sender_user]);
     }
 
     // отправитель type == chat
     ChatRead senderChat() {
-        return ChatRead((*this)[fbh::api::sender_chat]);
+        return ChatRead(entry[fbh::api::sender_chat]);
     }
 
     // отправитель type == channel
     ChatRead chat() {
-        return ChatRead((*this)[fbh::api::chat]);
+        return ChatRead(entry[fbh::api::chat]);
     }
 };
 
