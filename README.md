@@ -1,6 +1,5 @@
 [![latest](https://img.shields.io/github/v/release/GyverLibs/FastBot2.svg?color=brightgreen)](https://github.com/GyverLibs/FastBot2/releases/latest/download/FastBot2.zip)
 [![PIO](https://badges.registry.platformio.org/packages/gyverlibs/library/FastBot2.svg)](https://registry.platformio.org/libraries/gyverlibs/FastBot2)
-[![arduino-library](https://www.ardu-badge.com/badge/FastBot2.svg?)](https://www.ardu-badge.com/FastBot2)
 
 # FastBot2 [beta]
 Библиотека Telegram бота для Arduino, ESP8266, ESP32:
