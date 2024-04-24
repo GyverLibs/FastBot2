@@ -20,6 +20,21 @@ class FastBot2Client : public VirtualFastBot2 {
         _limit = limit;
     }
 
+    // установить proxy
+    void setProxy(const char* host, uint16_t port) {
+        http.setHost(host, port);
+    }
+
+    // установить proxy
+    void setProxy(const IPAddress& ip, uint16_t port) {
+        http.setHost(ip, port);
+    }
+
+    // удалить proxy
+    void clearProxy() {
+        http.setHost(TELEGRAM_HOST, TELEGRAM_PORT);
+    }
+
     AsyncHTTP http;
 
    private:

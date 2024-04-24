@@ -489,13 +489,20 @@ class VirtualFastBot2 {
         if (!json[fbh::api::ok]) return 0;
 
         gson::Entry result = json[fbh::api::result];
-        if (!result.valid()) return 0;
-
         if (useYield) yield();
 
-        // ============= UPDATES =============
-        if (result.type() == gson::Type::Array) _parseUpdates(result, useYield);
-        else _parseResponse(result);
+        if (!result.valid()) return 0;
+        
+        switch (result.type()) {
+            case gson::Type::Array:
+                _parseUpdates(result, useYield);
+                break;
+            case gson::Type::Object:
+                _parseResponse(result);
+                break;
+            default:
+                return 0;
+        }
         return 1;
     }
 

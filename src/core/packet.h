@@ -47,7 +47,7 @@ class Packet : public gson::string {
     // запрос на скачивание файла вида /file/bot.../<path>
     size_t beginDownload(const su::Text& path, const String& token) {
         _type = Type::Simple;
-        s += F("GET /file/bot");
+        s += F("GET /file/bot");    // TODO https proxy?
         s += token;
         s += '/';
         path.addString(s);
@@ -145,7 +145,7 @@ class Packet : public gson::string {
 
     void _begin(const __FlashStringHelper* cmd, const String& token) {
         escapeDefault(false);
-        s += F("GET /bot");
+        s += F("POST https://" TELEGRAM_HOST "/bot");
         s += token;
         s += '/';
         s += cmd;

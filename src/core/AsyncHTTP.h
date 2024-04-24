@@ -140,8 +140,6 @@ class AsyncHTTP : public Stream {
         _length = 0;
         _close = 0;
         _type = ContentType::None;
-        bool connF = 0, typeF = 0;
-        bool eolF = 0;
 
         uint8_t* buffer = new uint8_t[ASYNC_HTTP_BUF_SIZE];
         if (!buffer) {
@@ -150,11 +148,24 @@ class AsyncHTTP : public Stream {
             return 0;
         }
 
+        uint32_t ms = millis();
+        bool connF = 0, typeF = 0;
+        bool eolF = 0;
+
         while (client.connected()) {
             size_t len = client.readBytesUntil('\n', buffer, ASYNC_HTTP_BUF_SIZE);
-            if (!len || buffer[len - 1] != '\r') break;
-            if (len == 1) {  // line == \r
+
+            if (!len || buffer[len - 1] != '\r') break;  // пустая или не оканчивается на \r
+            if (len == 1) {                              // line == \r
                 eolF = 1;
+                break;
+            }
+
+            if (millis() - ms >= _timeout) {
+                FB_LOG("client headers timeout");
+                flush();
+                stop();
+                _length = 0;
                 break;
             }
 
@@ -177,7 +188,7 @@ class AsyncHTTP : public Stream {
             }
             yield();
         }
-        
+
         delete[] buffer;
         if (!eolF || !_length) {  // !eolF == error/disconnected
             FB_LOG("client headers error");
