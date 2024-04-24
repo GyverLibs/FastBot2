@@ -27,7 +27,7 @@
 Библиотека не в релизе, качайте репозиторий zip архивом (кнопка Code справа вверху) или по [прямой ссылке](https://github.com/GyverLibs/FastBot2/archive/refs/heads/main.zip) на загрузку.
 
 Для работы FastBot2 нужно установить библиотеки:
-- [GSON](https://github.com/GyverLibs/GSON) v1.4.10+
+- [GSON](https://github.com/GyverLibs/GSON) v1.4.12+
 - [StringUtils](https://github.com/GyverLibs/StringUtils) v1.4.8+
 
 ## Вывод графики

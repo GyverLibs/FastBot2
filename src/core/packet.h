@@ -12,6 +12,7 @@ namespace fb {
 class Packet : public gson::string {
     enum class Type : uint8_t {
         Json,
+        ExtJson,
         File,
         Simple,
     };
@@ -44,10 +45,24 @@ class Packet : public gson::string {
         return su::hash_P((PGM_P)cmd);
     }
 
+    // команда с внешним JSON пакетом
+    size_t beginJson(const __FlashStringHelper* cmd, const String& token, const String& json) {
+        _extjson = &json;
+        _type = Type::ExtJson;
+        _begin(cmd, token);
+        _jsonHeaders();
+
+        bool noBrackets = (json.charAt(0) != '{');
+        s += json.length() + noBrackets * 2;
+        s += F("\r\n\r\n");
+        if (noBrackets) s += '{';
+        return su::hash_P((PGM_P)cmd);
+    }
+
     // запрос на скачивание файла вида /file/bot.../<path>
     size_t beginDownload(const su::Text& path, const String& token) {
         _type = Type::Simple;
-        s += F("GET /file/bot");    // TODO https proxy?
+        s += F("GET /file/bot");  // TODO https proxy?
         s += token;
         s += '/';
         path.addString(s);
@@ -125,6 +140,12 @@ class Packet : public gson::string {
                 p.print(s);
             } break;
 
+            case Type::ExtJson:
+                p.print(s);
+                p.print(*_extjson);
+                if (_extjson->charAt(0) != '{') p.print('}');
+                break;
+
             case Type::Simple:
                 p.print(s);
                 break;
@@ -142,6 +163,7 @@ class Packet : public gson::string {
     Type _type = Type::Json;
     uint16_t _header_pos = 0;
     bool _qs_first = 1;
+    const String* _extjson = nullptr;
 
     void _begin(const __FlashStringHelper* cmd, const String& token) {
         escapeDefault(false);
@@ -151,16 +173,19 @@ class Packet : public gson::string {
         s += cmd;
     }
     void _beginJson() {
+        _jsonHeaders();
+        s += F("     \r\n\r\n");
+        _header_pos = s.length();
+        gson::string::beginObj();
+    }
+    void _jsonHeaders() {
         s += F(
             " HTTP/1.1\r\n"
             "Host: " TELEGRAM_HOST
             "\r\n"
+            "Cache-Control: no-cache\r\n"
             "Content-Type: application/json\r\n"
-            "Content-Length:      \r\n"
-            "\r\n");
-
-        _header_pos = s.length();
-        gson::string::beginObj();
+            "Content-Length: ");
     }
 };
 

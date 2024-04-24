@@ -46,7 +46,7 @@ class Menu {
 
     // перенести строку
     Menu& newRow() {
-        if (text.length()) text[text.length() - 1] = '\n';
+        text += '\n';
         _first = true;
         return *this;
     }

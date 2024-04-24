@@ -39,7 +39,7 @@ class InlineMenu {
             this->text += ';';
             this->data += ';';
         }
-
+        
         text.addString(this->text);
         if (data.valid()) data.addString(this->data);
         else text.addString(this->data);
@@ -48,7 +48,8 @@ class InlineMenu {
 
     // перенести строку
     InlineMenu& newRow() {
-        if (text.length()) text[text.length() - 1] = '\n';
+        text += '\n';
+        data += ';';
         _first = true;
         return *this;
     }

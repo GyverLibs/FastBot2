@@ -472,6 +472,13 @@ class VirtualFastBot2 {
         return clientSend(packet, wait);
     }
 
+    // отправить команду вручную. Медленнее, чем beginPacket-sendPacket
+    bool sendCommand(const __FlashStringHelper* cmd, const String& json, bool wait = false) {
+        fb::Packet p;
+        _lastCmd = p.beginJson(cmd, _token, json);
+        return sendPacket(p, wait);
+    }
+
     // принять файл в коллбэк
     void handleFile(Stream& stream) {
         if (_cbFetch) _cbFetch(stream);
@@ -492,7 +499,7 @@ class VirtualFastBot2 {
         if (useYield) yield();
 
         if (!result.valid()) return 0;
-        
+
         switch (result.type()) {
             case gson::Type::Array:
                 _parseUpdates(result, useYield);
