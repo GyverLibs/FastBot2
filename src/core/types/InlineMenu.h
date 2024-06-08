@@ -41,7 +41,7 @@ class InlineMenu {
         }
         
         text.addString(this->text);
-        if (data.valid()) data.addString(this->data);
+        if (data) data.addString(this->data);
         else text.addString(this->data);
         return *this;
     }
@@ -58,7 +58,7 @@ class InlineMenu {
     bool _first = true;
 
     void _toJson(Packet& p) {
-        p.beginArr(api::inline_keyboard);
+        p.beginArr(tg_api::inline_keyboard);
         su::TextParser rows(text, '\n');
         su::TextParser datap(data, ';');
         while (rows.parse()) {
@@ -67,14 +67,14 @@ class InlineMenu {
             while (cols.parse()) {
                 datap.parse();
                 p.beginObj();
-                p.addStringEsc(api::text, cols);
+                p.addStringEsc(tg_api::text, cols);
                 // url or callback_data
                 if (datap.startsWith(F("http://")) ||
                     datap.startsWith(F("https://")) ||
                     datap.startsWith(F("tg://"))) {
-                    p[api::url] = datap;
+                    p[tg_api::url] = datap;
                 } else {
-                    p.addStringEsc(api::callback_data, datap);
+                    p.addStringEsc(tg_api::callback_data, datap);
                 }
                 p.endObj();
             }

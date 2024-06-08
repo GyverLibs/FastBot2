@@ -3,7 +3,7 @@
 #include <GSON.h>
 #include <StringUtils.h>
 
-#include "VirtualFastBot2_class.h"
+#include "FastBot2Client_class.h"
 #include "core/api.h"
 #include "core/packet.h"
 
@@ -11,7 +11,7 @@
 namespace fb {
 
 class MyCommands {
-    friend class ::VirtualFastBot2;
+    friend class ::FastBot2Client;
 
    public:
     MyCommands() {}
@@ -43,11 +43,11 @@ class MyCommands {
 
    private:
     void makePacket(Packet& p) const {
-        p.beginArr(fb::api::commands);
+        p.beginArr(tg_api::commands);
         su::TextParser cmd(commands, ';');
         su::TextParser desc(description, ';');
         while (cmd.parse() && desc.parse()) {
-            p.beginObj().addString(fb::api::command, cmd).addStringEsc(fb::api::description, desc).endObj();
+            p.beginObj().addString(tg_api::command, cmd).addStringEsc(tg_api::description, desc).endObj();
         }
         p.endArr();
     }

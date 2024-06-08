@@ -10,7 +10,7 @@
 namespace fb {
 
 class File : protected Message {
-    friend class ::VirtualFastBot2;
+    friend class ::FastBot2Client;
 
    public:
     enum class Type : uint8_t {
@@ -27,8 +27,9 @@ class File : protected Message {
     // отправить fs::File файл
     File(const su::Text& name, Type type, ::File& file) : File(name, type, file, false) {}
 #endif
-    // отправить данные из byte буфера
-    File(const su::Text& name, Type type, uint8_t* bytes, size_t length) : File(name, type, bytes, length, false) {}
+
+    // отправить данные из byte/progmem буфера
+    File(const su::Text& name, Type type, const uint8_t* bytes, size_t length, bool pgm = false) : File(name, type, bytes, length, pgm, false) {}
 
     // отправить по ID файла в телеге или ссылкой (для document только GIF, PDF и ZIP)
     // https://core.telegram.org/bots/api#sending-files
@@ -51,11 +52,11 @@ class File : protected Message {
     void makePacket(Packet& p) const {
         if (multipart.isFile()) {
             Message::makeQS(p);
-            if (caption.length()) p.addQS(api::caption, caption);
+            if (caption.length()) p.addQS(tg_api::caption, caption);
         } else {
             Message::makePacket(p);
             p[multipart.getType()] = multipart.getUrlid();
-            if (caption.length()) p.addStringEsc(api::caption, caption);
+            if (caption.length()) p.addStringEsc(tg_api::caption, caption);
         }
     }
 
@@ -63,8 +64,9 @@ class File : protected Message {
     // отправить fs::File файл
     File(const su::Text& name, Type type, ::File& file, bool edit) : multipart(name, (Multipart::Type)type, file, edit) {}
 #endif
+
     // отправить данные из byte буфера
-    File(const su::Text& name, Type type, uint8_t* bytes, size_t length, bool edit) : multipart(name, (Multipart::Type)type, bytes, length, edit) {}
+    File(const su::Text& name, Type type, const uint8_t* bytes, size_t length, bool pgm, bool edit) : multipart(name, (Multipart::Type)type, bytes, length, pgm, edit) {}
 
     // отправить по ID файла в телеге или ссылкой (для document только GIF, PDF и ZIP)
     File(const su::Text& name, Type type, const su::Text& urlid, bool edit) : multipart(name, (Multipart::Type)type, urlid, edit) {}
@@ -72,14 +74,15 @@ class File : protected Message {
 
 // https://core.telegram.org/bots/api#editmessagemedia
 class FileEdit : protected File {
-    friend class ::VirtualFastBot2;
+    friend class ::FastBot2Client;
 
    public:
 #ifdef FS_H
     // отправить fs::File файл
     FileEdit(const su::Text& name, Type type, ::File& file) : File(name, type, file, true) {}
 #endif
-    FileEdit(const su::Text& name, Type type, uint8_t* bytes, size_t length) : File(name, type, bytes, length, true) {}
+
+    FileEdit(const su::Text& name, Type type, const uint8_t* bytes, size_t length, bool pgm = false) : File(name, type, bytes, length, pgm, true) {}
 
     // document by url - GIF, PDF and ZIP
     // https://core.telegram.org/bots/api#sending-files
@@ -97,24 +100,24 @@ class FileEdit : protected File {
     void makePacket(Packet& p) const {
         if (multipart.isFile()) {
             File::Message::makeQS(p);
-            p.addQS(api::message_id, messageID);
+            p.addQS(tg_api::message_id, messageID);
             {
-                p.beginQS(api::media);
+                p.beginQS(tg_api::media);
                 p.beginObj();
-                p[api::type] = multipart.getType();
-                p[api::media] = multipart.getAttachName();
-                if (caption.length()) p.addStringEsc(api::caption, caption);
+                p[tg_api::type] = multipart.getType();
+                p[tg_api::media] = multipart.getAttachName();
+                if (caption.length()) p.addStringEsc(tg_api::caption, caption);
                 p.endObj();
                 p.end();
             }
         } else {
             File::Message::makePacket(p);
-            p[api::message_id] = messageID;
+            p[tg_api::message_id] = messageID;
             {
-                p.beginObj(api::media);
-                p[api::type] = multipart.getType();
-                p[api::media] = multipart.getUrlid();
-                if (caption.length()) p.addStringEsc(api::caption, caption);
+                p.beginObj(tg_api::media);
+                p[tg_api::type] = multipart.getType();
+                p[tg_api::media] = multipart.getUrlid();
+                if (caption.length()) p.addStringEsc(tg_api::caption, caption);
                 p.endObj();
             }
         }

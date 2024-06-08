@@ -69,7 +69,7 @@ class Menu {
     bool _first = true;
 
     void _toJson(Packet& p) {
-        p.beginArr(api::keyboard);
+        p.beginArr(tg_api::keyboard);
         su::TextParser rows(text, '\n');
         while (rows.parse()) {
             su::TextParser cols(rows, ';');
@@ -78,11 +78,11 @@ class Menu {
             p.endArr();
         }
         p.endArr();
-        if (persistent) p[api::is_persistent] = true;
-        if (resize) p[api::resize_keyboard] = true;
-        if (oneTime) p[api::one_time_keyboard] = true;
-        if (selective) p[api::selective] = true;
-        if (placeholder.length()) p.addStringEsc(api::input_field_placeholder, placeholder);
+        if (persistent) p[tg_api::is_persistent] = true;
+        if (resize) p[tg_api::resize_keyboard] = true;
+        if (oneTime) p[tg_api::one_time_keyboard] = true;
+        if (selective) p[tg_api::selective] = true;
+        if (placeholder.length()) p.addStringEsc(tg_api::input_field_placeholder, placeholder);
     }
 };
 

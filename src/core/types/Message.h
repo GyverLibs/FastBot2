@@ -3,10 +3,10 @@
 #include <GSON.h>
 #include <StringUtils.h>
 
+#include "FastBot2Client_class.h"
 #include "InlineMenu.h"
 #include "Menu.h"
 #include "Message_class.h"
-#include "VirtualFastBot2_class.h"
 #include "core/api.h"
 #include "core/packet.h"
 
@@ -23,7 +23,7 @@ struct ReplyParam {
 
 // https://core.telegram.org/bots/api#sendmessage
 class Message {
-    friend class ::VirtualFastBot2;
+    friend class ::FastBot2Client;
 
    public:
     enum class Mode : uint8_t {
@@ -94,56 +94,56 @@ class Message {
 
    protected:
     void makePacket(Packet& p) const {
-        p[api::chat_id] = chatID;
-        if (text.length()) p.addStringEsc(api::text, text);
-        if (threadID >= 0) p[api::message_thread_id] = threadID;
+        p[tg_api::chat_id] = chatID;
+        if (text.length()) p.addStringEsc(tg_api::text, text);
+        if (threadID >= 0) p[tg_api::message_thread_id] = threadID;
         if (reply.messageID >= 0) {
-            p.beginObj(api::reply_parameters);
-            p[api::message_id] = reply.messageID;
-            if (reply.chatID.valid()) p[api::chat_id] = reply.chatID;
+            p.beginObj(tg_api::reply_parameters);
+            p[tg_api::message_id] = reply.messageID;
+            if (reply.chatID) p[tg_api::chat_id] = reply.chatID;
             p.endObj();
         }
         if (!preview) {
-            p.beginObj(api::link_preview_options);
-            p[api::is_disabled] = true;
+            p.beginObj(tg_api::link_preview_options);
+            p[tg_api::is_disabled] = true;
             p.endObj();
         }
-        if (!notification) p[api::disable_notification] = true;
-        if (protect) p[api::protect_content] = true;
-        if (mode != Message::Mode::Text) p[api::parse_mode] = (mode == Message::Mode::MarkdownV2 ? F("MarkdownV2") : F("HTML"));
+        if (!notification) p[tg_api::disable_notification] = true;
+        if (protect) p[tg_api::protect_content] = true;
+        if (mode != Message::Mode::Text) p[tg_api::parse_mode] = (mode == Message::Mode::MarkdownV2 ? F("MarkdownV2") : F("HTML"));
 
         if (_remove_menu || _menu_inline || _menu) {
-            p.beginObj(api::reply_markup);
+            p.beginObj(tg_api::reply_markup);
             makeMenu(p);
             p.endObj();
         }
     }
 
     void makeQS(Packet& p) const {
-        p.addQS(api::chat_id, chatID);
-        if (text.length()) p.addQS(api::text, text);
-        if (threadID >= 0) p.addQS(api::message_thread_id, threadID);
+        p.addQS(tg_api::chat_id, chatID);
+        if (text.length()) p.addQS(tg_api::text, text);
+        if (threadID >= 0) p.addQS(tg_api::message_thread_id, threadID);
         if (reply.messageID >= 0) {
-            p.beginQS(api::reply_parameters);
+            p.beginQS(tg_api::reply_parameters);
             p.beginObj();
-            p[api::message_id] = reply.messageID;
-            if (reply.chatID.valid()) p[api::chat_id] = reply.chatID;
+            p[tg_api::message_id] = reply.messageID;
+            if (reply.chatID) p[tg_api::chat_id] = reply.chatID;
             p.endObj();
             p.end();
         }
         if (!preview) {
-            p.beginQS(api::link_preview_options);
+            p.beginQS(tg_api::link_preview_options);
             p.beginObj();
-            p[api::is_disabled] = true;
+            p[tg_api::is_disabled] = true;
             p.endObj();
             p.end();
         }
-        if (!notification) p.addQS(api::disable_notification, true);
-        if (protect) p.addQS(api::protect_content, true);
-        if (mode != Message::Mode::Text) p.addQS(api::parse_mode, mode == (Message::Mode::MarkdownV2) ? F("MarkdownV2") : F("HTML"));
+        if (!notification) p.addQS(tg_api::disable_notification, true);
+        if (protect) p.addQS(tg_api::protect_content, true);
+        if (mode != Message::Mode::Text) p.addQS(tg_api::parse_mode, mode == (Message::Mode::MarkdownV2) ? F("MarkdownV2") : F("HTML"));
 
         if (_remove_menu || _menu_inline || _menu) {
-            p.beginQS(api::reply_markup);
+            p.beginQS(tg_api::reply_markup);
             p.beginObj();
             makeMenu(p);
             p.endObj();
@@ -152,7 +152,7 @@ class Message {
     }
 
     void makeMenu(Packet& p) const {
-        if (_remove_menu) p[api::remove_keyboard] = true;
+        if (_remove_menu) p[tg_api::remove_keyboard] = true;
         else if (_menu_inline) _menu_inline->_toJson(p);
         else if (_menu) _menu->_toJson(p);
     }

@@ -3,7 +3,7 @@
 #include <GSON.h>
 
 #include "Multipart.h"
-#include "config.h"
+#include "bot_config.h"
 
 #define FB_BOUNDARY "---------FAST_BOT2"
 
@@ -12,9 +12,8 @@ namespace fb {
 class Packet : public gson::string {
     enum class Type : uint8_t {
         Json,
-        ExtJson,
         File,
-        Simple,
+        Raw,
     };
 
    public:
@@ -22,9 +21,9 @@ class Packet : public gson::string {
 
 #ifndef FB_NO_FILE
     // отправка файла через multipart/form-data
-    size_t beginMultipart(const Multipart& multipart, const String& token) {
+    Packet(const Multipart& multipart, const String& token) : gson::string(200) {
         this->multipart = &multipart;
-        _begin(multipart.getCmd(), token);
+        _beginPost(multipart.getCmd(), token);
 
         if (multipart.isFile()) {
             _type = Type::File;
@@ -33,35 +32,37 @@ class Packet : public gson::string {
             _type = Type::Json;
             _beginJson();
         }
-        return su::hash_P((PGM_P)multipart.getCmd());
     }
 #endif
-
     // команда с JSON пакетом
-    size_t beginJson(const __FlashStringHelper* cmd, const String& token) {
+    Packet(const __FlashStringHelper* cmd, const String& token) : gson::string(200) {
         _type = Type::Json;
-        _begin(cmd, token);
+        _beginPost(cmd, token);
         _beginJson();
-        return su::hash_P((PGM_P)cmd);
     }
 
     // команда с внешним JSON пакетом
-    size_t beginJson(const __FlashStringHelper* cmd, const String& token, const String& json) {
-        _extjson = &json;
-        _type = Type::ExtJson;
-        _begin(cmd, token);
-        _jsonHeaders();
+    Packet(const __FlashStringHelper* cmd, const String& token, const String& json) : gson::string(200) {
+        _type = Type::Raw;
+        _beginPost(cmd, token);
+        _beginHeaders();
 
-        bool noBrackets = (json.charAt(0) != '{');
-        s += json.length() + noBrackets * 2;
-        s += F("\r\n\r\n");
-        if (noBrackets) s += '{';
-        return su::hash_P((PGM_P)cmd);
+        if (json.length()) {
+            _jsonHeaders();
+            bool noBrackets = (json.charAt(0) != '{');
+            s += json.length() + noBrackets * 2;
+            s += F("\r\n\r\n");
+            if (noBrackets) s += '{';
+            s += json;
+            if (noBrackets) s += '}';
+        } else {
+            s += F("\r\n");
+        }
     }
 
     // запрос на скачивание файла вида /file/bot.../<path>
-    size_t beginDownload(const su::Text& path, const String& token) {
-        _type = Type::Simple;
+    Packet(const su::Text& path, const String& token) : gson::string(200) {
+        _type = Type::Raw;
         s += F("GET /file/bot");  // TODO https proxy?
         s += token;
         s += '/';
@@ -69,7 +70,6 @@ class Packet : public gson::string {
         s += F(
             " HTTP/1.1\r\n"
             "Host: " TELEGRAM_HOST "\r\n\r\n");
-        return 0;
     }
 
     // query string
@@ -92,7 +92,7 @@ class Packet : public gson::string {
             case Type::File: {
                 su::Text formName = multipart->getFormName();
                 su::Text fileName = multipart->getFileName();
-                uint32_t len = multipart->length();
+                size_t len = multipart->length();
 
                 len += su::SL("--" FB_BOUNDARY "\r\n");
                 len += su::SL("Content-Disposition: form-data; name=\"") + formName.length() + su::SL("\"; filename=\"") + fileName.length() + su::SL("\"\r\n\r\n");
@@ -120,7 +120,7 @@ class Packet : public gson::string {
 
                 // print
                 p.print(s);
-                p.print(*multipart);
+                multipart->printTo(p);
                 p.print(F("\r\n--" FB_BOUNDARY "--"));
             } break;
 #endif
@@ -136,17 +136,10 @@ class Packet : public gson::string {
                     *ptr-- = mod + '0';
                 } while (len);
 
-                // print
                 p.print(s);
             } break;
 
-            case Type::ExtJson:
-                p.print(s);
-                p.print(*_extjson);
-                if (_extjson->charAt(0) != '{') p.print('}');
-                break;
-
-            case Type::Simple:
+            case Type::Raw:
                 p.print(s);
                 break;
 
@@ -163,29 +156,32 @@ class Packet : public gson::string {
     Type _type = Type::Json;
     uint16_t _header_pos = 0;
     bool _qs_first = 1;
-    const String* _extjson = nullptr;
 
-    void _begin(const __FlashStringHelper* cmd, const String& token) {
+    void _beginPost(const __FlashStringHelper* cmd, const String& token) {
         escapeDefault(false);
         s += F("POST https://" TELEGRAM_HOST "/bot");
         s += token;
         s += '/';
         s += cmd;
     }
-    void _beginJson() {
-        _jsonHeaders();
-        s += F("     \r\n\r\n");
-        _header_pos = s.length();
-        gson::string::beginObj();
-    }
-    void _jsonHeaders() {
+    void _beginHeaders() {
         s += F(
             " HTTP/1.1\r\n"
             "Host: " TELEGRAM_HOST
             "\r\n"
-            "Cache-Control: no-cache\r\n"
+            "Cache-Control: no-cache\r\n");
+    }
+    void _jsonHeaders() {
+        s += F(
             "Content-Type: application/json\r\n"
             "Content-Length: ");
+    }
+    void _beginJson() {
+        _beginHeaders();
+        _jsonHeaders();
+        s += F("     \r\n\r\n");
+        _header_pos = s.length();
+        gson::string::beginObj();
     }
 };
 

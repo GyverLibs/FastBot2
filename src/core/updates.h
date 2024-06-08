@@ -1,8 +1,8 @@
 #pragma once
 #include <Arduino.h>
 
-#include "VirtualFastBot2_class.h"
 #include "api.h"
+#include "core_class.h"
 #include "packet.h"
 
 #define FB_UPDATES_AMOUNT 22
@@ -11,7 +11,7 @@
 namespace fb {
 
 class Updates {
-    friend class ::VirtualFastBot2;
+    friend class Core;
 
    public:
     enum Type : uint32_t {
@@ -72,37 +72,39 @@ class Updates {
    private:
     uint32_t updates = FB_UPDATES_FILL;
 
-    void fill(Packet& p) {
+    void makePacket(Packet& p) {
         if (updates == FB_UPDATES_FILL) return;
 
         const __FlashStringHelper* upd_arr[] = {
-            api::message,
-            api::edited_message,
-            api::channel_post,
-            api::edited_channel_post,
-            api::business_connection,
-            api::business_message,
-            api::edited_business_message,
-            api::deleted_business_messages,
-            api::message_reaction,
-            api::message_reaction_count,
-            api::inline_query,
-            api::chosen_inline_result,
-            api::callback_query,
-            api::shipping_query,
-            api::pre_checkout_query,
-            api::poll,
-            api::poll_answer,
-            api::my_chat_member,
-            api::chat_member,
-            api::chat_join_request,
-            api::chat_boost,
-            api::removed_chat_boost,
+            tg_api::message,
+            tg_api::edited_message,
+            tg_api::channel_post,
+            tg_api::edited_channel_post,
+            tg_api::business_connection,
+            tg_api::business_message,
+            tg_api::edited_business_message,
+            tg_api::deleted_business_messages,
+            tg_api::message_reaction,
+            tg_api::message_reaction_count,
+            tg_api::inline_query,
+            tg_api::chosen_inline_result,
+            tg_api::callback_query,
+            tg_api::shipping_query,
+            tg_api::pre_checkout_query,
+            tg_api::poll,
+            tg_api::poll_answer,
+            tg_api::my_chat_member,
+            tg_api::chat_member,
+            tg_api::chat_join_request,
+            tg_api::chat_boost,
+            tg_api::removed_chat_boost,
         };
-
+        
+        p.beginArr(tg_api::allowed_updates);
         for (uint8_t i = 0; i < FB_UPDATES_AMOUNT; i++) {
             if (read(i)) p += upd_arr[i];
         }
+        p.endArr();
     }
 };
 

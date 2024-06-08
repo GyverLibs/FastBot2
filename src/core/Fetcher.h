@@ -1,8 +1,9 @@
 #pragma once
 #include <Arduino.h>
+#include <GyverHTTP.h>
 
-#include "VirtualFastBot2_class.h"
-#include "config.h"
+#include "bot_config.h"
+#include "core_class.h"
 
 #if defined(FB_ESP_BUILD) && !defined(FB_NO_OTA)
 #ifdef ESP8266
@@ -17,8 +18,8 @@
 
 namespace fb {
 
-class Fetcher {
-    friend class ::VirtualFastBot2;
+class Fetcher : public StreamReader {
+    friend class Core;
 
     enum class Reboot : uint8_t {
         Idle,
@@ -28,73 +29,25 @@ class Fetcher {
     };
 
    public:
-    Fetcher(Reboot* reboot) : _reboot(reboot) {}
+    Fetcher(Reboot* reboot, StreamReader& reader) : StreamReader(reader), _reboot(reboot) {}
 
-    ~Fetcher() {
-        _flush();
-    }
-
-    // напечатать в принт
-    template <typename T>
-    bool writeTo(T& p) {
-        if (!available()) return 0;
-
-        uint8_t* buf = new uint8_t[FB_BLOCK_SIZE];
-        delay(1);  // TODO
-        if (buf) {
-            delay(1);  // TODO
-            while (stream->available()) {
-                size_t read = stream->readBytes(buf, min(stream->available(), FB_BLOCK_SIZE));
-                delay(1);  // TODO
-                if (read != p.write(buf, read)) {
-                    FB_LOG("write error");
-                    _flush();
-                    return 0;
-                }
-                delay(1);  // TODO
-            }
-            delete[] buf;
-        } else {
-            FB_LOG("allocate error");
-        }
-        _flush();
-        return 1;
-    }
-
+#if defined(FB_ESP_BUILD) && !defined(FB_NO_OTA)
     // обновить прошивку (ESP)
     bool updateFlash() {
-        return available() ? _ota(true) : 0;
+        return length() ? _ota(true) : 0;
     }
 
     // обновить файловую систему (ESP)
     bool updateFS() {
-        return available() ? _ota(false) : 0;
+        return length() ? _ota(false) : 0;
     }
-
-    // есть данные для чтения
-    int available() {
-        return stream ? stream->available() : 0;
-    }
-
-    operator bool() {
-        return available();
-    }
-
-    Stream* stream = nullptr;
+#endif
 
    private:
     Reboot* _reboot;
 
-    // очистить очередь на приём
-    void _flush() {
-        while (stream && stream->available()) {
-            stream->read();
-            yield();
-        }
-    }
-
-    bool _ota(bool ota_flash = true) {
 #if defined(FB_ESP_BUILD) && !defined(FB_NO_OTA)
+    bool _ota(bool ota_flash = true) {
         size_t ota_size = 0;
         int ota_type = 0;
 
@@ -116,13 +69,11 @@ class Fetcher {
 #endif
         }
         if (!::Update.begin(ota_size, ota_type)) {
-            _flush();
             FB_LOG("ota begin error");
             return 0;
         }
         if (!writeTo(::Update)) {
             FB_LOG("ota write error");
-            _flush();
             return 0;
         }
         if (::Update.end(true)) {
@@ -132,8 +83,8 @@ class Fetcher {
             FB_LOG("ota end error");
             return 0;
         }
-#endif
     }
+#endif
 };
 
 }  // namespace fb

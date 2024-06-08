@@ -10,7 +10,7 @@
 namespace fb {
 
 class Location : private Message {
-    friend class ::VirtualFastBot2;
+    friend class ::FastBot2Client;
 
    public:
     Location();
@@ -48,12 +48,12 @@ class Location : private Message {
    protected:
     void makePacket(Packet& p) const {
         Message::makePacket(p);
-        p.addFloat(api::latitude, latitude, 6);
-        p.addFloat(api::longitude, longitude, 6);
-        if (!isnan(horizontalAccuracy)) p.addFloat(api::horizontal_accuracy, horizontalAccuracy, 1);
-        if (livePeriod) p[api::live_period] = livePeriod;
-        if (heading) p[api::heading] = heading;
-        if (proximityAlertRadius) p[api::proximity_alert_radius] = proximityAlertRadius;
+        p.addFloat(tg_api::latitude, latitude, 6);
+        p.addFloat(tg_api::longitude, longitude, 6);
+        if (!isnan(horizontalAccuracy)) p.addFloat(tg_api::horizontal_accuracy, horizontalAccuracy, 1);
+        if (livePeriod) p[tg_api::live_period] = livePeriod;
+        if (heading) p[tg_api::heading] = heading;
+        if (proximityAlertRadius) p[tg_api::proximity_alert_radius] = proximityAlertRadius;
     }
 };
 

@@ -3,43 +3,43 @@
 #include <GSON.h>
 #include <StringUtils.h>
 
-#include "core/BracketAccess.h"
+#include "core/EntryAccess.h"
 #include "core/api.h"
 
 namespace fb {
 
 // https://core.telegram.org/bots/api#location
-struct LocationRead : public BracketAccess {
-    LocationRead(gson::Entry entry) : BracketAccess(entry) {}
+struct LocationRead : public EntryAccess {
+    LocationRead(gson::Entry entry) : EntryAccess(entry) {}
 
     // широта
     su::Text latitude() {
-        return entry[fbh::api::latitude];
+        return entry[tg_apih::latitude];
     }
 
     // долгота
     su::Text longitude() {
-        return entry[fbh::api::longitude];
+        return entry[tg_apih::longitude];
     }
 
     // точность в метрах, 0-1500
     su::Text horizontalAccuracy() {
-        return entry[fbh::api::horizontal_accuracy];
+        return entry[tg_apih::horizontal_accuracy];
     }
 
     // Время относительно даты отправки сообщения в секундах, в течение которого местоположение может быть обновлено
     su::Text livePeriod() {
-        return entry[fbh::api::live_period];
+        return entry[tg_apih::live_period];
     }
 
     // направление в градусах, 1-360
     su::Text heading() {
-        return entry[fbh::api::heading];
+        return entry[tg_apih::heading];
     }
 
     // Максимальное расстояние в метрах для оповещений о приближении к другому участнику чата
     su::Text proximityAlertRadius() {
-        return entry[fbh::api::proximity_alert_radius];
+        return entry[tg_apih::proximity_alert_radius];
     }
 };
 

@@ -16,6 +16,9 @@ class FastBot2 : public FastBot2Client {
    public:
     FastBot2() : FastBot2Client(client) {
         client.setInsecure();
+#if defined(ESP8266)
+        client.setBufferSizes(512, 512);
+#endif
     }
 
 #if defined(ESP8266)

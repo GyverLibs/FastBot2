@@ -1,9 +1,10 @@
 #pragma once
 #include <Arduino.h>
+#include <GyverHTTP.h>
 #include <StringUtils.h>
 
 #include "core/api.h"
-#include "core/config.h"
+#include "bot_config.h"
 
 #ifdef FB_ESP_BUILD
 #include <FS.h>
@@ -14,7 +15,7 @@
 
 namespace fb {
 
-class Multipart : public Printable {
+class Multipart : public StreamWriter {
    public:
     enum class Type : uint8_t {
         photo,
@@ -27,19 +28,18 @@ class Multipart : public Printable {
     };
 
 #ifdef FS_H
-    Multipart(const su::Text& name, Type type, ::File& file, bool edit) : _name(name), _type(type), _file(&file), _length(file.size()), _edit(edit) {
+    Multipart(const su::Text& name, Type type, ::File& file, bool edit) : StreamWriter(&file, file.size()), _name(name), _type(type), _edit(edit) {
         _init();
+        setBlockSize(FB_BLOCK_SIZE);
     }
 #endif
-    Multipart(const su::Text& name, Type type, uint8_t* bytes, size_t length, bool edit) : _name(name), _type(type), _bytes(bytes), _length(length), _edit(edit) {
+    Multipart(const su::Text& name, Type type, const uint8_t* bytes, size_t length, bool pgm, bool edit) : StreamWriter(bytes, length, pgm), _name(name), _type(type), _edit(edit) {
         _init();
+        setBlockSize(FB_BLOCK_SIZE);
     }
     Multipart(const su::Text& name, Type type, const su::Text& urlid, bool edit) : _name(name), _type(type), _urlid(urlid), _edit(edit) {
         _init();
-    }
-
-    uint32_t length() const {
-        return _length;
+        setBlockSize(FB_BLOCK_SIZE);
     }
 
     const su::Text getAttachName() const {
@@ -47,7 +47,7 @@ class Multipart : public Printable {
     }
 
     su::Text getFormName() const {
-        if (_edit) return _attachName + su::SL(FB_ATTACH);
+        if (_edit) return _attachName + su::SL(FB_ATTACH);  // сместить указатель на random id
         else return getType();
     }
 
@@ -58,79 +58,49 @@ class Multipart : public Printable {
     const __FlashStringHelper* getType() const {
         switch (_type) {
             case Type::photo:
-                return api::photo;
+                return tg_api::photo;
             case Type::audio:
-                return api::audio;
+                return tg_api::audio;
             case Type::document:
-                return api::document;
+                return tg_api::document;
             case Type::video:
-                return api::video;
+                return tg_api::video;
             case Type::animation:
-                return api::animation;
+                return tg_api::animation;
             case Type::voice:
-                return api::voice;
+                return tg_api::voice;
             case Type::video_note:
-                return api::video_note;
+                return tg_api::video_note;
         }
         return F("");
     }
 
     // return sendXXX or editMessageMedia
     const __FlashStringHelper* getCmd() const {
-        if (_edit) return cmd::editMessageMedia;
+        if (_edit) return tg_cmd::editMessageMedia;
 
         switch (_type) {
             case Type::photo:
-                return cmd::sendPhoto;
+                return tg_cmd::sendPhoto;
             case Type::audio:
-                return cmd::sendAudio;
+                return tg_cmd::sendAudio;
             case Type::document:
-                return cmd::sendDocument;
+                return tg_cmd::sendDocument;
             case Type::video:
-                return cmd::sendVideo;
+                return tg_cmd::sendVideo;
             case Type::animation:
-                return cmd::sendAnimation;
+                return tg_cmd::sendAnimation;
             case Type::voice:
-                return cmd::sendVoice;
+                return tg_cmd::sendVoice;
             case Type::video_note:
-                return cmd::sendVideoNote;
+                return tg_cmd::sendVideoNote;
             default:
                 return F("");
         }
     }
 
-    size_t printTo(Print& p) const {
-        if (!isFile()) return 0;
-        size_t printed = 0;
-        size_t length = _length;
-#ifdef FS_H
-        if (_file) {
-            uint8_t* buf = new uint8_t[FB_BLOCK_SIZE];
-            if (!buf) return 0;
-            while (length) {
-                size_t curlen = min((size_t)FB_BLOCK_SIZE, length);
-                size_t read = _file->read(buf, curlen);
-                printed += p.write(buf, read);
-                length -= curlen;
-            }
-            delete[] buf;
-            return printed;
-        }
-#endif
-        if (_bytes) {
-            const uint8_t* bytesp = _bytes;
-            while (length) {
-                size_t curlen = min((size_t)FB_BLOCK_SIZE, length);
-                printed += p.write(bytesp, curlen);
-                bytesp += curlen;
-                length -= curlen;
-            }
-        }
-        return printed;
-    }
-
     bool isFile() const {
-        return !_urlid.valid();
+        return !_urlid;
     }
 
     const su::Text& getUrlid() const {
@@ -141,11 +111,6 @@ class Multipart : public Printable {
     const su::Text _name;
     const Type _type;
     const su::Text _urlid;
-#ifdef FS_H
-    ::File* _file = nullptr;
-#endif
-    const uint8_t* _bytes = nullptr;
-    const size_t _length = 0;
     const bool _edit;
     char _attachName[su::SL(FB_ATTACH) + su::SL("ffffffff") + 1];
 

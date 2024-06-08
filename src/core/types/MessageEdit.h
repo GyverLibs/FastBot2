@@ -9,7 +9,7 @@ namespace fb {
 
 // https://core.telegram.org/bots/api#editmessagetext
 class TextEdit : private Message {
-    friend class ::VirtualFastBot2;
+    friend class ::FastBot2Client;
 
    public:
     TextEdit() {}
@@ -30,13 +30,13 @@ class TextEdit : private Message {
    protected:
     void makePacket(Packet& p) const {
         Message::makePacket(p);
-        p[api::message_id] = messageID;
+        p[tg_api::message_id] = messageID;
     }
 };
 
 // https://core.telegram.org/bots/api#editmessagereplymarkup
 class MenuEdit : private Message {
-    friend class ::VirtualFastBot2;
+    friend class ::FastBot2Client;
 
    public:
     MenuEdit() {}
@@ -57,13 +57,13 @@ class MenuEdit : private Message {
    protected:
     void makePacket(Packet& p) const {
         Message::makePacket(p);
-        p[api::message_id] = messageID;
+        p[tg_api::message_id] = messageID;
     }
 };
 
 // https://core.telegram.org/bots/api#editmessagecaption
 class CaptionEdit : private Message {
-    friend class ::VirtualFastBot2;
+    friend class ::FastBot2Client;
 
    public:
     CaptionEdit() {}
@@ -84,14 +84,14 @@ class CaptionEdit : private Message {
    protected:
     void makePacket(Packet& p) const {
         Message::makePacket(p);
-        p[api::message_id] = messageID;
-        p.addStringEsc(api::caption, caption);
+        p[tg_api::message_id] = messageID;
+        p.addStringEsc(tg_api::caption, caption);
     }
 };
 
 // https://core.telegram.org/bots/api#editmessagelivelocation
 class LocationEdit : private Message {
-    friend class ::VirtualFastBot2;
+    friend class ::FastBot2Client;
 
    public:
     LocationEdit() {}
@@ -123,18 +123,18 @@ class LocationEdit : private Message {
    protected:
     void makePacket(Packet& p) const {
         Message::makePacket(p);
-        p[api::message_id] = messageID;
-        p.addFloat(api::latitude, latitude, 6);
-        p.addFloat(api::longitude, longitude, 6);
-        if (!isnan(horizontalAccuracy)) p.addFloat(api::horizontal_accuracy, horizontalAccuracy, 1);
-        if (heading) p[api::heading] = heading;
-        if (proximityAlertRadius) p[api::proximity_alert_radius] = proximityAlertRadius;
+        p[tg_api::message_id] = messageID;
+        p.addFloat(tg_api::latitude, latitude, 6);
+        p.addFloat(tg_api::longitude, longitude, 6);
+        if (!isnan(horizontalAccuracy)) p.addFloat(tg_api::horizontal_accuracy, horizontalAccuracy, 1);
+        if (heading) p[tg_api::heading] = heading;
+        if (proximityAlertRadius) p[tg_api::proximity_alert_radius] = proximityAlertRadius;
     }
 };
 
 // https://core.telegram.org/bots/api#stopmessagelivelocation
 class LocationStop : private Message {
-    friend class ::VirtualFastBot2;
+    friend class ::FastBot2Client;
 
    public:
     LocationStop() {}
@@ -151,7 +151,7 @@ class LocationStop : private Message {
    protected:
     void makePacket(Packet& p) const {
         Message::makePacket(p);
-        p[api::message_id] = messageID;
+        p[tg_api::message_id] = messageID;
     }
 };
 

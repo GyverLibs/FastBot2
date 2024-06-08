@@ -4,7 +4,7 @@
 #include <StringUtils.h>
 
 #include "Message.h"
-#include "VirtualFastBot2_class.h"
+#include "FastBot2Client_class.h"
 #include "core/api.h"
 #include "core/packet.h"
 
@@ -12,7 +12,7 @@ namespace fb {
 
 // https://core.telegram.org/bots/api#forwardmessage
 class MessageForward {
-    friend class ::VirtualFastBot2;
+    friend class ::FastBot2Client;
 
    public:
     MessageForward() {}
@@ -42,12 +42,12 @@ class MessageForward {
 
    private:
     void makePacket(Packet& p) const {
-        p[api::message_id] = messageID;
-        p[api::from_chat_id] = fromChatID;
-        p[api::chat_id] = chatID;
-        if (threadID >= 0) p[api::message_thread_id] = (threadID);
-        if (!notification) p[api::disable_notification] = true;
-        if (protect) p[api::protect_content] = true;
+        p[tg_api::message_id] = messageID;
+        p[tg_api::from_chat_id] = fromChatID;
+        p[tg_api::chat_id] = chatID;
+        if (threadID >= 0) p[tg_api::message_thread_id] = (threadID);
+        if (!notification) p[tg_api::disable_notification] = true;
+        if (protect) p[tg_api::protect_content] = true;
     }
 };
 

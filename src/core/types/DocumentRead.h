@@ -3,8 +3,8 @@
 #include <GSON.h>
 #include <StringUtils.h>
 
-#include "VirtualFastBot2_class.h"
-#include "core/BracketAccess.h"
+#include "FastBot2Client_class.h"
+#include "core/EntryAccess.h"
 #include "core/api.h"
 
 namespace fb {
@@ -12,32 +12,32 @@ namespace fb {
 typedef void (*DownloadHook)(void* bot, const su::Text& id);
 
 // https://core.telegram.org/bots/api#document
-struct DocumentRead : public BracketAccess {
-    DocumentRead(gson::Entry entry) : BracketAccess(entry) {}
+struct DocumentRead : public EntryAccess {
+    DocumentRead(gson::Entry entry) : EntryAccess(entry) {}
 
     // id документа, можно использовать для скачивания
     su::Text id() {
-        return entry[fbh::api::file_id];
+        return entry[tg_apih::file_id];
     }
 
     // уникальный id документа в системе
     su::Text uniqueID() {
-        return entry[fbh::api::file_unique_id];
+        return entry[tg_apih::file_unique_id];
     }
 
     // имя документа
     su::Text name() {
-        return entry[fbh::api::file_name];
+        return entry[tg_apih::file_name];
     }
 
     // MIME тип документа
     su::Text type() {
-        return entry[fbh::api::mime_type];
+        return entry[tg_apih::mime_type];
     }
 
     // размер документа
     su::Text size() {
-        return entry[fbh::api::file_size];
+        return entry[tg_apih::file_size];
     }
 };
 

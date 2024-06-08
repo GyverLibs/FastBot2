@@ -1,136 +1,248 @@
 #pragma once
-#include <Arduino.h>
+#include "core/core.h"
+#include "core/types/File.h"
+#include "core/types/Location.h"
+#include "core/types/Message.h"
+#include "core/types/MessageEdit.h"
+#include "core/types/MessageForward.h"
+#include "core/types/MessageRead.h"
+#include "core/types/MyCommands.h"
+#include "core/types/QueryRead.h"
 
-#include "VirtualFastBot2.h"
-#include "core/AsyncHTTP.h"
-#include "core/config.h"
-
-class FastBot2Client : public VirtualFastBot2 {
+class FastBot2Client : public fb::Core {
    public:
-    FastBot2Client(Client& client) : VirtualFastBot2(), http(client, TELEGRAM_HOST, TELEGRAM_PORT) {}
+    using fb::Core::Core;
 
-    // установить таймаут ожидания ответа сервера (умолч. 2000 мс)
-    void setTimeout(uint16_t timeout) {
-        VirtualFastBot2::setTimeout(timeout);
-        http.setTimeout(timeout);
+    // ============================== SEND ==============================
+
+    // ответить на callback. Можно указать текст и вызвать alert
+    fb::Result answerCallbackQuery(const su::Text& id, su::Text text = su::Text(), bool show_alert = false, bool wait = true) {
+        _query_answ = true;
+        fb::Packet p(tg_cmd::answerCallbackQuery, _token);
+        p[tg_api::callback_query_id] = id;
+        if (text) p.addStringEsc(tg_api::text, text);
+        if (show_alert) p[tg_api::show_alert] = true;
+        return sendPacket(p, wait);
     }
 
-    // установить лимит памяти на ответ сервера (библиотека начнёт пропускать сообщения), умолч. 20000
-    void setMemLimit(uint16_t limit) {
-        _limit = limit;
+    // переслать сообщение
+    fb::Result forwardMessage(const fb::MessageForward& m, bool wait = true) {
+        if (!m.chatID || !m.fromChatID) return fb::Result();
+        fb::Packet p(tg_cmd::sendMessage, _token);
+        m.makePacket(p);
+        return sendPacket(p, wait);
     }
 
-    // установить proxy
-    void setProxy(const char* host, uint16_t port) {
-        http.setHost(host, port);
+    // отправить сообщение
+    fb::Result sendMessage(const fb::Message& m, bool wait = true) {
+        if (!m.text.length() || !m.chatID) return fb::Result();
+        fb::Packet p(tg_cmd::sendMessage, _token);
+        m.makePacket(p);
+        return sendPacket(p, wait);
     }
 
-    // установить proxy
-    void setProxy(const IPAddress& ip, uint16_t port) {
-        http.setHost(ip, port);
+    // отправить геолокацию
+    fb::Result sendLocation(const fb::Location& m, bool wait = true) {
+        if (!m.chatID) return fb::Result();
+        fb::Packet p(tg_cmd::sendLocation, _token);
+        m.makePacket(p);
+        return sendPacket(p, wait);
     }
 
-    // удалить proxy
-    void clearProxy() {
-        http.setHost(TELEGRAM_HOST, TELEGRAM_PORT);
+// ============================== FILE ==============================
+#ifndef FB_NO_FILE
+    // отправить файл, тип указывается в fb::File
+    fb::Result sendFile(const fb::File& m, bool wait = true) {
+        fb::Packet p(m.multipart, _token);
+        m.makePacket(p);
+        return sendPacket(p, wait);
     }
 
-    AsyncHTTP http;
-
-   private:
-    uint16_t _limit = 20000;
-
-    // =========== override ===========
-    bool clientSend(fb::Packet& packet, bool wait) {
-        if (http.isWaiting() && http.waitAnswer()) _readAndParse();
-        return wait ? _sendAndWait(packet) : _send(packet);
+    // редактировать файл
+    fb::Result editFile(const fb::FileEdit& m, bool wait = true) {
+        if (!m.chatID) return fb::Result();
+        fb::Packet p(m.multipart, _token);
+        m.makePacket(p);
+        return sendPacket(p, wait);
     }
 
-    bool clientSendRead(fb::Packet& packet, Stream** stream) {
-        if (http.isWaiting() && http.waitAnswer()) _readAndParse();
+    // скачать файл
+    fb::Fetcher downloadFile(const su::Text& fileID) {
+        FB_ESP_YIELD();
+        StreamReader reader;
+        String path;
+        path.reserve(30);
+        {
+            FB_LOG("getFile");
+            fb::Packet p(tg_cmd::getFile, _token);
+            p[tg_api::file_id] = fileID;
 
-        if (_send(packet) && http.waitAnswer() && http.beginParse()) {
-            if (http.getType() == AsyncHTTP::ContentType::File) {
-                *stream = &http;
-                return 1;
-            } else {
-                FB_LOG("content type error");
-                http.flush();
-                return 0;
+            fb::Result res = sendPacket(p, true);
+            FB_ESP_YIELD();
+            if (res.includes(tg_apih::file_id) && res[tg_apih::file_id] == fileID) {
+                res[tg_apih::file_path].toString(path);
             }
         }
-        FB_LOG("send fetch error");
-        return 0;
-    }
 
-    bool clientWaiting() {
-        return http.isWaiting();
-    }
-
-    void clientStop() {
-        http.stop();
-    }
-
-    bool clientTick() {
-        return _checkAndRead();
-    }
-
-    // =========== func ===========
-    bool _checkAndRead() {
-        if (http.client.available()) {
-            return _readAndParse();
+        if (path.length()) {
+            FB_LOG("download file");
+            fb::Packet p(path, _token);
+            reader = sendPacket(p, true).getReader();
+            FB_ESP_YIELD();
         }
-        return 0;
+        return fb::Fetcher(&_reboot, reader);
     }
-    bool _send(fb::Packet& packet) {
-        if (http.beginSend()) {
-            packet.printTo(http.client);
-            return 1;
-        }
-        FB_LOG("send error");
-        return 0;
-    }
-    bool _sendAndWait(fb::Packet& packet) {
-        return _send(packet) && http.waitAnswer() && _readAndParse();
+#endif
+
+    // ============================== SET ==============================
+
+    // отправить статус "набирает сообщение" на 5 секунд
+    fb::Result setTyping(su::Value chatID, bool wait = true) {
+        if (!chatID) return fb::Result();
+        fb::Packet p(tg_cmd::sendChatAction, _token);
+        p[tg_api::chat_id] = chatID;
+        p[tg_api::action] = F("typing");
+        return sendPacket(p, wait);
     }
 
-    bool _readAndParse() {
-        if (!http.beginParse()) {
-            FB_LOG("begin parse error");
-            return 0;
-        }
-
-        switch (http.getType()) {
-            case AsyncHTTP::ContentType::Json:
-                if (_limit && http.available() > _limit) {
-                    FB_LOG("memory limit error");
-                    skipNextMessage();
-                    http.flush();
-                    return 0;
-                } else {
-                    bool ok = 0;
-                    size_t len = http.available();
-                    char* buf = new char[len];
-                    if (buf) {
-                        if (http.readBytes(buf)) {
-                            su::Text txt(buf, len);
-                            ok = parsePacket(txt);
-                        }
-                        delete[] buf;
-                    }
-                    return ok;
-                }
-
-            case AsyncHTTP::ContentType::File:
-                handleFile(http);
-                http.flush();
-                return 1;
-
-            default:
-                FB_LOG("content type error");
-                http.flush();
-                return 0;
-        }
-        return 0;
+    // установить заголовок чата
+    fb::Result setChatTitle(su::Value chatID, su::Text title, bool wait = true) {
+        if (!chatID) return fb::Result();
+        fb::Packet p(tg_cmd::setChatTitle, _token);
+        p[tg_api::chat_id] = chatID;
+        p.addStringEsc(tg_api::title, title);
+        return sendPacket(p, wait);
     }
+
+    // установить описание чата
+    fb::Result setChatDescription(su::Value chatID, su::Text description, bool wait = true) {
+        if (!chatID) return fb::Result();
+        fb::Packet p(tg_cmd::setChatDescription, _token);
+        p[tg_api::chat_id] = chatID;
+        p.addStringEsc(tg_api::description, description);
+        return sendPacket(p, wait);
+    }
+
+    // установить подсказки команд бота
+    fb::Result setMyCommands(const fb::MyCommands& commands, bool wait = true) {
+        fb::Packet p(tg_cmd::setMyCommands, _token);
+        commands.makePacket(p);
+        return sendPacket(p, wait);
+    }
+
+    // удалить подсказки команд бота
+    fb::Result deleteMyCommands(bool wait = true) {
+        fb::Packet p(tg_cmd::deleteMyCommands, _token);
+        return sendPacket(p, wait);
+    }
+
+    // установить имя бота
+    fb::Result setMyName(const su::Text& name, bool wait = true) {
+        fb::Packet p(tg_cmd::setMyName, _token);
+        p[tg_api::name] = name;
+        return sendPacket(p, wait);
+    }
+
+    // установить описание бота
+    fb::Result setMyDescription(const su::Text& description, bool wait = true) {
+        fb::Packet p(tg_cmd::setMyDescription, _token);
+        p[tg_api::description] = description;
+        return sendPacket(p, wait);
+    }
+
+    // ============================== PIN ==============================
+
+    // закрепить сообщение
+    fb::Result pinChatMessage(su::Value chatID, su::Value messageID, bool notify = true, bool wait = true) {
+        if (!chatID) return fb::Result();
+        fb::Packet p(tg_cmd::pinChatMessage, _token);
+        p[tg_api::chat_id] = chatID;
+        p[tg_api::message_id] = messageID;
+        p[tg_api::disable_notification] = notify;
+        return sendPacket(p, wait);
+    }
+
+    // открепить сообщение
+    fb::Result unpinChatMessage(su::Value chatID, su::Value messageID, bool wait = true) {
+        if (!chatID) return fb::Result();
+        fb::Packet p(tg_cmd::unpinChatMessage, _token);
+        p[tg_api::chat_id] = chatID;
+        p[tg_api::message_id] = messageID;
+        return sendPacket(p, wait);
+    }
+
+    // открепить все сообщения
+    fb::Result unpinAllChatMessages(su::Value chatID, bool wait = true) {
+        if (!chatID) return fb::Result();
+        fb::Packet p(tg_cmd::unpinAllChatMessages, _token);
+        p[tg_api::chat_id] = chatID;
+        return sendPacket(p, wait);
+    }
+
+    // ============================== EDIT ==============================
+
+    // редактировать текст
+    // https://core.telegram.org/bots/api#editmessagetext
+    fb::Result editText(const fb::TextEdit& m, bool wait = true) {
+        if (!m.text.length() || !m.chatID) return fb::Result();
+        fb::Packet p(tg_cmd::editMessageText, _token);
+        m.makePacket(p);
+        return sendPacket(p, wait);
+    }
+
+    // редактировать заголовок (у сообщений с медиафайлом)
+    // https://core.telegram.org/bots/api#editmessagecaption
+    fb::Result editCaption(const fb::CaptionEdit& m, bool wait = true) {
+        if (!m.caption.length() || !m.chatID) return fb::Result();
+        fb::Packet p(tg_cmd::editMessageCaption, _token);
+        m.makePacket(p);
+        return sendPacket(p, wait);
+    }
+
+    // редактировать меню
+    // https://core.telegram.org/bots/api#editmessagereplymarkup
+    fb::Result editMenu(const fb::MenuEdit& m, bool wait = true) {
+        if (!m.chatID) return fb::Result();
+        fb::Packet p(tg_cmd::editMessageReplyMarkup, _token);
+        m.makePacket(p);
+        return sendPacket(p, wait);
+    }
+
+    // редактировать геолокацию
+    fb::Result editLocation(const fb::LocationEdit& m, bool wait = true) {
+        if (!m.chatID) return fb::Result();
+        fb::Packet p(tg_cmd::editMessageLiveLocation, _token);
+        m.makePacket(p);
+        return sendPacket(p, wait);
+    }
+
+    // остановить геолокацию
+    fb::Result stopLocation(const fb::LocationStop& m, bool wait = true) {
+        if (!m.chatID) return fb::Result();
+        fb::Packet p(tg_cmd::stopMessageLiveLocation, _token);
+        m.makePacket(p);
+        return sendPacket(p, wait);
+    }
+
+    // ============================== DELETE ==============================
+
+    // удалить сообщение
+    fb::Result deleteMessage(su::Value chatID, su::Value messageID, bool wait = true) {
+        fb::Packet p(tg_cmd::deleteMessage, _token);
+        p[tg_api::chat_id] = chatID;
+        p[tg_api::message_id] = messageID;
+        return sendPacket(p, wait);
+    }
+
+    // удалить сообщения
+    fb::Result deleteMessages(su::Value chatID, uint32_t* messageIDs, uint16_t amount, bool wait = true) {
+        fb::Packet p(tg_cmd::deleteMessages, _token);
+        p[tg_api::chat_id] = chatID;
+        p.beginArr(tg_api::message_ids);
+        for (uint16_t i = 0; i < amount; i++) p += messageIDs[i];
+        p.endArr();
+        return sendPacket(p, wait);
+    }
+
+   private:
 };

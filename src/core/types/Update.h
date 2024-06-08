@@ -4,40 +4,40 @@
 
 #include "MessageRead.h"
 #include "QueryRead.h"
-#include "core/BracketAccess.h"
+#include "core/EntryAccess.h"
 #include "core/api.h"
 
 namespace fb {
 
 // https://core.telegram.org/bots/api#update
-class Update : public BracketAccess {
+class Update : public EntryAccess {
    public:
     enum class Type : size_t {
-        Message = fbh::api::message,
-        EditedMessage = fbh::api::edited_message,
-        ChannelPost = fbh::api::channel_post,
-        EditedChannelPost = fbh::api::edited_channel_post,
-        BusinessConnection = fbh::api::business_connection,
-        BusinessMessage = fbh::api::business_message,
-        EditedBusinessMessage = fbh::api::edited_business_message,
-        DeletedBusinessMessages = fbh::api::deleted_business_messages,
-        MessageReaction = fbh::api::message_reaction,
-        MessageReactionCount = fbh::api::message_reaction_count,
-        InlineQuery = fbh::api::inline_query,
-        ChosenInlineResult = fbh::api::chosen_inline_result,
-        CallbackQuery = fbh::api::callback_query,
-        ShippingQuery = fbh::api::shipping_query,
-        PreCheckoutQuery = fbh::api::pre_checkout_query,
-        Poll = fbh::api::poll,
-        PollAnswer = fbh::api::poll_answer,
-        MyChatMember = fbh::api::my_chat_member,
-        ChatMember = fbh::api::chat_member,
-        ChatJoinRequest = fbh::api::chat_join_request,
-        ChatBoost = fbh::api::chat_boost,
-        RemovedChatBoost = fbh::api::removed_chat_boost,
+        Message = tg_apih::message,
+        EditedMessage = tg_apih::edited_message,
+        ChannelPost = tg_apih::channel_post,
+        EditedChannelPost = tg_apih::edited_channel_post,
+        BusinessConnection = tg_apih::business_connection,
+        BusinessMessage = tg_apih::business_message,
+        EditedBusinessMessage = tg_apih::edited_business_message,
+        DeletedBusinessMessages = tg_apih::deleted_business_messages,
+        MessageReaction = tg_apih::message_reaction,
+        MessageReactionCount = tg_apih::message_reaction_count,
+        InlineQuery = tg_apih::inline_query,
+        ChosenInlineResult = tg_apih::chosen_inline_result,
+        CallbackQuery = tg_apih::callback_query,
+        ShippingQuery = tg_apih::shipping_query,
+        PreCheckoutQuery = tg_apih::pre_checkout_query,
+        Poll = tg_apih::poll,
+        PollAnswer = tg_apih::poll_answer,
+        MyChatMember = tg_apih::my_chat_member,
+        ChatMember = tg_apih::chat_member,
+        ChatJoinRequest = tg_apih::chat_join_request,
+        ChatBoost = tg_apih::chat_boost,
+        RemovedChatBoost = tg_apih::removed_chat_boost,
     };
 
-    Update(gson::Entry& entry, size_t type) : BracketAccess(entry), _type((Type)type) {}
+    Update(gson::Entry& entry, size_t type) : EntryAccess(entry), _type((Type)type) {}
 
     // тип апдейта
     Type type() {
