@@ -61,7 +61,7 @@ class Packet : public gson::string {
     }
 
     // запрос на скачивание файла вида /file/bot.../<path>
-    Packet(const su::Text& path, const String& token) : gson::string(200) {
+    Packet(const Text& path, const String& token) : gson::string(200) {
         _type = Type::Raw;
         s += F("GET /file/bot");  // TODO https proxy?
         s += token;
@@ -80,7 +80,7 @@ class Packet : public gson::string {
         s += '=';
     }
 
-    void addQS(const __FlashStringHelper* key, const su::Value& value) {
+    void addQS(const __FlashStringHelper* key, const Value& value) {
         beginQS(key);
         addTextRaw(value);
     }
@@ -90,8 +90,8 @@ class Packet : public gson::string {
         switch (_type) {
 #ifndef FB_NO_FILE
             case Type::File: {
-                su::Text formName = multipart->getFormName();
-                su::Text fileName = multipart->getFileName();
+                Text formName = multipart->getFormName();
+                Text fileName = multipart->getFileName();
                 size_t len = multipart->length();
 
                 len += su::SL("--" FB_BOUNDARY "\r\n");

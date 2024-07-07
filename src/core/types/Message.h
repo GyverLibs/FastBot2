@@ -18,7 +18,7 @@ struct ReplyParam {
     int32_t messageID = -1;
 
     // id чата, в котором находится сообщение, на которое отвечаем
-    su::Value chatID;
+    Value chatID;
 };
 
 // https://core.telegram.org/bots/api#sendmessage
@@ -32,13 +32,13 @@ class Message {
         HTML,
     };
     Message() {}
-    Message(const String& text, const su::Value& chatID) : text(text), chatID(chatID) {}
+    Message(const String& text, const Value& chatID) : text(text), chatID(chatID) {}
 
     // текст сообщения
     String text;
 
     // id чата, куда отправлять
-    su::Value chatID;
+    Value chatID;
 
     // id темы в группе, куда отправлять
     int32_t threadID = -1;

@@ -20,7 +20,7 @@ struct ChatRead : public EntryAccess {
     };
 
     // id чата
-    su::Text id() {
+    Text id() {
         return entry[tg_apih::id];
     }
 
@@ -30,32 +30,32 @@ struct ChatRead : public EntryAccess {
     }
 
     // название чата (для supergroups, channels, group chats)
-    su::Text title() {
+    Text title() {
         return entry[tg_apih::title];
     }
 
     // имя чата (для private chats, supergroups, channels)
-    su::Text username() {
+    Text username() {
         return entry[tg_apih::username];
     }
 
     // имя (для private chat)
-    su::Text firstName() {
+    Text firstName() {
         return entry[tg_apih::first_name];
     }
 
     // фамилия (для private chat)
-    su::Text lastName() {
+    Text lastName() {
         return entry[tg_apih::last_name];
     }
 
     // описание чата
-    su::Text description() {
+    Text description() {
         return entry[tg_apih::description];
     }
 
     // в supergroup включены темы
-    su::Text isForum() {
+    Text isForum() {
         return entry[tg_apih::is_forum];
     }
 };

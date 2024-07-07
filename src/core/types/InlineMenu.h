@@ -33,7 +33,7 @@ class InlineMenu {
     }
 
     // добавить кнопку
-    InlineMenu& addButton(su::Text text, su::Text data = su::Text()) {
+    InlineMenu& addButton(Text text, Text data = Text()) {
         if (_first) _first = false;
         else {
             this->text += ';';

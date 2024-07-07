@@ -17,8 +17,8 @@ class MessageForward {
    public:
     MessageForward() {}
     MessageForward(uint32_t messageID,
-                   const su::Value& fromChatID,
-                   const su::Value& chatID) : messageID(messageID),
+                   const Value& fromChatID,
+                   const Value& chatID) : messageID(messageID),
                                               fromChatID(fromChatID),
                                               chatID(chatID) {}
 
@@ -26,10 +26,10 @@ class MessageForward {
     uint32_t messageID;
 
     // id чата пересылаемого сообщения
-    su::Value fromChatID;
+    Value fromChatID;
 
     // id чата, в который пересылать
-    su::Value chatID;
+    Value chatID;
 
     // id темы в группе, в которую переслать
     int32_t threadID = -1;

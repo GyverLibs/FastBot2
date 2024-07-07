@@ -9,34 +9,34 @@
 
 namespace fb {
 
-typedef void (*DownloadHook)(void* bot, const su::Text& id);
+typedef void (*DownloadHook)(void* bot, const Text& id);
 
 // https://core.telegram.org/bots/api#document
 struct DocumentRead : public EntryAccess {
     DocumentRead(gson::Entry entry) : EntryAccess(entry) {}
 
     // id документа, можно использовать для скачивания
-    su::Text id() {
+    Text id() {
         return entry[tg_apih::file_id];
     }
 
     // уникальный id документа в системе
-    su::Text uniqueID() {
+    Text uniqueID() {
         return entry[tg_apih::file_unique_id];
     }
 
     // имя документа
-    su::Text name() {
+    Text name() {
         return entry[tg_apih::file_name];
     }
 
     // MIME тип документа
-    su::Text type() {
+    Text type() {
         return entry[tg_apih::mime_type];
     }
 
     // размер документа
-    su::Text size() {
+    Text size() {
         return entry[tg_apih::file_size];
     }
 };

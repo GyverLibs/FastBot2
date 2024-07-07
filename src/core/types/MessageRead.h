@@ -20,32 +20,32 @@ struct MessageRead : public EntryAccess {
     // ================ INFO ================
 
     // текст сообщения
-    su::Text text() {
+    Text text() {
         return entry[tg_apih::text];
     }
 
     // id сообщения в этом чате
-    su::Text id() {
+    Text id() {
         return entry[tg_apih::message_id];
     }
 
     // id темы в группе
-    su::Text threadID() {
+    Text threadID() {
         return entry[tg_apih::message_thread_id];
     }
 
     // сообщение отправлено в топик форума
-    su::Text isTopic() {
+    Text isTopic() {
         return entry[tg_apih::is_topic_message];
     }
 
     // дата отправки или пересылки сообщения
-    su::Text date() {
+    Text date() {
         return entry[tg_apih::date];
     }
 
     // дата изменения сообщения
-    su::Text editDate() {
+    Text editDate() {
         return entry[tg_apih::edit_date];
     }
 
@@ -75,7 +75,7 @@ struct MessageRead : public EntryAccess {
 
     // сообщение является ответом на сообщение
     bool isReply() {
-        return entry.includes(tg_apih::reply_to_message);
+        return entry.has(tg_apih::reply_to_message);
     }
 
     // сообщение, на которое отвечает это сообщение
@@ -87,7 +87,7 @@ struct MessageRead : public EntryAccess {
 
     // сообщение переслано из другого чата
     bool isForward() {
-        return entry.includes(tg_apih::forward_origin);
+        return entry.has(tg_apih::forward_origin);
     }
 
     // данные о пересланном сообщении
@@ -99,7 +99,7 @@ struct MessageRead : public EntryAccess {
 
     // сообщение содержит геолокацию
     bool hasLocation() {
-        return entry.includes(tg_apih::location);
+        return entry.has(tg_apih::location);
     }
 
     // геолокация
@@ -111,7 +111,7 @@ struct MessageRead : public EntryAccess {
 
     // сообщение содержит документ
     bool hasDocument() {
-        return entry.includes(tg_apih::document);
+        return entry.has(tg_apih::document);
     }
 
     // документ

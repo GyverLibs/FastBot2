@@ -36,7 +36,7 @@ class Menu {
     bool selective = selectiveDefault;
 
     // добавить кнопку
-    Menu& addButton(su::Text text) {
+    Menu& addButton(Text text) {
         if (_first) _first = false;
         else this->text += ';';
 

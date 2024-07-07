@@ -28,30 +28,30 @@ class Multipart : public StreamWriter {
     };
 
 #ifdef FS_H
-    Multipart(const su::Text& name, Type type, ::File& file, bool edit) : StreamWriter(&file, file.size()), _name(name), _type(type), _edit(edit) {
+    Multipart(const Text& name, Type type, ::File& file, bool edit) : StreamWriter(&file, file.size()), _name(name), _type(type), _edit(edit) {
         _init();
         setBlockSize(FB_BLOCK_SIZE);
     }
 #endif
-    Multipart(const su::Text& name, Type type, const uint8_t* bytes, size_t length, bool pgm, bool edit) : StreamWriter(bytes, length, pgm), _name(name), _type(type), _edit(edit) {
+    Multipart(const Text& name, Type type, const uint8_t* bytes, size_t length, bool pgm, bool edit) : StreamWriter(bytes, length, pgm), _name(name), _type(type), _edit(edit) {
         _init();
         setBlockSize(FB_BLOCK_SIZE);
     }
-    Multipart(const su::Text& name, Type type, const su::Text& urlid, bool edit) : _name(name), _type(type), _urlid(urlid), _edit(edit) {
+    Multipart(const Text& name, Type type, const Text& urlid, bool edit) : _name(name), _type(type), _urlid(urlid), _edit(edit) {
         _init();
         setBlockSize(FB_BLOCK_SIZE);
     }
 
-    const su::Text getAttachName() const {
+    const Text getAttachName() const {
         return _attachName;
     }
 
-    su::Text getFormName() const {
+    Text getFormName() const {
         if (_edit) return _attachName + su::SL(FB_ATTACH);  // сместить указатель на random id
         else return getType();
     }
 
-    const su::Text& getFileName() const {
+    const Text& getFileName() const {
         return _name;
     }
 
@@ -103,14 +103,14 @@ class Multipart : public StreamWriter {
         return !_urlid;
     }
 
-    const su::Text& getUrlid() const {
+    const Text& getUrlid() const {
         return _urlid;
     }
 
    protected:
-    const su::Text _name;
+    const Text _name;
     const Type _type;
-    const su::Text _urlid;
+    const Text _urlid;
     const bool _edit;
     char _attachName[su::SL(FB_ATTACH) + su::SL("ffffffff") + 1];
 

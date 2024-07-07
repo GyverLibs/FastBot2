@@ -8,7 +8,7 @@ class EntryAccess {
     EntryAccess(const gson::Entry& entry) : entry(entry) {}
 
     // содержит элемент с указанным хэшем ключа
-    bool includes(size_t hash) const {
+    bool has(size_t hash) const {
         return entry[hash].valid();
     }
 
@@ -23,6 +23,11 @@ class EntryAccess {
     }
 
     gson::Entry entry;
+
+    // содержит элемент с указанным хэшем ключа
+    bool includes(size_t hash) const __attribute__((deprecated)) {
+        return has(hash);
+    }
 };
 
 }  // namespace fb

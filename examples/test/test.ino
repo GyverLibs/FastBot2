@@ -46,12 +46,12 @@ FastBot2 bot;
 // #include <FastBot2Client.h>
 // FastBot2Client bot(gsmclient);
 
-void rawh(su::Text text) {
+void rawh(Text text) {
     // Serial.println(text);
 }
 
 void handleCommand(fb::Update& u) {
-    su::Text chat_id = u.message().chat().id();
+    Text chat_id = u.message().chat().id();
 
     switch (u.message().text().hash()) {
         case su::SH("/start"): {
@@ -87,7 +87,7 @@ void handleCommand(fb::Update& u) {
                 "/file_img_p\r\n"
                 "/file_img_url");
             msg.chatID = chat_id;
-            bot.sendMessage(msg, chat_id);
+            bot.sendMessage(msg);
         } break;
 
         case su::SH("/send_msg"): {

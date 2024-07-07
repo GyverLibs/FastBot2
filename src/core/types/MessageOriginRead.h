@@ -27,7 +27,7 @@ struct MessageOriginRead : public EntryAccess {
     }
 
     // дата оригинального сообщения
-    su::Text date() {
+    Text date() {
         return entry[tg_apih::date];
     }
 

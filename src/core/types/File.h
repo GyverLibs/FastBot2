@@ -25,15 +25,15 @@ class File : protected Message {
 
 #ifdef FS_H
     // отправить fs::File файл
-    File(const su::Text& name, Type type, ::File& file) : File(name, type, file, false) {}
+    File(const Text& name, Type type, ::File& file) : File(name, type, file, false) {}
 #endif
 
     // отправить данные из byte/progmem буфера
-    File(const su::Text& name, Type type, const uint8_t* bytes, size_t length, bool pgm = false) : File(name, type, bytes, length, pgm, false) {}
+    File(const Text& name, Type type, const uint8_t* bytes, size_t length, bool pgm = false) : File(name, type, bytes, length, pgm, false) {}
 
     // отправить по ID файла в телеге или ссылкой (для document только GIF, PDF и ZIP)
     // https://core.telegram.org/bots/api#sending-files
-    File(const su::Text& name, Type type, const su::Text& urlid) : File(name, type, urlid, false) {}
+    File(const Text& name, Type type, const Text& urlid) : File(name, type, urlid, false) {}
 
     using Message::chatID;
     using Message::mode;
@@ -62,14 +62,14 @@ class File : protected Message {
 
 #ifdef FS_H
     // отправить fs::File файл
-    File(const su::Text& name, Type type, ::File& file, bool edit) : multipart(name, (Multipart::Type)type, file, edit) {}
+    File(const Text& name, Type type, ::File& file, bool edit) : multipart(name, (Multipart::Type)type, file, edit) {}
 #endif
 
     // отправить данные из byte буфера
-    File(const su::Text& name, Type type, const uint8_t* bytes, size_t length, bool pgm, bool edit) : multipart(name, (Multipart::Type)type, bytes, length, pgm, edit) {}
+    File(const Text& name, Type type, const uint8_t* bytes, size_t length, bool pgm, bool edit) : multipart(name, (Multipart::Type)type, bytes, length, pgm, edit) {}
 
     // отправить по ID файла в телеге или ссылкой (для document только GIF, PDF и ZIP)
-    File(const su::Text& name, Type type, const su::Text& urlid, bool edit) : multipart(name, (Multipart::Type)type, urlid, edit) {}
+    File(const Text& name, Type type, const Text& urlid, bool edit) : multipart(name, (Multipart::Type)type, urlid, edit) {}
 };
 
 // https://core.telegram.org/bots/api#editmessagemedia
@@ -79,14 +79,14 @@ class FileEdit : protected File {
    public:
 #ifdef FS_H
     // отправить fs::File файл
-    FileEdit(const su::Text& name, Type type, ::File& file) : File(name, type, file, true) {}
+    FileEdit(const Text& name, Type type, ::File& file) : File(name, type, file, true) {}
 #endif
 
-    FileEdit(const su::Text& name, Type type, const uint8_t* bytes, size_t length, bool pgm = false) : File(name, type, bytes, length, pgm, true) {}
+    FileEdit(const Text& name, Type type, const uint8_t* bytes, size_t length, bool pgm = false) : File(name, type, bytes, length, pgm, true) {}
 
     // document by url - GIF, PDF and ZIP
     // https://core.telegram.org/bots/api#sending-files
-    FileEdit(const su::Text& name, Type type, const su::Text& urlid) : File(name, type, urlid, true) {}
+    FileEdit(const Text& name, Type type, const Text& urlid) : File(name, type, urlid, true) {}
 
     // id сообщения
     uint32_t messageID;

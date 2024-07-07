@@ -25,7 +25,7 @@ class Result : public gson::Entry {
     }
 
     // получить скачанный json пакет как Text
-    su::Text getRaw() {
+    Text getRaw() {
         return _parser.getRaw();
     }
 

@@ -16,7 +16,7 @@ class FastBot2Client : public fb::Core {
     // ============================== SEND ==============================
 
     // ответить на callback. Можно указать текст и вызвать alert
-    fb::Result answerCallbackQuery(const su::Text& id, su::Text text = su::Text(), bool show_alert = false, bool wait = true) {
+    fb::Result answerCallbackQuery(const Text& id, Text text = Text(), bool show_alert = false, bool wait = true) {
         _query_answ = true;
         fb::Packet p(tg_cmd::answerCallbackQuery, _token);
         p[tg_api::callback_query_id] = id;
@@ -67,7 +67,7 @@ class FastBot2Client : public fb::Core {
     }
 
     // скачать файл
-    fb::Fetcher downloadFile(const su::Text& fileID) {
+    fb::Fetcher downloadFile(const Text& fileID) {
         FB_ESP_YIELD();
         StreamReader reader;
         String path;
@@ -79,7 +79,7 @@ class FastBot2Client : public fb::Core {
 
             fb::Result res = sendPacket(p, true);
             FB_ESP_YIELD();
-            if (res.includes(tg_apih::file_id) && res[tg_apih::file_id] == fileID) {
+            if (res.has(tg_apih::file_id) && res[tg_apih::file_id] == fileID) {
                 res[tg_apih::file_path].toString(path);
             }
         }
@@ -97,7 +97,7 @@ class FastBot2Client : public fb::Core {
     // ============================== SET ==============================
 
     // отправить статус "набирает сообщение" на 5 секунд
-    fb::Result setTyping(su::Value chatID, bool wait = true) {
+    fb::Result setTyping(Value chatID, bool wait = true) {
         if (!chatID) return fb::Result();
         fb::Packet p(tg_cmd::sendChatAction, _token);
         p[tg_api::chat_id] = chatID;
@@ -106,7 +106,7 @@ class FastBot2Client : public fb::Core {
     }
 
     // установить заголовок чата
-    fb::Result setChatTitle(su::Value chatID, su::Text title, bool wait = true) {
+    fb::Result setChatTitle(Value chatID, Text title, bool wait = true) {
         if (!chatID) return fb::Result();
         fb::Packet p(tg_cmd::setChatTitle, _token);
         p[tg_api::chat_id] = chatID;
@@ -115,7 +115,7 @@ class FastBot2Client : public fb::Core {
     }
 
     // установить описание чата
-    fb::Result setChatDescription(su::Value chatID, su::Text description, bool wait = true) {
+    fb::Result setChatDescription(Value chatID, Text description, bool wait = true) {
         if (!chatID) return fb::Result();
         fb::Packet p(tg_cmd::setChatDescription, _token);
         p[tg_api::chat_id] = chatID;
@@ -137,14 +137,14 @@ class FastBot2Client : public fb::Core {
     }
 
     // установить имя бота
-    fb::Result setMyName(const su::Text& name, bool wait = true) {
+    fb::Result setMyName(const Text& name, bool wait = true) {
         fb::Packet p(tg_cmd::setMyName, _token);
         p[tg_api::name] = name;
         return sendPacket(p, wait);
     }
 
     // установить описание бота
-    fb::Result setMyDescription(const su::Text& description, bool wait = true) {
+    fb::Result setMyDescription(const Text& description, bool wait = true) {
         fb::Packet p(tg_cmd::setMyDescription, _token);
         p[tg_api::description] = description;
         return sendPacket(p, wait);
@@ -153,7 +153,7 @@ class FastBot2Client : public fb::Core {
     // ============================== PIN ==============================
 
     // закрепить сообщение
-    fb::Result pinChatMessage(su::Value chatID, su::Value messageID, bool notify = true, bool wait = true) {
+    fb::Result pinChatMessage(Value chatID, Value messageID, bool notify = true, bool wait = true) {
         if (!chatID) return fb::Result();
         fb::Packet p(tg_cmd::pinChatMessage, _token);
         p[tg_api::chat_id] = chatID;
@@ -163,7 +163,7 @@ class FastBot2Client : public fb::Core {
     }
 
     // открепить сообщение
-    fb::Result unpinChatMessage(su::Value chatID, su::Value messageID, bool wait = true) {
+    fb::Result unpinChatMessage(Value chatID, Value messageID, bool wait = true) {
         if (!chatID) return fb::Result();
         fb::Packet p(tg_cmd::unpinChatMessage, _token);
         p[tg_api::chat_id] = chatID;
@@ -172,7 +172,7 @@ class FastBot2Client : public fb::Core {
     }
 
     // открепить все сообщения
-    fb::Result unpinAllChatMessages(su::Value chatID, bool wait = true) {
+    fb::Result unpinAllChatMessages(Value chatID, bool wait = true) {
         if (!chatID) return fb::Result();
         fb::Packet p(tg_cmd::unpinAllChatMessages, _token);
         p[tg_api::chat_id] = chatID;
@@ -227,7 +227,7 @@ class FastBot2Client : public fb::Core {
     // ============================== DELETE ==============================
 
     // удалить сообщение
-    fb::Result deleteMessage(su::Value chatID, su::Value messageID, bool wait = true) {
+    fb::Result deleteMessage(Value chatID, Value messageID, bool wait = true) {
         fb::Packet p(tg_cmd::deleteMessage, _token);
         p[tg_api::chat_id] = chatID;
         p[tg_api::message_id] = messageID;
@@ -235,7 +235,7 @@ class FastBot2Client : public fb::Core {
     }
 
     // удалить сообщения
-    fb::Result deleteMessages(su::Value chatID, uint32_t* messageIDs, uint16_t amount, bool wait = true) {
+    fb::Result deleteMessages(Value chatID, uint32_t* messageIDs, uint16_t amount, bool wait = true) {
         fb::Packet p(tg_cmd::deleteMessages, _token);
         p[tg_api::chat_id] = chatID;
         p.beginArr(tg_api::message_ids);

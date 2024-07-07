@@ -15,12 +15,12 @@ struct QueryRead : public EntryAccess {
     QueryRead(gson::Entry entry) : EntryAccess(entry) {}
 
     // callback id
-    su::Text id() {
+    Text id() {
         return entry[tg_apih::id];
     }
 
     // callback data
-    su::Text data() {
+    Text data() {
         return entry[tg_apih::data];
     }
 

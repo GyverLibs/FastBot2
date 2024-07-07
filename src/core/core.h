@@ -21,7 +21,7 @@ enum class Poll : uint8_t {
 };
 
 class Core : public Http {
-    typedef void (*CallbackRaw)(su::Text response);
+    typedef void (*CallbackRaw)(Text response);
     typedef void (*CallbackResult)(gson::Entry& entry);
     typedef void (*CallbackUpdate)(Update& upd);
 
@@ -126,7 +126,7 @@ class Core : public Http {
         _cbResult = nullptr;
     }
 
-    // подключить обработчик сырого ответа сервера void cb(su::Text response) {}
+    // подключить обработчик сырого ответа сервера void cb(Text response) {}
     void attachRaw(CallbackRaw callback) {
         _cbRaw = callback;
     }
@@ -299,7 +299,7 @@ class Core : public Http {
 
     void _parseResult(gson::Entry& result) {
         FB_LOG("got result");
-        if (result.includes(tg_apih::message_id)) _last_bot = result[tg_apih::message_id];
+        if (result.has(tg_apih::message_id)) _last_bot = result[tg_apih::message_id];
         if (_cbResult) _cbResult(result);
     }
 
