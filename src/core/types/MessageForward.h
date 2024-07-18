@@ -3,8 +3,8 @@
 #include <GSON.h>
 #include <StringUtils.h>
 
-#include "Message.h"
 #include "FastBot2Client_class.h"
+#include "Message.h"
 #include "core/api.h"
 #include "core/packet.h"
 
@@ -19,8 +19,8 @@ class MessageForward {
     MessageForward(uint32_t messageID,
                    const Value& fromChatID,
                    const Value& chatID) : messageID(messageID),
-                                              fromChatID(fromChatID),
-                                              chatID(chatID) {}
+                                          fromChatID(fromChatID),
+                                          chatID(chatID) {}
 
     // id пересылаемого сообщения в чате
     uint32_t messageID;
@@ -40,6 +40,9 @@ class MessageForward {
     // защитить от пересылки и копирования
     bool protect = Message::protectDefault;
 
+    // для ручного добавления тех параметров, которых нет в классе!
+    gson::string json;
+
    private:
     void makePacket(Packet& p) const {
         p[tg_api::message_id] = messageID;
@@ -48,6 +51,7 @@ class MessageForward {
         if (threadID >= 0) p[tg_api::message_thread_id] = (threadID);
         if (!notification) p[tg_api::disable_notification] = true;
         if (protect) p[tg_api::protect_content] = true;
+        p += json;
     }
 };
 

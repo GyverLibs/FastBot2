@@ -3,8 +3,8 @@
 #include <GyverHTTP.h>
 #include <StringUtils.h>
 
-#include "core/api.h"
 #include "bot_config.h"
+#include "core/api.h"
 
 #ifdef FB_ESP_BUILD
 #include <FS.h>
@@ -57,20 +57,13 @@ class Multipart : public StreamWriter {
 
     const __FlashStringHelper* getType() const {
         switch (_type) {
-            case Type::photo:
-                return tg_api::photo;
-            case Type::audio:
-                return tg_api::audio;
-            case Type::document:
-                return tg_api::document;
-            case Type::video:
-                return tg_api::video;
-            case Type::animation:
-                return tg_api::animation;
-            case Type::voice:
-                return tg_api::voice;
-            case Type::video_note:
-                return tg_api::video_note;
+            case Type::photo: return tg_api::photo;
+            case Type::audio: return tg_api::audio;
+            case Type::document: return tg_api::document;
+            case Type::video: return tg_api::video;
+            case Type::animation: return tg_api::animation;
+            case Type::voice: return tg_api::voice;
+            case Type::video_note: return tg_api::video_note;
         }
         return F("");
     }
@@ -80,22 +73,14 @@ class Multipart : public StreamWriter {
         if (_edit) return tg_cmd::editMessageMedia;
 
         switch (_type) {
-            case Type::photo:
-                return tg_cmd::sendPhoto;
-            case Type::audio:
-                return tg_cmd::sendAudio;
-            case Type::document:
-                return tg_cmd::sendDocument;
-            case Type::video:
-                return tg_cmd::sendVideo;
-            case Type::animation:
-                return tg_cmd::sendAnimation;
-            case Type::voice:
-                return tg_cmd::sendVoice;
-            case Type::video_note:
-                return tg_cmd::sendVideoNote;
-            default:
-                return F("");
+            case Type::photo: return tg_cmd::sendPhoto;
+            case Type::audio: return tg_cmd::sendAudio;
+            case Type::document: return tg_cmd::sendDocument;
+            case Type::video: return tg_cmd::sendVideo;
+            case Type::animation: return tg_cmd::sendAnimation;
+            case Type::voice: return tg_cmd::sendVoice;
+            case Type::video_note: return tg_cmd::sendVideoNote;
+            default: return F("");
         }
     }
 

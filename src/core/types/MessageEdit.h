@@ -26,6 +26,7 @@ class TextEdit : private Message {
     using Message::preview;
     using Message::setInlineMenu;
     using Message::text;
+    using Message::json;
 
    protected:
     void makePacket(Packet& p) const {
@@ -53,6 +54,7 @@ class MenuEdit : private Message {
 
     using Message::chatID;
     using Message::setInlineMenu;
+    using Message::json;
 
    protected:
     void makePacket(Packet& p) const {
@@ -80,6 +82,7 @@ class CaptionEdit : private Message {
     using Message::chatID;
     using Message::mode;
     using Message::setInlineMenu;
+    using Message::json;
 
    protected:
     void makePacket(Packet& p) const {
@@ -119,6 +122,7 @@ class LocationEdit : private Message {
 
     using Message::chatID;
     using Message::setInlineMenu;
+    using Message::json;
 
    protected:
     void makePacket(Packet& p) const {
@@ -147,6 +151,7 @@ class LocationStop : private Message {
 
     using Message::chatID;
     using Message::setInlineMenu;
+    using Message::json;
 
    protected:
     void makePacket(Packet& p) const {

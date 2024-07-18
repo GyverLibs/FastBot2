@@ -34,6 +34,9 @@ class Message {
     Message() {}
     Message(const String& text, const Value& chatID) : text(text), chatID(chatID) {}
 
+    // для ручного добавления тех параметров, которых нет в классе!
+    gson::string json;
+
     // текст сообщения
     String text;
 
@@ -117,6 +120,8 @@ class Message {
             makeMenu(p);
             p.endObj();
         }
+
+        p += json;
     }
 
     void makeQS(Packet& p) const {

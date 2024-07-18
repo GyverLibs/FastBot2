@@ -36,6 +36,7 @@ class File : protected Message {
     File(const Text& name, Type type, const Text& urlid) : File(name, type, urlid, false) {}
 
     using Message::chatID;
+    using Message::json;
     using Message::mode;
     using Message::notification;
     using Message::protect;
@@ -94,6 +95,7 @@ class FileEdit : protected File {
     using File::caption;
     using File::chatID;
     using File::multipart;
+    using Message::json;
     using Message::setInlineMenu;
 
    protected:

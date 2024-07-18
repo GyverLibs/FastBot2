@@ -19,6 +19,7 @@ class Location : private Message {
     }
 
     using Message::chatID;
+    using Message::json;
     using Message::notification;
     using Message::protect;
     using Message::removeMenu;
