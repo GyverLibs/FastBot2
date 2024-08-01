@@ -37,11 +37,16 @@ class Update : public EntryAccess {
         RemovedChatBoost = tg_apih::removed_chat_boost,
     };
 
-    Update(gson::Entry& entry, size_t type) : EntryAccess(entry), _type((Type)type) {}
+    Update(gson::Entry& entry, size_t type, uint32_t id) : EntryAccess(entry), _type((Type)type), _id(id) {}
 
     // тип апдейта
     Type type() {
         return _type;
+    }
+
+    // id апдейта
+    uint32_t id() {
+        return _id;
     }
 
     // ================ QUERY ================
@@ -80,6 +85,7 @@ class Update : public EntryAccess {
 
    private:
     Type _type;
+    uint32_t _id;
 };
 
 }  // namespace fb

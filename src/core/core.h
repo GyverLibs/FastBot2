@@ -83,6 +83,21 @@ class Core : public Http {
         _poll_offset++;
     }
 
+    // авто-инкремент update offset (умолч. true). Если отключен - нужно вызывать skipNextMessage() в update
+    void autoIncrement(bool incr) {
+        _incr_auto = incr;
+    }
+
+    // автоматически отвечать на query, если юзер не ответил в update (умолч. true)
+    void autoQuery(bool query) {
+        _query_auto = query;
+    }
+
+    // покинуть цикл разбора updates, вызывать в обработичке update
+    void exitUpdates() {
+        _exit_f = true;
+    }
+
     // id последнего отправленного сообщения от бота
     uint32_t lastBotMessage() {
         return _last_bot;
@@ -262,8 +277,11 @@ class Core : public Http {
     uint8_t _poll_limit = 3;
     bool _poll_wait = 0;
     bool _query_answ = 0;
+    bool _query_auto = true;
     bool _state = true;
     bool _online = true;
+    bool _incr_auto = true;
+    bool _exit_f = false;
     int32_t _poll_offset = 0;
     uint32_t _last_bot = 0;
     uint32_t _last_send = 0;
@@ -311,33 +329,40 @@ class Core : public Http {
 #endif
             return;
         }
+        _exit_f = false;
         uint8_t len = result.length();
-        if (len) _poll_offset = result[0][tg_apih::update_id].toInt32();
 
         for (uint8_t i = 0; i < len; i++) {
             FB_ESP_YIELD();
-            _poll_offset++;
             gson::Entry upd = result[i][1];
             if (!upd) continue;
 
+            uint32_t offset = result[i][tg_apih::update_id].toInt32();
+            if (!_poll_offset) _poll_offset = offset;
+            if (_incr_auto) _poll_offset = offset + 1;
+            
             size_t typeHash = upd.keyHash();
-            Update update(upd, typeHash);
-            if (typeHash == tg_apih::callback_query) _query_answ = 0;
+            Update update(upd, typeHash, offset);
+            if (typeHash == tg_apih::callback_query) _query_answ = false;
 
             if (_cbUpdate) _cbUpdate(update);
             FB_ESP_YIELD();
 
             if (typeHash == tg_apih::callback_query && !_query_answ) {
                 _query_answ = true;
-                fb::Packet p(tg_cmd::answerCallbackQuery, _token);
-                p[tg_api::callback_query_id] = update.query().id();
-                sendPacket(p, false);
+                if (_query_auto) {
+                    fb::Packet p(tg_cmd::answerCallbackQuery, _token);
+                    p[tg_api::callback_query_id] = update.query().id();
+                    sendPacket(p, false);
+                }
             }
 
             if (_reboot == Fetcher::Reboot::Triggered) {
                 _reboot = Fetcher::Reboot::WaitUpdate;
                 return;
             }
+
+            if (_exit_f) break;
         }
     }
 };
