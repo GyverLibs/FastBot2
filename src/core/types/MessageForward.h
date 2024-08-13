@@ -17,10 +17,10 @@ class MessageForward {
    public:
     MessageForward() {}
     MessageForward(uint32_t messageID,
-                   const Value& fromChatID,
-                   const Value& chatID) : messageID(messageID),
-                                          fromChatID(fromChatID),
-                                          chatID(chatID) {}
+                   Value fromChatID,
+                   Value chatID) : messageID(messageID),
+                                   fromChatID(fromChatID),
+                                   chatID(chatID) {}
 
     // id пересылаемого сообщения в чате
     uint32_t messageID;

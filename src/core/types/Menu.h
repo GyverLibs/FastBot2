@@ -15,7 +15,9 @@ class Menu {
 
    public:
     Menu() {}
-    Menu(const String& text) : text(text) {}
+    Menu(Text text) {
+        text.toString(this->text);
+    }
 
     // надписи кнопок. Гор. разделитель - ;, верт. - \n (кнопка_1 ; кнопка_2 \n кнопка_3 ; кнопка_4)
     String text = "";

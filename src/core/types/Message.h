@@ -32,7 +32,9 @@ class Message {
         HTML,
     };
     Message() {}
-    Message(const String& text, const Value& chatID) : text(text), chatID(chatID) {}
+    Message(Text text, Value chatID) : chatID(chatID) {
+        text.toString(this->text);
+    }
 
     // для ручного добавления тех параметров, которых нет в классе!
     gson::string json;

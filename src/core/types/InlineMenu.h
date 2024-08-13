@@ -15,7 +15,10 @@ class InlineMenu {
 
    public:
     InlineMenu() {}
-    InlineMenu(const String& text, const String& data) : text(text), data(data) {}
+    InlineMenu(Text text, Text data) {
+        text.toString(this->text);
+        data.toString(this->data);
+    }
     InlineMenu(uint16_t reserve) {
         this->reserve(reserve);
     }
@@ -39,7 +42,7 @@ class InlineMenu {
             this->text += ';';
             this->data += ';';
         }
-        
+
         text.addString(this->text);
         if (data) data.addString(this->data);
         else text.addString(this->data);

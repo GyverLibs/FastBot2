@@ -1,3 +1,7 @@
+// ВНИМАНИЕ!
+// это тестовый пример, я им тестирую функциональность и стабильность библиотеки
+// тут расписана приличная часть возможностей вместе с тестами и комментариями
+
 #include <Arduino.h>
 
 #define WIFI_SSID ""
@@ -237,10 +241,12 @@ void handleMessage(fb::Update& u) {
             // эхо, вариант 2
             bot.sendMessage(fb::Message(u.message().text().toString(), u.message().chat().id()));
 
+            // ============================
             // удалить сообщение юзера
             // bot.deleteMessage(u.message().chat().id(), u.message().id());
         }
 
+        // ============================
         // изменить последнее сообщение на текст из чата
         // if (bot.lastBotMessage()) {
         //     fb::TextEdit et;
@@ -335,6 +341,7 @@ void updateh(fb::Update& u) {
     // Например для сообщения:
     // Serial.println(u[tg_apih::from][tg_apih::username]);
 
+    // ============================
     // service
     // if (heap != ESP.getFreeHeap()) {
     //     Serial.println("MEMORY LEAK!!!!!!!!!!!!");
@@ -432,6 +439,7 @@ void setup() {
     //     bot.sendMessage(msg);
     // }
 
+    // ============================
     // отправка кастомной команды из gson::string
     // gson::string g;
     // g.beginObj();
@@ -442,6 +450,7 @@ void setup() {
     // fb::Result res = bot.sendCommand(tg_cmd::sendMessage, g);
     // res.stringify(Serial);
 
+    // ============================
     // отправка команды без параметров
     // fb::Result res = bot.sendCommand(tg_cmd::getMe);
     // Serial.println(res[tg_apih::first_name]);

@@ -13,8 +13,8 @@ class TextEdit : private Message {
 
    public:
     TextEdit() {}
-    TextEdit(const String& text, uint32_t messageID, const Value& chatID) : messageID(messageID) {
-        this->text = text;
+    TextEdit(Text text, uint32_t messageID, Value chatID) : messageID(messageID) {
+        text.toString(this->text);
         this->chatID = chatID;
     }
 
@@ -41,10 +41,10 @@ class MenuEdit : private Message {
 
    public:
     MenuEdit() {}
-    MenuEdit(uint32_t messageID, const Value& chatID) : messageID(messageID) {
+    MenuEdit(uint32_t messageID, Value chatID) : messageID(messageID) {
         this->chatID = chatID;
     }
-    MenuEdit(uint32_t messageID, const Value& chatID, InlineMenu& menu) : messageID(messageID) {
+    MenuEdit(uint32_t messageID, Value chatID, InlineMenu& menu) : messageID(messageID) {
         this->chatID = chatID;
         setInlineMenu(menu);
     }
@@ -69,7 +69,7 @@ class CaptionEdit : private Message {
 
    public:
     CaptionEdit() {}
-    CaptionEdit(const String& caption, uint32_t messageID, const Value& chatID) : caption(caption), messageID(messageID) {
+    CaptionEdit(const String& caption, uint32_t messageID, Value chatID) : caption(caption), messageID(messageID) {
         this->chatID = chatID;
     }
 
@@ -98,7 +98,7 @@ class LocationEdit : private Message {
 
    public:
     LocationEdit() {}
-    LocationEdit(float latitude, float longitude, uint32_t messageID, const Value& chatID) : latitude(latitude), longitude(longitude), messageID(messageID) {
+    LocationEdit(float latitude, float longitude, uint32_t messageID, Value chatID) : latitude(latitude), longitude(longitude), messageID(messageID) {
         this->chatID = chatID;
     }
 
@@ -142,7 +142,7 @@ class LocationStop : private Message {
 
    public:
     LocationStop() {}
-    LocationStop(uint32_t messageID, const Value& chatID) : messageID(messageID) {
+    LocationStop(uint32_t messageID, Value chatID) : messageID(messageID) {
         this->chatID = chatID;
     }
 

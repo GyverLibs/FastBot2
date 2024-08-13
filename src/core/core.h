@@ -165,7 +165,15 @@ class Core : public Http {
         } else if (_online) {
             bool tout = millis() - _last_send >= (_poll_mode == Poll::Long ? FB_LONG_POLL_TOUT : _poll_prd);
             if (!_last_send || tout) {
-                getUpdates(false);
+                if (_poll_mode == Poll::Sync) {
+                    Result res = getUpdates(true);
+                    if (res.isArray()) {
+                        _parseUpdates(res);
+                        return 1;
+                    }
+                } else {
+                    getUpdates(false);
+                }
             }
         }
 
@@ -204,7 +212,7 @@ class Core : public Http {
         p[tg_api::offset] = _poll_offset;
         updates.makePacket(p);
 
-        if (_poll_mode == Poll::Sync || wait) {
+        if (wait) {
             _poll_wait = 0;
             return sendPacket(p, true);
         } else {
@@ -296,14 +304,18 @@ class Core : public Http {
         FB_ESP_YIELD();
         if (resp) {
             if (resp.type() == F("application/json")) {
+                FB_LOG("got json");
                 Result res(resp.body());
                 res.parseJson();
                 http.flush();
-                if (_cbRaw) _cbRaw(res.getRaw());
                 FB_ESP_YIELD();
-                if (res && res.isObject()) _parseResult(res);
+                if (res) {
+                    if (_cbRaw) _cbRaw(res.getRaw());
+                    if (res.isObject()) _parseResult(res);
+                }
                 return res;
             } else if (resp.type() == F("application/octet-stream")) {
+                FB_LOG("got file");
                 return Result(resp.body());
             } else {
                 FB_LOG("unknown response");
@@ -340,7 +352,7 @@ class Core : public Http {
             uint32_t offset = result[i][tg_apih::update_id].toInt32();
             if (!_poll_offset) _poll_offset = offset;
             if (_incr_auto) _poll_offset = offset + 1;
-            
+
             size_t typeHash = upd.keyHash();
             Update update(upd, typeHash, offset);
             if (typeHash == tg_apih::callback_query) _query_answ = false;

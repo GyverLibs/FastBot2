@@ -14,7 +14,7 @@ class Location : private Message {
 
    public:
     Location();
-    Location(float latitude, float longitude, const Value& chatID) : latitude(latitude), longitude(longitude) {
+    Location(float latitude, float longitude, Value chatID) : latitude(latitude), longitude(longitude) {
         this->chatID = chatID;
     }
 
