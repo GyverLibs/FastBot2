@@ -6,6 +6,7 @@
 #include "Fetcher.h"
 #include "api.h"
 #include "bot_config.h"
+#include "core_class.h"
 #include "http.h"
 #include "packet.h"
 #include "result.h"
@@ -310,7 +311,11 @@ class Core : public Http {
                 http.flush();
                 FB_ESP_YIELD();
                 if (res) {
-                    if (_cbRaw) _cbRaw(res.getRaw());
+                    if (_cbRaw) {
+                        thisBot = this;
+                        _cbRaw(res.getRaw());
+                        thisBot = nullptr;
+                    }
                     if (res.isObject()) _parseResult(res);
                 }
                 return res;
@@ -330,7 +335,11 @@ class Core : public Http {
     void _parseResult(gson::Entry& result) {
         FB_LOG("got result");
         if (result.has(tg_apih::message_id)) _last_bot = result[tg_apih::message_id];
-        if (_cbResult) _cbResult(result);
+        if (_cbResult) {
+            thisBot = this;
+            _cbResult(result);
+            thisBot = nullptr;
+        }
     }
 
     void _parseUpdates(gson::Entry& result) {
@@ -341,6 +350,7 @@ class Core : public Http {
 #endif
             return;
         }
+        thisBot = this;
         _exit_f = false;
         uint8_t len = result.length();
 
@@ -371,11 +381,12 @@ class Core : public Http {
 
             if (_reboot == Fetcher::Reboot::Triggered) {
                 _reboot = Fetcher::Reboot::WaitUpdate;
-                return;
+                break;
             }
 
             if (_exit_f) break;
         }
+        thisBot = nullptr;
     }
 };
 
