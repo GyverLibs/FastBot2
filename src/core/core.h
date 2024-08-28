@@ -22,9 +22,9 @@ enum class Poll : uint8_t {
 };
 
 class Core : public Http {
-    typedef void (*CallbackRaw)(Text response);
-    typedef void (*CallbackResult)(gson::Entry& entry);
-    typedef void (*CallbackUpdate)(Update& upd);
+    typedef std::function<void(Text response)> CallbackRaw;
+    typedef std::function<void(gson::Entry& entry)> CallbackResult;
+    typedef std::function<void(Update& upd)> CallbackUpdate;
 
    public:
     // разрешение и запрет типов обновлений
