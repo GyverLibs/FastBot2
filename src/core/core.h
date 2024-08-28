@@ -3,6 +3,10 @@
 #include <GSON.h>
 #include <StringUtils.h>
 
+#ifndef __AVR__
+#include <functional>
+#endif
+
 #include "Fetcher.h"
 #include "api.h"
 #include "bot_config.h"
@@ -22,9 +26,15 @@ enum class Poll : uint8_t {
 };
 
 class Core : public Http {
+#ifdef __AVR__
     typedef void (*CallbackRaw)(Text response);
     typedef void (*CallbackResult)(gson::Entry& entry);
     typedef void (*CallbackUpdate)(Update& upd);
+#else
+    typedef std::function<void(Text response)> CallbackRaw;
+    typedef std::function<void(gson::Entry& entry)> CallbackResult;
+    typedef std::function<void(Update& upd)> CallbackUpdate;
+#endif
 
    public:
     // разрешение и запрет типов обновлений
