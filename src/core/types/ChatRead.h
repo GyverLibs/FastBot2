@@ -13,10 +13,10 @@ struct ChatRead : public EntryAccess {
     ChatRead(gson::Entry entry) : EntryAccess(entry) {}
 
     enum class Type : size_t {
-        privateChat = su::SH("private"),
-        group = su::SH("group"),
-        supergroup = su::SH("supergroup"),
-        channel = su::SH("channel"),
+        privateChat = SH("private"),
+        group = SH("group"),
+        supergroup = SH("supergroup"),
+        channel = SH("channel"),
     };
 
     // id чата

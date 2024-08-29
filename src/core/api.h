@@ -4,7 +4,7 @@
 
 #define FB_BOT_API_VERSION "7.4"
 
-#define FB_MAKE_HASH(x) constexpr size_t x = su::SH(#x);
+#define FB_MAKE_HASH(x) constexpr size_t x = SH(#x);
 #define FB_MAKE_EXTERN(x) extern const __FlashStringHelper* x;
 
 namespace tg_api {

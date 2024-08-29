@@ -58,7 +58,7 @@ void handleCommand(fb::Update& u) {
     Text chat_id = u.message().chat().id();
 
     switch (u.message().text().hash()) {
-        case su::SH("/start"): {
+        case SH("/start"): {
             // установить команды
             // в конструкторе
             fb::MyCommands commands("help;settings", "Помощь;Настройки");
@@ -94,7 +94,7 @@ void handleCommand(fb::Update& u) {
             bot.sendMessage(msg);
         } break;
 
-        case su::SH("/send_msg"): {
+        case SH("/send_msg"): {
             // вариант 1
             bot.sendMessage(fb::Message("Some text", chat_id));
 
@@ -105,7 +105,7 @@ void handleCommand(fb::Update& u) {
             // bot.sendMessage(msg);
         } break;
 
-        case su::SH("/send_menu"): {
+        case SH("/send_menu"): {
             fb::Message msg("Send menu", chat_id);
 
             // меню, вариант 1
@@ -124,7 +124,7 @@ void handleCommand(fb::Update& u) {
             bot.sendMessage(msg);
         } break;
 
-        case su::SH("/send_inline_menu"): {
+        case SH("/send_inline_menu"): {
             fb::Message msg("Send inline menu", chat_id);
 
             // inline menu, вариант 1
@@ -145,7 +145,7 @@ void handleCommand(fb::Update& u) {
             bot.sendMessage(msg);
         } break;
 
-        case su::SH("/file_txt"): {
+        case SH("/file_txt"): {
             char str[] = "hello text v1";
             fb::File f("file.txt", fb::File::Type::document, (uint8_t*)str, strlen(str));
             f.chatID = chat_id;
@@ -160,7 +160,7 @@ void handleCommand(fb::Update& u) {
             // }
         } break;
 
-        case su::SH("/file_txt_p"): {
+        case SH("/file_txt_p"): {
             fb::File f("file.txt", fb::File::Type::document, (const uint8_t*)lorem_p, sizeof(lorem_p), true);
             f.chatID = chat_id;
             loopStart();
@@ -176,7 +176,7 @@ void handleCommand(fb::Update& u) {
             // }
         } break;
 
-        case su::SH("/file_txt_file_1kb"): {
+        case SH("/file_txt_file_1kb"): {
             File file = LittleFS.open("/lorem_1kb.txt", "r");
             fb::File f("file_1kb.txt", fb::File::Type::document, file);
             f.chatID = chat_id;
@@ -185,7 +185,7 @@ void handleCommand(fb::Update& u) {
             loopPrint();
         } break;
 
-        case su::SH("/file_txt_file_50kb"): {
+        case SH("/file_txt_file_50kb"): {
             File file = LittleFS.open("/lorem_50kb.txt", "r");
             fb::File f("file_50kb.txt", fb::File::Type::document, file);
             f.chatID = chat_id;
@@ -194,7 +194,7 @@ void handleCommand(fb::Update& u) {
             loopPrint();
         } break;
 
-        case su::SH("/file_img_p"): {
+        case SH("/file_img_p"): {
             fb::File f("bot.png", fb::File::Type::photo, image_p, sizeof(image_p), true);
             f.chatID = chat_id;
             loopStart();
@@ -202,7 +202,7 @@ void handleCommand(fb::Update& u) {
             loopPrint();
         } break;
 
-        case su::SH("/file_img_url"): {
+        case SH("/file_img_url"): {
             fb::File f("file.txt", fb::File::Type::document, "https://upload.wikimedia.org/wikipedia/ru/6/61/Rickrolling.gif");
             f.chatID = chat_id;
             loopStart();
@@ -264,15 +264,19 @@ void handleDocument(fb::Update& u) {
         bot.sendMessage(fb::Message("OTA begin", u.message().chat().id()), true);
 
         // между downloadFile и updateFlash/updateFS/writeTo не должно быть отправки сообщений!
-        fb::Fetcher fetch = bot.downloadFile(u.message().document().id());
-        if (fetch) {
-            if (fetch.updateFlash()) {
-                Serial.println("OTA done");
-                bot.sendMessage(fb::Message("OTA done", u.message().chat().id()), true);
-            } else {
-                Serial.println("OTA error");
-                bot.sendMessage(fb::Message("OTA error", u.message().chat().id()), true);
-            }
+        // OTA обновление тип 1
+        bot.updateFlash(u.message().document(), u.message().chat().id());
+        
+        // OTA обновление тип 2
+        // fb::Fetcher fetch = bot.downloadFile(u.message().document().id());
+        // if (fetch) {
+        //     if (fetch.updateFlash()) {
+        //         Serial.println("OTA done");
+        //         bot.sendMessage(fb::Message("OTA done", u.message().chat().id()), true);
+        //     } else {
+        //         Serial.println("OTA error");
+        //         bot.sendMessage(fb::Message("OTA error", u.message().chat().id()), true);
+        //     }
         }
     } else {
         // это просто файл, выведем содержимое

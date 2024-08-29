@@ -26,6 +26,7 @@ enum class Poll : uint8_t {
 };
 
 class Core : public Http {
+   protected:
 #ifdef __AVR__
     typedef void (*CallbackRaw)(Text response);
     typedef void (*CallbackResult)(gson::Entry& entry);
@@ -35,6 +36,12 @@ class Core : public Http {
     typedef std::function<void(gson::Entry& entry)> CallbackResult;
     typedef std::function<void(Update& upd)> CallbackUpdate;
 #endif
+
+    enum class ota_t : uint8_t {
+        None,
+        Flash,
+        FS,
+    };
 
    public:
     // разрешение и запрет типов обновлений
@@ -162,11 +169,29 @@ class Core : public Http {
         _cbRaw = nullptr;
     }
     // ============================== TICK ==============================
-
     // тикер, вызывать в loop. Вернёт true, если был обработан Update
     bool tick() {
         if (!_state) return 0;
 
+// OTA
+#ifndef FB_NO_FILE
+        if (_ota != ota_t::None) {
+            if (_ota_id.length()) {
+                fb::Fetcher fetch = downloadFile(_ota_id);
+                if (fetch) {
+                    bool ok = false;
+                    ok = (_ota == ota_t::Flash) ? fetch.updateFlash() : fetch.updateFS();
+                    _sendMessage(ok ? F("OTA OK") : F("OTA Error"), _ota_user);
+                    if (ok) _reboot = Fetcher::Reboot::WaitUpdate;
+                } else {
+                    _sendMessage(F("OTA Fetch Error"), _ota_user);
+                }
+            }
+            _ota = ota_t::None;
+        }
+#endif
+
+        // POLL
         if (http.isWaiting()) {
             if (millis() - _last_send >= (_clientTout + (_poll_wait ? _poll_prd : 0ul))) {
                 _poll_wait = 0;
@@ -288,6 +313,46 @@ class Core : public Http {
         return Result();
     }
 
+    // получить путь к файлу относительно корня api
+    String getFilePath(Text fileID) {
+        FB_LOG("getFile");
+        fb::Packet p(tg_cmd::getFile, _token);
+        p[tg_api::file_id] = fileID;
+
+        fb::Result res = sendPacket(p, true);
+        FB_ESP_YIELD();
+        if (res.has(tg_apih::file_id) && res[tg_apih::file_id] == fileID) {
+            return res[tg_apih::file_path].toString();
+        }
+        return String();
+    }
+
+    // получить прямую ссылку на файл
+    String getFileLink(Text fileID) {
+        String link = F("https://" TELEGRAM_HOST "/file/bot");
+        link += _token;
+        link += '/';
+        link += getFilePath(fileID);
+        return link;
+    }
+
+#ifndef FB_NO_FILE
+    // скачать файл по id
+    fb::Fetcher downloadFile(Text fileID) {
+        FB_ESP_YIELD();
+        StreamReader reader;
+        String path = getFilePath(fileID);
+
+        if (path.length()) {
+            FB_LOG("download file");
+            fb::Packet p(path, _token);
+            reader = sendPacket(p, true).getReader();
+            FB_ESP_YIELD();
+        }
+        return fb::Fetcher(&_reboot, reader);
+    }
+#endif
+
    protected:
     String _token;
     uint16_t _clientTout = 3000;
@@ -310,6 +375,12 @@ class Core : public Http {
     CallbackUpdate _cbUpdate = nullptr;
     CallbackResult _cbResult = nullptr;
     CallbackRaw _cbRaw = nullptr;
+
+#ifndef FB_NO_FILE
+    ota_t _ota = ota_t::None;
+    String _ota_id;
+    String _ota_user;
+#endif
 
     Result _parseResponse(ghttp::Client::Response resp) {
         FB_ESP_YIELD();
@@ -397,6 +468,14 @@ class Core : public Http {
             if (_exit_f) break;
         }
         thisBot = nullptr;
+    }
+
+    void _sendMessage(Text text, const String& id) {
+        if (!id.length() || !text.length()) return;
+        fb::Packet p(tg_cmd::sendMessage, _token);
+        p[tg_api::chat_id] = id;
+        p[tg_api::text] = text;
+        sendPacket(p, true);
     }
 };
 

@@ -15,10 +15,10 @@ struct MessageOriginRead : public EntryAccess {
     MessageOriginRead(gson::Entry entry) : EntryAccess(entry) {}
 
     enum class Type : size_t {
-        user = su::SH("user"),
-        hiddenUser = su::SH("hidden_user"),
-        chat = su::SH("chat"),
-        channel = su::SH("channel"),
+        user = SH("user"),
+        hiddenUser = SH("hidden_user"),
+        chat = SH("chat"),
+        channel = SH("channel"),
     };
 
     // тип отправителя: user, hidden_user, chat, channel

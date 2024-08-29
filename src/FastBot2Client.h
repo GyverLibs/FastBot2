@@ -66,32 +66,26 @@ class FastBot2Client : public fb::Core {
         return sendPacket(p, wait);
     }
 
-    // скачать файл
-    fb::Fetcher downloadFile(const Text& fileID) {
-        FB_ESP_YIELD();
-        StreamReader reader;
-        String path;
-        path.reserve(30);
-        {
-            FB_LOG("getFile");
-            fb::Packet p(tg_cmd::getFile, _token);
-            p[tg_api::file_id] = fileID;
-
-            fb::Result res = sendPacket(p, true);
-            FB_ESP_YIELD();
-            if (res.has(tg_apih::file_id) && res[tg_apih::file_id] == fileID) {
-                res[tg_apih::file_path].toString(path);
-            }
-        }
-
-        if (path.length()) {
-            FB_LOG("download file");
-            fb::Packet p(path, _token);
-            reader = sendPacket(p, true).getReader();
-            FB_ESP_YIELD();
-        }
-        return fb::Fetcher(&_reboot, reader);
+    // обновить прошивку из файла, указать id юзера для отправки уведомления
+    void updateFlash(fb::DocumentRead document, Text user_id = "") {
+        _ota = ota_t::Flash;
+        document.id().toString(_ota_id);
+        user_id.toString(_ota_user);
     }
+
+    // обновить FS из файла, указать id юзера для отправки уведомления
+    void updateFS(fb::DocumentRead document, Text user_id = "") {
+        _ota = ota_t::FS;
+        document.id().toString(_ota_id);
+        user_id.toString(_ota_user);
+    }
+
+    // скачать файл
+    fb::Fetcher downloadFile(fb::DocumentRead document) {
+        return fb::Core::downloadFile(document.id());
+    }
+
+    using fb::Core::downloadFile;
 #endif
 
     // ============================== SET ==============================
