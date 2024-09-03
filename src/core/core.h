@@ -57,6 +57,11 @@ class Core : public Http {
         http.setTimeout(timeout);
     }
 
+    // получить таймаут ожидания ответа сервера
+    uint16_t getTimeout() {
+        return _clientTout;
+    }
+
     // ============================== SYSTEM ==============================
 
     // установить токен
@@ -74,9 +79,19 @@ class Core : public Http {
         _limit = limit;
     }
 
+    // получить лимит памяти на ответ сервера
+    size_t getMemLimit(void) {
+        return _limit;
+    }
+
     // установить лимит - кол-во сообщений в одном обновлении (умолч. 3)
     void setLimit(uint8_t limit = 3) {
         _poll_limit = limit ? limit : 1;
+    }
+
+    // получить лимит - кол-во сообщений в одном обновлении
+    uint8_t getLimit(void) {
+        return _limit;
     }
 
     // установить режим и период опроса (умолч. Poll::Sync и 4000 мс)
@@ -88,6 +103,11 @@ class Core : public Http {
     // получить режим опроса
     Poll getPollMode() {
         return _poll_mode;
+    }
+
+    // получить период опроса
+    uint16_t getPollPeriod() {
+        return _poll_prd;
     }
 
     // пропустить непрочитанные сообщения, отрицательное число, соответствует количеству пропусков. Вызывать однократно
