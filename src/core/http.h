@@ -2,7 +2,7 @@
 #include <Arduino.h>
 #include <GyverHTTP.h>
 
-#include "bot_config.h"
+#include "../bot_config.h"
 
 namespace fb {
 

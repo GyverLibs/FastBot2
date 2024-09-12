@@ -5,8 +5,8 @@
 
 #include "FastBot2Client_class.h"
 #include "Message.h"
-#include "core/api.h"
-#include "core/packet.h"
+#include "../api.h"
+#include "../packet.h"
 
 namespace fb {
 

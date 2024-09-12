@@ -3,7 +3,7 @@
 #include <GyverHTTP.h>
 #include <StringUtils.h>
 
-#include "bot_config.h"
+#include "../bot_config.h"
 #include "core/api.h"
 
 #ifdef FB_ESP_BUILD

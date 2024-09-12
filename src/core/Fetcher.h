@@ -2,7 +2,7 @@
 #include <Arduino.h>
 #include <GyverHTTP.h>
 
-#include "bot_config.h"
+#include "../bot_config.h"
 #include "core_class.h"
 
 #if defined(FB_ESP_BUILD) && !defined(FB_NO_OTA)

@@ -3,7 +3,7 @@
 #include <GSON.h>
 
 #include "Multipart.h"
-#include "bot_config.h"
+#include "../bot_config.h"
 
 #define FB_BOUNDARY "---------FAST_BOT2"
 

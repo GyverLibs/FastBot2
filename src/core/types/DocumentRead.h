@@ -4,8 +4,8 @@
 #include <StringUtils.h>
 
 #include "FastBot2Client_class.h"
-#include "core/EntryAccess.h"
-#include "core/api.h"
+#include "../EntryAccess.h"
+#include "../api.h"
 
 namespace fb {
 

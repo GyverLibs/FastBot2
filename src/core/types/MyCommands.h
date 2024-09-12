@@ -4,8 +4,8 @@
 #include <StringUtils.h>
 
 #include "FastBot2Client_class.h"
-#include "core/api.h"
-#include "core/packet.h"
+#include "../api.h"
+#include "../packet.h"
 
 // https://core.telegram.org/bots/api#setmycommands
 namespace fb {

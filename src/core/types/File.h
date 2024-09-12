@@ -4,7 +4,7 @@
 #include <StringUtils.h>
 
 #include "Message.h"
-#include "core/Multipart.h"
+#include "../Multipart.h"
 
 #ifndef FB_NO_FILE
 namespace fb {

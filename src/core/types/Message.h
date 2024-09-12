@@ -7,8 +7,8 @@
 #include "InlineMenu.h"
 #include "Menu.h"
 #include "Message_class.h"
-#include "core/api.h"
-#include "core/packet.h"
+#include "../api.h"
+#include "../packet.h"
 
 namespace fb {
 

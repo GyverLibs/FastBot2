@@ -4,7 +4,7 @@
 #include <StringUtils.h>
 
 #include "Message.h"
-#include "core/api.h"
+#include "../api.h"
 
 // https://core.telegram.org/bots/api#sendlocation
 namespace fb {

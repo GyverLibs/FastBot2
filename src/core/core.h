@@ -7,9 +7,9 @@
 #include <functional>
 #endif
 
+#include "../bot_config.h"
 #include "Fetcher.h"
 #include "api.h"
-#include "bot_config.h"
 #include "core_class.h"
 #include "http.h"
 #include "packet.h"
