@@ -3,13 +3,13 @@
 #include <GSON.h>
 #include <StringUtils.h>
 
+#include "../EntryAccess.h"
+#include "../api.h"
 #include "ChatRead.h"
 #include "DocumentRead.h"
 #include "LocationRead.h"
 #include "MessageOriginRead.h"
 #include "UserRead.h"
-#include "../EntryAccess.h"
-#include "../api.h"
 
 namespace fb {
 
@@ -22,6 +22,11 @@ struct MessageRead : public EntryAccess {
     // текст сообщения
     Text text() {
         return entry[tg_apih::text];
+    }
+
+    // подпись файла
+    Text caption() {
+        return entry[tg_apih::caption];
     }
 
     // id сообщения в этом чате
