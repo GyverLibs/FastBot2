@@ -43,7 +43,8 @@ void loopPrint() {
 FastBot2 bot;
 
 // версия с другим клиентом, например tinygsm
-// #define TINY_GSM_MODEM_SIM800
+// обязательно нужен модем с поддержкой HTTPS
+// #define TINY_GSM_MODEM_SIM7000SSL
 // #include <TinyGsmClient.h>
 // TinyGsm modem(Serial);
 // TinyGsmClient gsmclient(modem);
