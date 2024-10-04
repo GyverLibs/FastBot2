@@ -191,7 +191,7 @@ class Core : public Http {
     // ============================== TICK ==============================
     // тикер, вызывать в loop. Вернёт true, если был обработан Update
     bool tick() {
-        if (!_state) return 0;
+        if (!_state || !_token.length()) return 0;
 
 // OTA
 #ifndef FB_NO_FILE
