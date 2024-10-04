@@ -191,7 +191,7 @@ class Core : public Http {
     // ============================== TICK ==============================
     // тикер, вызывать в loop. Вернёт true, если был обработан Update
     bool tick() {
-        if (!_state || !_token.length()) return 0;
+        if (!_state) return 0;
 
 // OTA
 #ifndef FB_NO_FILE
@@ -261,6 +261,7 @@ class Core : public Http {
 
     // отправить запрос на обновление
     Result getUpdates(bool wait, bool allowLongPool = true) {
+        if (!_token.length()) return Result();
         FB_LOG("getUpdates");
         Packet p(tg_cmd::getUpdates, _token);
         if (_poll_mode == Poll::Long && allowLongPool) p[tg_api::timeout] = (uint16_t)(_poll_prd / 1000);
@@ -307,6 +308,7 @@ class Core : public Http {
 
     // отправить пакет
     Result sendPacket(Packet& packet, bool wait = true, bool* sent = nullptr) {
+        if (!_token.length()) return Result();
         if (_poll_wait) {
             _poll_wait = 0;
             FB_LOG("stop polling");
@@ -335,6 +337,7 @@ class Core : public Http {
 
     // получить путь к файлу относительно корня api
     String getFilePath(Text fileID) {
+        if (!_token.length()) return String();
         FB_LOG("getFile");
         fb::Packet p(tg_cmd::getFile, _token);
         p[tg_api::file_id] = fileID;
@@ -349,6 +352,7 @@ class Core : public Http {
 
     // получить прямую ссылку на файл
     String getFileLink(Text fileID) {
+        if (!_token.length()) return String();
         String link = F("https://" TELEGRAM_HOST "/file/bot");
         link += _token;
         link += '/';
