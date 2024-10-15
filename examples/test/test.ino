@@ -267,7 +267,7 @@ void handleDocument(fb::Update& u) {
         // между downloadFile и updateFlash/updateFS/writeTo не должно быть отправки сообщений!
         // OTA обновление тип 1
         bot.updateFlash(u.message().document(), u.message().chat().id());
-        
+
         // OTA обновление тип 2
         // fb::Fetcher fetch = bot.downloadFile(u.message().document().id());
         // if (fetch) {
@@ -278,7 +278,7 @@ void handleDocument(fb::Update& u) {
         //         Serial.println("OTA error");
         //         bot.sendMessage(fb::Message("OTA error", u.message().chat().id()), true);
         //     }
-        }
+        // }
     } else {
         // это просто файл, выведем содержимое
         fb::Fetcher fetch = bot.downloadFile(u.message().document().id());
