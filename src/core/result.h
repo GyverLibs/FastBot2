@@ -56,8 +56,9 @@ class Result : public gson::Entry {
         _reader = res._reader;
     }
 
-   private:
     gson::ParserStream _parser;
+
+   private:
     StreamReader _reader;
 
     bool parseJson() {

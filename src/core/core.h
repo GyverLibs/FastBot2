@@ -28,10 +28,12 @@ enum class Poll : uint8_t {
 class Core : public Http {
    protected:
 #ifdef __AVR__
+    typedef void (*CallbackError)(Text text);
     typedef void (*CallbackRaw)(Text response);
     typedef void (*CallbackResult)(gson::Entry& entry);
     typedef void (*CallbackUpdate)(Update& upd);
 #else
+    typedef std::function<void(Text text)> CallbackError;
     typedef std::function<void(Text response)> CallbackRaw;
     typedef std::function<void(gson::Entry& entry)> CallbackResult;
     typedef std::function<void(Update& upd)> CallbackUpdate;
@@ -188,6 +190,17 @@ class Core : public Http {
     void detachRaw() {
         _cbRaw = nullptr;
     }
+
+    // подключить обработчик ошибки сервера void cb(Text error) {}
+    void attachError(CallbackError callback) {
+        _cbErr = callback;
+    }
+
+    // отключить обработчик ошибки
+    void detachError() {
+        _cbErr = nullptr;
+    }
+
     // ============================== TICK ==============================
     // тикер, вызывать в loop. Вернёт true, если был обработан Update
     bool tick() {
@@ -399,6 +412,7 @@ class Core : public Http {
     CallbackUpdate _cbUpdate = nullptr;
     CallbackResult _cbResult = nullptr;
     CallbackRaw _cbRaw = nullptr;
+    CallbackError _cbErr = nullptr;
 
 #ifndef FB_NO_FILE
     ota_t _ota = ota_t::None;
@@ -422,8 +436,11 @@ class Core : public Http {
                         thisBot = nullptr;
                     }
                     if (res.isObject()) _parseResult(res);
+                } else {
+                    if (_cbErr && res._parser[tg_apih::ok]) _cbErr(res._parser[tg_apih::description]);
                 }
                 return res;
+
             } else if (resp.type() == F("application/octet-stream")) {
                 FB_LOG("got file");
                 return Result(resp.body());

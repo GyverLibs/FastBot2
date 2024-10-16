@@ -3,12 +3,12 @@
 #include <GSON.h>
 #include <StringUtils.h>
 
+#include "../api.h"
+#include "../packet.h"
 #include "FastBot2Client_class.h"
 #include "InlineMenu.h"
 #include "Menu.h"
 #include "Message_class.h"
-#include "../api.h"
-#include "../packet.h"
 
 namespace fb {
 
@@ -76,6 +76,16 @@ class Message {
     // удалить обычное меню
     void removeMenu() {
         _remove_menu = 1;
+    }
+
+    // установить режим текста Markdown
+    void setModeMD() {
+        mode = Mode::MarkdownV2;
+    }
+
+    // установить режим текста HTML
+    void setModeHTML() {
+        mode = Mode::HTML;
     }
 
     // ===================================
