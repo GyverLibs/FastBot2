@@ -247,11 +247,14 @@ class Core : public Http {
         }
 
         if (http.available()) {
+            FB_LOG("new tick response");
             _poll_wait = 0;
             Result res = _parseResponse(http.getResponse());
             if (res && res.isArray()) {
                 _parseUpdates(res);
                 return 1;
+            } else {
+                FB_LOG("tick parse error");
             }
         }
         return 0;
@@ -437,6 +440,8 @@ class Core : public Http {
                     }
                     if (res.isObject()) _parseResult(res);
                 } else {
+                    FB_LOG("parse error");
+                    FB_LOG(res.getRaw());
                     if (_cbErr && res._parser[tg_apih::ok]) _cbErr(res._parser[tg_apih::description]);
                 }
                 return res;
