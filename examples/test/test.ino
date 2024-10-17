@@ -18,6 +18,21 @@
 #include "image_p.h"
 #include "lorem_p.h"
 
+#include <LittleFS.h>
+
+// Нативная версия WiFi esp8266/esp32
+#include <FastBot2.h>
+FastBot2 bot;
+
+// версия с другим клиентом, например tinygsm
+// обязательно нужен модем с поддержкой HTTPS
+// #define TINY_GSM_MODEM_SIM7000SSL
+// #include <TinyGsmClient.h>
+// TinyGsm modem(Serial);
+// TinyGsmClient gsmclient(modem);
+// #include <FastBot2Client.h>
+// FastBot2Client bot(gsmclient);
+
 char* __stack_start = nullptr;
 void stackStart() {
     char c;
@@ -35,21 +50,6 @@ void loopPrint() {
     Serial.print("exec. time: ");
     Serial.println(millis() - _ms);
 }
-
-#include <LittleFS.h>
-
-// Нативная версия WiFi esp8266/esp32
-#include <FastBot2.h>
-FastBot2 bot;
-
-// версия с другим клиентом, например tinygsm
-// обязательно нужен модем с поддержкой HTTPS
-// #define TINY_GSM_MODEM_SIM7000SSL
-// #include <TinyGsmClient.h>
-// TinyGsm modem(Serial);
-// TinyGsmClient gsmclient(modem);
-// #include <FastBot2Client.h>
-// FastBot2Client bot(gsmclient);
 
 void rawh(Text text) {
     // Serial.println(text);
