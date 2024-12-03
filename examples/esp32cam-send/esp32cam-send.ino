@@ -21,7 +21,7 @@ void updateh(fb::Update& u) {
         camera_fb_t* fbj = esp_camera_fb_get();
         esp_camera_fb_return(fbj);
 
-        camera_fb_t* fbj = esp_camera_fb_get();
+        fbj = esp_camera_fb_get();
         if (fbj) {
             fb::File f("frame.jpg", fb::File::Type::photo, fbj->buf, fbj->len);
             f.chatID = u.message().chat().id();
