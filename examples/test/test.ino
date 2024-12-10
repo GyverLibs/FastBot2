@@ -18,6 +18,24 @@
 #include "image_p.h"
 #include "lorem_p.h"
 
+static char* __stack_start = nullptr;
+void stackStart() {
+    char c;
+    __stack_start = &c;
+}
+void stackPrint() {
+    char c;
+    Serial.println(int32_t(__stack_start - &c));
+}
+static uint32_t _ms;
+void loopStart() {
+    _ms = millis();
+}
+void loopPrint() {
+    Serial.print("exec. time: ");
+    Serial.println(millis() - _ms);
+}
+
 #include <LittleFS.h>
 
 // Нативная версия WiFi esp8266/esp32
@@ -33,23 +51,12 @@ FastBot2 bot;
 // #include <FastBot2Client.h>
 // FastBot2Client bot(gsmclient);
 
-char* __stack_start = nullptr;
-void stackStart() {
-    char c;
-    __stack_start = &c;
-}
-void stackPrint() {
-    char c;
-    Serial.println(int32_t(__stack_start - &c));
-}
-uint32_t _ms;
-void loopStart() {
-    _ms = millis();
-}
-void loopPrint() {
-    Serial.print("exec. time: ");
-    Serial.println(millis() - _ms);
-}
+void rawh(Text text);
+void handleCommand(fb::Update& u);
+void handleMessage(fb::Update& u);
+void handleDocument(fb::Update& u);
+void handleQuery(fb::Update& u);
+void updateh(fb::Update& u);
 
 void rawh(Text text) {
     // Serial.println(text);
