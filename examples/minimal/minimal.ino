@@ -13,9 +13,17 @@ void updateh(fb::Update& u) {
     Serial.println(u.message().from().username());
     Serial.println(u.message().text());
 
+    // #1
     // отправить обратно в чат (эхо)
     bot.sendMessage(fb::Message(u.message().text(), u.message().chat().id()));
 
+    // #2
+    // декодирование Unicode символов (кириллицы) делается вручную!
+    // String text = u.message().text().decodeUnicode();
+    // text += " - ответ";
+    // bot.sendMessage(fb::Message(text, u.message().chat().id()));
+
+    // #3
     // или так
     // fb::Message msg;
     // msg.text = u.message().text().toString();
