@@ -165,6 +165,9 @@ class Core : public Http {
     void attachUpdate(CallbackUpdate callback) {
         _cbUpdate = callback;
     }
+    void onUpdate(CallbackUpdate callback) {
+        _cbUpdate = callback;
+    }
 
     // отключить обработчик обновлений
     void detachUpdate() {
@@ -173,6 +176,9 @@ class Core : public Http {
 
     // подключить обработчик результата вида void cb(gson::Entry& r) {}
     void attachResult(CallbackResult callback) {
+        _cbResult = callback;
+    }
+    void onResult(CallbackResult callback) {
         _cbResult = callback;
     }
 
@@ -185,6 +191,9 @@ class Core : public Http {
     void attachRaw(CallbackRaw callback) {
         _cbRaw = callback;
     }
+    void onRaw(CallbackRaw callback) {
+        _cbRaw = callback;
+    }
 
     // отключить обработчик ответа сервера
     void detachRaw() {
@@ -193,6 +202,9 @@ class Core : public Http {
 
     // подключить обработчик ошибки сервера void cb(Text error) {}
     void attachError(CallbackError callback) {
+        _cbErr = callback;
+    }
+    void onError(CallbackError callback) {
         _cbErr = callback;
     }
 
@@ -247,14 +259,11 @@ class Core : public Http {
         }
 
         if (http.available()) {
-            FB_LOG("new tick response");
             _poll_wait = 0;
             Result res = _parseResponse(http.getResponse());
             if (res && res.isArray()) {
                 _parseUpdates(res);
                 return 1;
-            } else {
-                FB_LOG("tick parse error");
             }
         }
         return 0;
@@ -440,8 +449,6 @@ class Core : public Http {
                     }
                     if (res.isObject()) _parseResult(res);
                 } else {
-                    FB_LOG("parse error");
-                    FB_LOG(res.getRaw());
                     if (_cbErr && res._parser[tg_apih::ok]) _cbErr(res._parser[tg_apih::description]);
                 }
                 return res;

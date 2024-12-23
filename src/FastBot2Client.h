@@ -28,7 +28,7 @@ class FastBot2Client : public fb::Core {
     // переслать сообщение
     fb::Result forwardMessage(const fb::MessageForward& m, bool wait = true) {
         if (!m.chatID || !m.fromChatID) return fb::Result();
-        fb::Packet p(tg_cmd::sendMessage, _token);
+        fb::Packet p(tg_cmd::forwardMessage, _token);
         m.makePacket(p);
         return sendPacket(p, wait);
     }
