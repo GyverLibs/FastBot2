@@ -10,7 +10,7 @@
 #include <FS.h>
 #endif
 
-#ifndef FB_NO_FILE
+#if !defined(FB_NO_FILE) && defined(ESP8266) && defined(ESP32)
 #define FB_ATTACH "attach://"
 
 namespace fb {

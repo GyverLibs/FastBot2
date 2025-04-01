@@ -19,7 +19,7 @@ class Packet : public gson::string {
    public:
     Packet() : gson::string(200) {}
 
-#ifndef FB_NO_FILE
+#if !defined(FB_NO_FILE) && defined(ESP8266) && defined(ESP32)
     // отправка файла через multipart/form-data
     Packet(const Multipart& multipart, const String& token) : gson::string(200) {
         this->multipart = &multipart;
@@ -88,7 +88,7 @@ class Packet : public gson::string {
     // print
     void printTo(Print& p) {
         switch (_type) {
-#ifndef FB_NO_FILE
+#if !defined(FB_NO_FILE) && defined(ESP8266) && defined(ESP32)
             case Type::File: {
                 Text formName = multipart->getFormName();
                 Text fileName = multipart->getFileName();
@@ -148,7 +148,7 @@ class Packet : public gson::string {
         }
     }
 
-#ifndef FB_NO_FILE
+#if !defined(FB_NO_FILE) && defined(ESP8266) && defined(ESP32)
     const Multipart* multipart = nullptr;
 #endif
 

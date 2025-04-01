@@ -219,7 +219,7 @@ class Core : public Http {
         if (!_state) return 0;
 
 // OTA
-#ifndef FB_NO_FILE
+#if !defined(FB_NO_FILE) && defined(ESP8266) && defined(ESP32)
         if (_ota != ota_t::None) {
             if (_ota_id.length()) {
                 fb::Fetcher fetch = downloadFile(_ota_id);
@@ -385,7 +385,7 @@ class Core : public Http {
         return link;
     }
 
-#ifndef FB_NO_FILE
+#if !defined(FB_NO_FILE) && defined(ESP8266) && defined(ESP32)
     // скачать файл по id
     fb::Fetcher downloadFile(Text fileID) {
         FB_ESP_YIELD();
@@ -426,7 +426,7 @@ class Core : public Http {
     CallbackRaw _cbRaw = nullptr;
     CallbackError _cbErr = nullptr;
 
-#ifndef FB_NO_FILE
+#if !defined(FB_NO_FILE) && defined(ESP8266) && defined(ESP32)
     ota_t _ota = ota_t::None;
     String _ota_id;
     String _ota_user;

@@ -6,7 +6,7 @@
 #include "Message.h"
 #include "../Multipart.h"
 
-#ifndef FB_NO_FILE
+#if !defined(FB_NO_FILE) && defined(ESP8266) && defined(ESP32)
 namespace fb {
 
 class File : protected Message {
