@@ -50,7 +50,7 @@ class FastBot2Client : public fb::Core {
     }
 
 // ============================== FILE ==============================
-#if !defined(FB_NO_FILE) && defined(ESP8266) && defined(ESP32)
+#if !defined(FB_NO_FILE) && (defined(ESP8266) || defined(ESP32))
     // отправить файл, тип указывается в fb::File
     fb::Result sendFile(const fb::File& m, bool wait = true) {
         fb::Packet p(m.multipart, _token);
