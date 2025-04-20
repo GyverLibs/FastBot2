@@ -17,6 +17,7 @@ class Result : public gson::Entry {
     // освободить память
     void reset() {
         _parser.reset();
+        gson::Entry::reset();
     }
 
     // получить ридер
@@ -32,25 +33,22 @@ class Result : public gson::Entry {
     Result(Result& res) {
         move(res);
     }
+    Result(Result&& res) noexcept {
+        move(res);
+    }
     Result& operator=(Result& res) {
         move(res);
         return *this;
-    }
-
-#if __cplusplus >= 201103L
-    Result(Result&& res) noexcept {
-        move(res);
     }
     Result& operator=(Result&& res) noexcept {
         move(res);
         return *this;
     }
-#endif
 
     void move(Result& res) noexcept {
         if (this == &res) return;
         if (res) {
-            _parser.move(res._parser);
+            _parser = gtl::move(res._parser);
             *((gson::Entry*)this) = _parser.getByIndex(res.index());
         }
         _reader = res._reader;
