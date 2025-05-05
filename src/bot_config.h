@@ -18,6 +18,11 @@
 #define FB_ESP_BUILD 1
 #endif
 
+//
+#define FB_SUB_BEGIN [&]() {
+#define FB_SUB_END }();
+#define FB_SUB_NEXT FB_SUB_END FB_SUB_BEGIN
+
 // #define FB_USE_LOG Serial
 
 // log
