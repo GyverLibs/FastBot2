@@ -3,6 +3,7 @@
 #include <GSON.h>
 #include <StreamReader.h>
 
+#include "api.h"
 #include "core_class.h"
 
 namespace fb {
@@ -13,6 +14,12 @@ class Result : public gson::Entry {
    public:
     Result() {}
     Result(StreamReader reader) : _reader(reader) {}
+
+    enum class Type : uint8_t {
+        Empty,
+        OK,
+        Error,
+    };
 
     // освободить память
     void reset() {
@@ -28,6 +35,33 @@ class Result : public gson::Entry {
     // получить скачанный json пакет как Text
     Text getRaw() {
         return _parser.getRaw();
+    }
+
+    // тип результата
+    Type type() {
+        if (_parser.has(tg_apih::result)) return Type::OK;
+        if (_parser[tg_apih::ok] == false) return Type::Error;
+        return Type::Empty;
+    }
+
+    // результат - ошибка
+    bool isError() {
+        return _parser[tg_apih::ok] == false;
+    }
+
+    // результат пуст
+    bool isEmpty() {
+        return !_parser.length();
+    }
+
+    // получить текст ошибки
+    Text getError() {
+        return _parser[tg_apih::description];
+    }
+
+    // получить код ошибки
+    Text getErrorCode() {
+        return _parser[H(error_code)];
     }
 
     Result(Result& res) {
@@ -47,10 +81,8 @@ class Result : public gson::Entry {
 
     void move(Result& res) noexcept {
         if (this == &res) return;
-        if (res) {
-            _parser = gtl::move(res._parser);
-            *((gson::Entry*)this) = _parser.getByIndex(res.index());
-        }
+        _parser = gtl::move(res._parser);
+        *((gson::Entry*)this) = _parser[tg_apih::result];
         _reader = res._reader;
     }
 
@@ -59,18 +91,11 @@ class Result : public gson::Entry {
    private:
     StreamReader _reader;
 
-    bool parseJson() {
-        if (!_reader) return 0;
-        if (!_parser.parse(_reader.stream, _reader.length())) return 0;
-
-        _parser.hashKeys();
-        if (!_parser[tg_apih::ok].toBool()) return 0;
-
-        gson::Entry result = _parser[tg_apih::result];
-        if (!result) return 0;
-
-        *((gson::Entry*)this) = result;
-        return 1;
+    void parseJson() {
+        if (_reader && _parser.parse(_reader.stream, _reader.length())) {
+            _parser.hashKeys();
+            *((gson::Entry*)this) = _parser[tg_apih::result];
+        }
     }
 };
 

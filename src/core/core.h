@@ -28,14 +28,18 @@ enum class Poll : uint8_t {
 class Core : public Http {
    protected:
 #ifdef __AVR__
-    typedef void (*CallbackError)(Text text);
+    typedef void (*CallbackError)(Text text);               // TODO remove
+    typedef void (*CallbackResultOld)(gson::Entry& entry);  // TODO remove
+
+    typedef void (*CallbackResult)(fb::Result& res);
     typedef void (*CallbackRaw)(Text response);
-    typedef void (*CallbackResult)(gson::Entry& entry);
     typedef void (*CallbackUpdate)(Update& upd);
 #else
-    typedef std::function<void(Text text)> CallbackError;
+    typedef std::function<void(Text text)> CallbackError;               // TODO remove
+    typedef std::function<void(gson::Entry& entry)> CallbackResultOld;  // TODO remove
+
+    typedef std::function<void(fb::Result& res)> CallbackResult;
     typedef std::function<void(Text response)> CallbackRaw;
-    typedef std::function<void(gson::Entry& entry)> CallbackResult;
     typedef std::function<void(Update& upd)> CallbackUpdate;
 #endif
 
@@ -49,8 +53,9 @@ class Core : public Http {
     // разрешение и запрет типов обновлений
     Updates updates;
 
-    Core(Client& client) : Http(client) {
+    Core(Client& client, const String& token = "") : Http(client) {
         _token.reserve(47);
+        _token = token;
     }
 
     // установить таймаут ожидания ответа сервера (умолч. 2000 мс)
@@ -65,6 +70,11 @@ class Core : public Http {
     }
 
     // ============================== SYSTEM ==============================
+
+    // автоматически декодировать юникод в тексте (умолч. true)
+    void decodeUCN(bool decode) {
+        _dec_ucn = decode;
+    }
 
     // установить токен
     void setToken(const String& token) {
@@ -168,23 +178,8 @@ class Core : public Http {
     void onUpdate(CallbackUpdate callback) {
         _cbUpdate = callback;
     }
-
-    // отключить обработчик обновлений
     void detachUpdate() {
         _cbUpdate = nullptr;
-    }
-
-    // подключить обработчик результата вида void cb(gson::Entry& r) {}
-    void attachResult(CallbackResult callback) {
-        _cbResult = callback;
-    }
-    void onResult(CallbackResult callback) {
-        _cbResult = callback;
-    }
-
-    // отключить обработчик результата
-    void detachResult() {
-        _cbResult = nullptr;
     }
 
     // подключить обработчик сырого ответа сервера void cb(Text response) {}
@@ -194,10 +189,26 @@ class Core : public Http {
     void onRaw(CallbackRaw callback) {
         _cbRaw = callback;
     }
-
-    // отключить обработчик ответа сервера
     void detachRaw() {
         _cbRaw = nullptr;
+    }
+
+    // подключить обработчик результата вида void cb(fb::Result& res) {}
+    void onResult(CallbackResult callback) {
+        _cbRes = callback;
+    }
+    void detachResult() {
+        _cbRes = nullptr;
+        _cbResultOld = nullptr;  // TODO remove
+    }
+
+    // TODO remove ==============
+    // подключить обработчик результата вида void cb(gson::Entry& r) {}
+    void attachResult(CallbackResultOld callback) {
+        _cbResultOld = callback;
+    }
+    void onResult(CallbackResultOld callback) {
+        _cbResultOld = callback;
     }
 
     // подключить обработчик ошибки сервера void cb(Text error) {}
@@ -207,11 +218,10 @@ class Core : public Http {
     void onError(CallbackError callback) {
         _cbErr = callback;
     }
-
-    // отключить обработчик ошибки
     void detachError() {
         _cbErr = nullptr;
     }
+    // TODO remove =============
 
     // ============================== TICK ==============================
     // тикер, вызывать в loop. Вернёт true, если был обработан Update
@@ -315,7 +325,12 @@ class Core : public Http {
     // ============================== MANUAL ==============================
 
     // отправить команду вручную
-    Result sendCommand(const __FlashStringHelper* cmd, const String& json, bool wait = true) {
+    Result sendCommand(const __FlashStringHelper* cmd, const Text& json, bool wait = true) {
+        Packet p(cmd, _token, json);
+        return sendPacket(p, wait);
+    }
+
+    Result sendCommand(const __FlashStringHelper* cmd, const gson::Str& json, bool wait = true) {
         Packet p(cmd, _token, json);
         return sendPacket(p, wait);
     }
@@ -415,16 +430,19 @@ class Core : public Http {
     bool _online = true;
     bool _incr_auto = true;
     bool _exit_f = false;
+    bool _dec_ucn = true;
     int32_t _poll_offset = 0;
     uint32_t _last_bot = 0;
     uint32_t _last_send = 0;
     size_t _limit = 20000;
     Fetcher::Reboot _reboot = Fetcher::Reboot::Idle;
 
-    CallbackUpdate _cbUpdate = nullptr;
-    CallbackResult _cbResult = nullptr;
     CallbackRaw _cbRaw = nullptr;
-    CallbackError _cbErr = nullptr;
+    CallbackUpdate _cbUpdate = nullptr;
+    CallbackResult _cbRes = nullptr;
+
+    CallbackResultOld _cbResultOld = nullptr;  // TODO remove
+    CallbackError _cbErr = nullptr;            // TODO remove
 
 #if !defined(FB_NO_FILE) && (defined(ESP8266) || defined(ESP32))
     ota_t _ota = ota_t::None;
@@ -441,16 +459,39 @@ class Core : public Http {
                 res.parseJson();
                 http.flush();
                 FB_ESP_YIELD();
+
+                thisBot = this;
+                if (_cbRaw) _cbRaw(res.getRaw());
+
                 if (res) {
-                    if (_cbRaw) {
-                        thisBot = this;
-                        _cbRaw(res.getRaw());
-                        thisBot = nullptr;
+                    if (_dec_ucn) {
+                        for (uint16_t i = 0; i < res._parser.length(); i++) {
+                            switch (res._parser._keyHash(i)) {
+                                case tg_apih::bio:
+                                case tg_apih::text:
+                                case tg_apih::quote:
+                                case tg_apih::title:
+                                case tg_apih::caption:
+                                case tg_apih::file_name:
+                                case tg_apih::last_name:
+                                case tg_apih::first_name:
+                                case tg_apih::description:
+                                    res._parser._getByIndex(i).decodeUCN();
+                                    break;
+                            }
+                        }
                     }
-                    if (res.isObject()) _parseResult(res);
+                    if (res.isObject()) {
+                        if (res.has(tg_apih::message_id)) _last_bot = res[tg_apih::message_id];
+
+                        if (_cbResultOld) _cbResultOld(res);  // TODO remove
+                    }
                 } else {
-                    if (_cbErr && res._parser[tg_apih::ok]) _cbErr(res._parser[tg_apih::description]);
+                    if (_cbErr && res.isError()) _cbErr(res.getError());  // TODO remove
                 }
+
+                if (_cbRes && !res.isArray()) _cbRes(res);  // skip update res
+                thisBot = nullptr;
                 return res;
 
             } else if (resp.type() == F("application/octet-stream")) {
@@ -464,16 +505,6 @@ class Core : public Http {
             FB_LOG("bad response");
         }
         return Result();
-    }
-
-    void _parseResult(gson::Entry& result) {
-        FB_LOG("got result");
-        if (result.has(tg_apih::message_id)) _last_bot = result[tg_apih::message_id];
-        if (_cbResult) {
-            thisBot = this;
-            _cbResult(result);
-            thisBot = nullptr;
-        }
     }
 
     void _parseUpdates(gson::Entry& result) {
@@ -491,7 +522,7 @@ class Core : public Http {
         for (uint8_t i = 0; i < len; i++) {
             FB_ESP_YIELD();
             gson::Entry upd = result[i][1];
-            if (!upd) continue;
+            if (!upd || !upd.isObject()) continue;
 
             uint32_t offset = result[i][tg_apih::update_id].toInt32();
             if (!_poll_offset) _poll_offset = offset;

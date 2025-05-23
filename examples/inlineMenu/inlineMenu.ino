@@ -57,7 +57,7 @@ void setup() {
 
     // bot.setPollMode(fb::Poll::Sync, 4000);  // умолч
     // bot.setPollMode(fb::Poll::Async, 4000);
-    bot.setPollMode(fb::Poll::Long, 20000);
+    bot.setPollMode(fb::Poll::Long, 60000);
 
     fb::Message msg("Send inline menu", CHAT_ID);
     fb::InlineMenu menu("kek 1 ; kek 2 ; kek 3 \n kek 4 ; kek 5", "test;pest;lol;https://www.google.ru/;https://www.yandex.ru/");

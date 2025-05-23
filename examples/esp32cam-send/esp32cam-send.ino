@@ -49,7 +49,7 @@ void setup() {
 
     bot.attachUpdate(updateh);
     bot.setToken(F(BOT_TOKEN));
-    bot.setPollMode(fb::Poll::Long, 20000);
+    bot.setPollMode(fb::Poll::Long, 60000);
 }
 
 void loop() {

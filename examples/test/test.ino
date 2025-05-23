@@ -51,16 +51,11 @@ FastBot2 bot;
 // #include <FastBot2Client.h>
 // FastBot2Client bot(gsmclient);
 
-void rawh(Text text);
 void handleCommand(fb::Update& u);
 void handleMessage(fb::Update& u);
 void handleDocument(fb::Update& u);
 void handleQuery(fb::Update& u);
 void updateh(fb::Update& u);
-
-void rawh(Text text) {
-    // Serial.println(text);
-}
 
 void handleCommand(fb::Update& u) {
     Text chat_id = u.message().chat().id();
@@ -119,7 +114,7 @@ void handleCommand(fb::Update& u) {
             // меню, вариант 1
             // fb::Menu menu;
             // menu.text = "kek 1 ; kek 2 ; kek 3 \n kek 4 ; kek 5";
-            // menu.resize = 1;
+            // menu.resize = true;
             // menu.placeholder = "Fancy placeholder";
             // msg.setMenu(menu);
 
@@ -230,8 +225,6 @@ void handleCommand(fb::Update& u) {
 void handleMessage(fb::Update& u) {
     if (u.isMessage()) {
         // Serial.println(u.message().date());
-        // Serial.println(u[tg_apih::text]);
-        // Serial.println(u.message().text().decodeUnicode());
         Serial.println(u.message().text());
         Serial.println(u.message().from().username());
         Serial.println(u.message().from().id());
@@ -242,12 +235,12 @@ void handleMessage(fb::Update& u) {
         } else {
             // эхо, вариант 1
             // fb::Message msg;
-            // msg.text = u.message().text().toString();
+            // msg.text = u.message().text();
             // msg.chatID = u.message().chat().id();
             // bot.sendMessage(msg, false);
 
             // эхо, вариант 2
-            bot.sendMessage(fb::Message(u.message().text().toString(), u.message().chat().id()));
+            bot.sendMessage(fb::Message(u.message().text(), u.message().chat().id()));
 
             // ============================
             // удалить сообщение юзера
@@ -258,7 +251,7 @@ void handleMessage(fb::Update& u) {
         // изменить последнее сообщение на текст из чата
         // if (bot.lastBotMessage()) {
         //     fb::TextEdit et;
-        //     et.text = u.message().text().toString();
+        //     et.text = u.message().text();
         //     et.chatID = u.message().chat().id();
         //     et.messageID = bot.lastBotMessage();
         //     bot.editText(et);
@@ -269,7 +262,7 @@ void handleMessage(fb::Update& u) {
 }
 void handleDocument(fb::Update& u) {
     if (u.message().document().name().endsWith(".bin")) {  // .bin - значит это ОТА
-        bot.sendMessage(fb::Message("OTA begin", u.message().chat().id()), true);
+        bot.sendMessage(fb::Message("OTA begin", u.message().chat().id()));
 
         // между downloadFile и updateFlash/updateFS/writeTo не должно быть отправки сообщений!
         // OTA обновление тип 1
@@ -291,11 +284,11 @@ void handleDocument(fb::Update& u) {
         fb::Fetcher fetch = bot.downloadFile(u.message().document().id());
         if (fetch) {
             // вывести в сериал
-            Serial.println(fetch);
+            fetch.writeTo(Serial);
 
             // записать в файл
             // File file = LittleFS.open("file.txt", "w");
-            // f.writeTo(file);
+            // fetch.writeTo(file);
         }
     }
 }
@@ -316,6 +309,7 @@ void handleQuery(fb::Update& u) {
         fb::InlineMenu menu("kek 1;kek 2;kek 3", "1;2;3");
         t.setInlineMenu(menu);
         bot.editText(t);
+
     } else if (q.data() == "change_menu") {
         fb::MenuEdit m;
         m.chatID = q.message().chat().id();
@@ -328,11 +322,7 @@ void handleQuery(fb::Update& u) {
 
 // обработчик обновлений
 void updateh(fb::Update& u) {
-    // bot.sendMessage(fb::Message("Some text", CHAT_ID));
-    // return;
-
     // разбил на функции, чтобы не переполнять стек esp8266!
-    // uint32_t heap = ESP.getFreeHeap();
 
     if (u.isMessage()) handleMessage(u);
     if (u.isMessage() && u.message().hasDocument()) handleDocument(u);
@@ -353,16 +343,6 @@ void updateh(fb::Update& u) {
     // Например для сообщения:
     // Serial.println(u[tg_apih::from][tg_apih::username]);
 
-    // ============================
-    // service
-    // if (heap != ESP.getFreeHeap()) {
-    //     Serial.println("MEMORY LEAK!!!!!!!!!!!!");
-    //     Serial.print(heap);
-    //     Serial.print("->");
-    //     Serial.println(ESP.getFreeHeap());
-    // }
-    // Serial.print("stack: ");
-    // stackPrint();
     Serial.print("heap: ");
     Serial.println(ESP.getFreeHeap());
 }
@@ -382,9 +362,11 @@ void setup() {
     Serial.println("Connected");
 
     // attach
-    bot.attachUpdate(updateh);
-    bot.attachRaw(rawh);
-    // bot.attachResult(responseh);
+    bot.onUpdate(updateh);
+    bot.onResult([](fb::Result& res) {
+        if (res) Serial.println(res);
+        else Serial.println(res.getError());
+    });
 
     // system
     bot.setToken(F(BOT_TOKEN));
@@ -414,7 +396,7 @@ void setup() {
     // настройка режима опроса
     // bot.setPollMode(fb::Poll::Sync, 4000);  // умолч
     // bot.setPollMode(fb::Poll::Async, 4000);
-    bot.setPollMode(fb::Poll::Long, 20000);
+    bot.setPollMode(fb::Poll::Long, 60000);
 
     // ============================
     // настройки сообщений по умолчанию
@@ -432,11 +414,11 @@ void setup() {
 
     // ============================
     // отправка сообщения вручную. Начнём с команды
-    // fb::Packet p = bot.beginPacket(F("sendMessage"));   // как F-строка
+    // fb::Packet p = bot.beginPacket(F("sendMessage"));  // как F-строка
     // fb::Packet p = bot.beginPacket(tg_cmd::sendMessage);  // Все команды API Telegram доступны в tg_cmd
 
-    // p.addString(tg_api::text, "message text");  // все ключи объектов API Telegram доступны в tg_api
-    // p.addInt(tg_api::chat_id, CHAT_ID);
+    // p[tg_api::text] = "message text";  // все ключи объектов API Telegram доступны в tg_api
+    // p[tg_api::chat_id] = CHAT_ID;
     // bot.sendPacket(p);
     // таким образом можно отправить любой API запрос
 
@@ -452,15 +434,19 @@ void setup() {
     // }
 
     // ============================
-    // отправка кастомной команды из gson::string
-    // gson::string g;
-    // g.beginObj();
+    // отправка кастомной команды из gson::Str
+    // gson::Str g;
+    // g('{');
     // g[tg_api::chat_id] = CHAT_ID;
     // g[tg_api::text] = "hello text";
-    // g.endObj();
-    // g.end();
+    // g('}');
     // fb::Result res = bot.sendCommand(tg_cmd::sendMessage, g);
-    // res.stringify(Serial);
+
+    // if (res) {
+    //     Serial.println(res);
+    // } else if (res.isError()) {
+    //     Serial.println(res.getError());
+    // }
 
     // ============================
     // отправка команды без параметров

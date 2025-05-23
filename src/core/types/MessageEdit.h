@@ -13,7 +13,7 @@ class TextEdit : private Message {
 
    public:
     TextEdit() {}
-    TextEdit(Text text, uint32_t messageID, Value chatID) : messageID(messageID) {
+    TextEdit(Text text, uint32_t messageID, ID chatID) : messageID(messageID) {
         text.toString(this->text);
         this->chatID = chatID;
     }
@@ -22,11 +22,11 @@ class TextEdit : private Message {
     uint32_t messageID;
 
     using Message::chatID;
+    using Message::json;
     using Message::mode;
     using Message::preview;
     using Message::setInlineMenu;
     using Message::text;
-    using Message::json;
 
    protected:
     void makePacket(Packet& p) const {
@@ -41,10 +41,10 @@ class MenuEdit : private Message {
 
    public:
     MenuEdit() {}
-    MenuEdit(uint32_t messageID, Value chatID) : messageID(messageID) {
+    MenuEdit(uint32_t messageID, ID chatID) : messageID(messageID) {
         this->chatID = chatID;
     }
-    MenuEdit(uint32_t messageID, Value chatID, InlineMenu& menu) : messageID(messageID) {
+    MenuEdit(uint32_t messageID, ID chatID, InlineMenu& menu) : messageID(messageID) {
         this->chatID = chatID;
         setInlineMenu(menu);
     }
@@ -53,8 +53,8 @@ class MenuEdit : private Message {
     uint32_t messageID;
 
     using Message::chatID;
-    using Message::setInlineMenu;
     using Message::json;
+    using Message::setInlineMenu;
 
    protected:
     void makePacket(Packet& p) const {
@@ -69,7 +69,7 @@ class CaptionEdit : private Message {
 
    public:
     CaptionEdit() {}
-    CaptionEdit(const String& caption, uint32_t messageID, Value chatID) : caption(caption), messageID(messageID) {
+    CaptionEdit(const String& caption, uint32_t messageID, ID chatID) : caption(caption), messageID(messageID) {
         this->chatID = chatID;
     }
 
@@ -80,15 +80,15 @@ class CaptionEdit : private Message {
     uint32_t messageID;
 
     using Message::chatID;
+    using Message::json;
     using Message::mode;
     using Message::setInlineMenu;
-    using Message::json;
 
    protected:
     void makePacket(Packet& p) const {
         Message::makePacket(p);
         p[tg_api::message_id] = messageID;
-        p.addStringEsc(tg_api::caption, caption);
+        p[tg_api::caption].escape(caption);
     }
 };
 
@@ -98,7 +98,7 @@ class LocationEdit : private Message {
 
    public:
     LocationEdit() {}
-    LocationEdit(float latitude, float longitude, uint32_t messageID, Value chatID) : latitude(latitude), longitude(longitude), messageID(messageID) {
+    LocationEdit(float latitude, float longitude, uint32_t messageID, ID chatID) : latitude(latitude), longitude(longitude), messageID(messageID) {
         this->chatID = chatID;
     }
 
@@ -121,16 +121,16 @@ class LocationEdit : private Message {
     uint32_t proximityAlertRadius = 0;
 
     using Message::chatID;
-    using Message::setInlineMenu;
     using Message::json;
+    using Message::setInlineMenu;
 
    protected:
     void makePacket(Packet& p) const {
         Message::makePacket(p);
         p[tg_api::message_id] = messageID;
-        p.addFloat(tg_api::latitude, latitude, 6);
-        p.addFloat(tg_api::longitude, longitude, 6);
-        if (!isnan(horizontalAccuracy)) p.addFloat(tg_api::horizontal_accuracy, horizontalAccuracy, 1);
+        p[tg_api::latitude].add(latitude, 6);
+        p[tg_api::longitude].add(longitude, 6);
+        if (!isnan(horizontalAccuracy)) p[tg_api::horizontal_accuracy].add(horizontalAccuracy, 1);
         if (heading) p[tg_api::heading] = heading;
         if (proximityAlertRadius) p[tg_api::proximity_alert_radius] = proximityAlertRadius;
     }
@@ -142,7 +142,7 @@ class LocationStop : private Message {
 
    public:
     LocationStop() {}
-    LocationStop(uint32_t messageID, Value chatID) : messageID(messageID) {
+    LocationStop(uint32_t messageID, ID chatID) : messageID(messageID) {
         this->chatID = chatID;
     }
 
@@ -150,8 +150,8 @@ class LocationStop : private Message {
     uint32_t messageID;
 
     using Message::chatID;
-    using Message::setInlineMenu;
     using Message::json;
+    using Message::setInlineMenu;
 
    protected:
     void makePacket(Packet& p) const {

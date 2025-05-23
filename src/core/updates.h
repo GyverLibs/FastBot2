@@ -100,11 +100,11 @@ class Updates {
             tg_api::removed_chat_boost,
         };
 
-        p.beginArr(tg_api::allowed_updates);
+        p[tg_api::allowed_updates]('[');
         for (uint8_t i = 0; i < FB_UPDATES_AMOUNT; i++) {
             if (read(i)) p += upd_arr[i];
         }
-        p.endArr();
+        p(']');
     }
 };
 

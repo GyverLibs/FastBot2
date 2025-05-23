@@ -3,8 +3,8 @@
 #include <GSON.h>
 #include <StringUtils.h>
 
-#include "Message.h"
 #include "../Multipart.h"
+#include "Message.h"
 
 #if !defined(FB_NO_FILE) && (defined(ESP8266) || defined(ESP32))
 namespace fb {
@@ -57,7 +57,7 @@ class File : protected Message {
         } else {
             Message::makePacket(p);
             p[multipart.getType()] = multipart.getUrlid();
-            if (caption.length()) p.addStringEsc(tg_api::caption, caption);
+            if (caption.length()) p[tg_api::caption].escape(caption);
         }
     }
 
@@ -90,7 +90,7 @@ class FileEdit : protected File {
     FileEdit(const Text& name, Type type, const Text& urlid) : File(name, type, urlid, true) {}
 
     // id сообщения
-    uint32_t messageID;
+    int32_t messageID;
 
     using File::caption;
     using File::chatID;
@@ -105,22 +105,21 @@ class FileEdit : protected File {
             p.addQS(tg_api::message_id, messageID);
             {
                 p.beginQS(tg_api::media);
-                p.beginObj();
+                p('{');
                 p[tg_api::type] = multipart.getType();
                 p[tg_api::media] = multipart.getAttachName();
-                if (caption.length()) p.addStringEsc(tg_api::caption, caption);
-                p.endObj();
-                p.end();
+                if (caption.length()) p[tg_api::caption].escape(caption);
+                p('}');
             }
         } else {
             File::Message::makePacket(p);
             p[tg_api::message_id] = messageID;
             {
-                p.beginObj(tg_api::media);
+                p[tg_api::media]('{');
                 p[tg_api::type] = multipart.getType();
                 p[tg_api::media] = multipart.getUrlid();
-                if (caption.length()) p.addStringEsc(tg_api::caption, caption);
-                p.endObj();
+                if (caption.length()) p[tg_api::caption].escape(caption);
+                p('}');
             }
         }
     }

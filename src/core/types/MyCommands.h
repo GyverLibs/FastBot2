@@ -3,9 +3,9 @@
 #include <GSON.h>
 #include <StringUtils.h>
 
-#include "FastBot2Client_class.h"
 #include "../api.h"
 #include "../packet.h"
+#include "FastBot2Client_class.h"
 
 // https://core.telegram.org/bots/api#setmycommands
 namespace fb {
@@ -43,13 +43,16 @@ class MyCommands {
 
    private:
     void makePacket(Packet& p) const {
-        p.beginArr(tg_api::commands);
+        p[tg_api::commands]('[');
         su::TextParser cmd(commands, ';');
         su::TextParser desc(description, ';');
         while (cmd.parse() && desc.parse()) {
-            p.beginObj().addString(tg_api::command, cmd).addStringEsc(tg_api::description, desc).endObj();
+            p('{');
+            p[tg_api::command] = cmd;
+            p[tg_api::description].escape(desc);
+            p('}');
         }
-        p.endArr();
+        p(']');
     }
     bool _first = true;
 };

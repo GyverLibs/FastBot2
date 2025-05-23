@@ -55,8 +55,8 @@ struct ChatRead : public EntryAccess {
     }
 
     // в supergroup включены темы
-    Text isForum() {
-        return entry[tg_apih::is_forum];
+    bool isForum() {
+        return entry[tg_apih::is_forum] == true;
     }
 };
 

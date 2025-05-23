@@ -71,20 +71,20 @@ class Menu {
     bool _first = true;
 
     void _toJson(Packet& p) {
-        p.beginArr(tg_api::keyboard);
+        p[tg_api::keyboard]('[');
         su::TextParser rows(text, '\n');
         while (rows.parse()) {
             su::TextParser cols(rows, ';');
-            p.beginArr();
-            while (cols.parse()) p.addStringEsc(cols);
-            p.endArr();
+            p('[');
+            while (cols.parse()) p.escape(cols);
+            p(']');
         }
-        p.endArr();
+        p(']');
         if (persistent) p[tg_api::is_persistent] = true;
         if (resize) p[tg_api::resize_keyboard] = true;
         if (oneTime) p[tg_api::one_time_keyboard] = true;
         if (selective) p[tg_api::selective] = true;
-        if (placeholder.length()) p.addStringEsc(tg_api::input_field_placeholder, placeholder);
+        if (placeholder.length()) p[tg_api::input_field_placeholder].escape(placeholder);
     }
 };
 

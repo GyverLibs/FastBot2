@@ -18,15 +18,14 @@ void updateh(fb::Update& u) {
     bot.sendMessage(fb::Message(u.message().text(), u.message().chat().id()));
 
     // #2
-    // декодирование Unicode символов (кириллицы) делается вручную!
-    // String text = u.message().text().decodeUnicode();
+    // String text = u.message().text();
     // text += " - ответ";
     // bot.sendMessage(fb::Message(text, u.message().chat().id()));
 
     // #3
-    // или так
     // fb::Message msg;
-    // msg.text = u.message().text().toString();
+    // msg.text = u.message().text();
+    // msg.text += " - ответ";
     // msg.chatID = u.message().chat().id();
     // bot.sendMessage(msg);
 }
@@ -52,7 +51,7 @@ void setup() {
 
     // bot.setPollMode(fb::Poll::Sync, 4000);  // умолч
     // bot.setPollMode(fb::Poll::Async, 4000);
-    bot.setPollMode(fb::Poll::Long, 20000);
+    bot.setPollMode(fb::Poll::Long, 60000);
 
     // поприветствуем админа
     bot.sendMessage(fb::Message("Hello!", CHAT_ID));

@@ -3,9 +3,9 @@
 #include <GSON.h>
 #include <StringUtils.h>
 
-#include "Message_class.h"
 #include "../api.h"
 #include "../packet.h"
+#include "Message_class.h"
 
 namespace fb {
 
@@ -61,29 +61,29 @@ class InlineMenu {
     bool _first = true;
 
     void _toJson(Packet& p) {
-        p.beginArr(tg_api::inline_keyboard);
+        p[tg_api::inline_keyboard]('[');
         su::TextParser rows(text, '\n');
         su::TextParser datap(data, ';');
         while (rows.parse()) {
             su::TextParser cols(rows, ';');
-            p.beginArr();
+            p('[');
             while (cols.parse()) {
                 datap.parse();
-                p.beginObj();
-                p.addStringEsc(tg_api::text, cols);
+                p('{');
+                p[tg_api::text].escape(cols);
                 // url or callback_data
                 if (datap.startsWith(F("http://")) ||
                     datap.startsWith(F("https://")) ||
                     datap.startsWith(F("tg://"))) {
                     p[tg_api::url] = datap;
                 } else {
-                    p.addStringEsc(tg_api::callback_data, datap);
+                    p[tg_api::callback_data].escape(datap);
                 }
-                p.endObj();
+                p('}');
             }
-            p.endArr();
+            p(']');
         }
-        p.endArr();
+        p(']');
     }
 };
 

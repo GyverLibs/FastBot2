@@ -47,7 +47,7 @@ class Multipart : public StreamWriter {
     }
 
     Text getFormName() const {
-        if (_edit) return _attachName + su::SL(FB_ATTACH);  // сместить указатель на random id
+        if (_edit) return _attachName + SL(FB_ATTACH);  // сместить указатель на random id
         else return getType();
     }
 
@@ -97,11 +97,11 @@ class Multipart : public StreamWriter {
     const Type _type;
     const Text _urlid;
     const bool _edit;
-    char _attachName[su::SL(FB_ATTACH) + su::SL("ffffffff") + 1];
+    char _attachName[SL(FB_ATTACH) + SL("ffffffff") + 1];
 
     void _init() {
         strcpy(_attachName, FB_ATTACH);
-        ltoa(random(0xffffffff), _attachName + su::SL(FB_ATTACH), HEX);
+        ltoa(random(0xffffffff), _attachName + SL(FB_ATTACH), HEX);
     }
 };
 

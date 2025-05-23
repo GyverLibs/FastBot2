@@ -17,8 +17,8 @@ class MessageForward {
    public:
     MessageForward() {}
     MessageForward(uint32_t messageID,
-                   Value fromChatID,
-                   Value chatID) : messageID(messageID),
+                   ID fromChatID,
+                   ID chatID) : messageID(messageID),
                                    fromChatID(fromChatID),
                                    chatID(chatID) {}
 
@@ -26,10 +26,10 @@ class MessageForward {
     uint32_t messageID;
 
     // id чата пересылаемого сообщения
-    Value fromChatID;
+    ID fromChatID;
 
     // id чата, в который пересылать
-    Value chatID;
+    ID chatID;
 
     // id темы в группе, в которую переслать
     int32_t threadID = -1;
@@ -41,14 +41,14 @@ class MessageForward {
     bool protect = Message::protectDefault;
 
     // для ручного добавления тех параметров, которых нет в классе!
-    gson::string json;
+    gson::Str json;
 
    private:
     void makePacket(Packet& p) const {
         p[tg_api::message_id] = messageID;
         p[tg_api::from_chat_id] = fromChatID;
         p[tg_api::chat_id] = chatID;
-        if (threadID >= 0) p[tg_api::message_thread_id] = (threadID);
+        if (threadID >= 0) p[tg_api::message_thread_id] = threadID;
         if (!notification) p[tg_api::disable_notification] = true;
         if (protect) p[tg_api::protect_content] = true;
         p += json;

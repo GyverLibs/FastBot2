@@ -1,6 +1,7 @@
 #pragma once
 #include "core/core.h"
 #include "core/types/File.h"
+#include "core/types/ID.h"
 #include "core/types/Location.h"
 #include "core/types/Message.h"
 #include "core/types/MessageEdit.h"
@@ -20,7 +21,7 @@ class FastBot2Client : public fb::Core {
         _query_answ = true;
         fb::Packet p(tg_cmd::answerCallbackQuery, _token);
         p[tg_api::callback_query_id] = id;
-        if (text) p.addStringEsc(tg_api::text, text);
+        if (text) p[tg_api::text].escape(text);
         if (show_alert) p[tg_api::show_alert] = true;
         return sendPacket(p, wait);
     }
@@ -91,7 +92,7 @@ class FastBot2Client : public fb::Core {
     // ============================== SET ==============================
 
     // отправить статус "набирает сообщение" на 5 секунд
-    fb::Result setTyping(Value chatID, bool wait = true) {
+    fb::Result setTyping(fb::ID chatID, bool wait = true) {
         if (!chatID) return fb::Result();
         fb::Packet p(tg_cmd::sendChatAction, _token);
         p[tg_api::chat_id] = chatID;
@@ -100,20 +101,20 @@ class FastBot2Client : public fb::Core {
     }
 
     // установить заголовок чата
-    fb::Result setChatTitle(Value chatID, Text title, bool wait = true) {
+    fb::Result setChatTitle(fb::ID chatID, Text title, bool wait = true) {
         if (!chatID) return fb::Result();
         fb::Packet p(tg_cmd::setChatTitle, _token);
         p[tg_api::chat_id] = chatID;
-        p.addStringEsc(tg_api::title, title);
+        p[tg_api::title].escape(title);
         return sendPacket(p, wait);
     }
 
     // установить описание чата
-    fb::Result setChatDescription(Value chatID, Text description, bool wait = true) {
+    fb::Result setChatDescription(fb::ID chatID, Text description, bool wait = true) {
         if (!chatID) return fb::Result();
         fb::Packet p(tg_cmd::setChatDescription, _token);
         p[tg_api::chat_id] = chatID;
-        p.addStringEsc(tg_api::description, description);
+        p[tg_api::description].escape(description);
         return sendPacket(p, wait);
     }
 
@@ -147,7 +148,7 @@ class FastBot2Client : public fb::Core {
     // ============================== PIN ==============================
 
     // закрепить сообщение
-    fb::Result pinChatMessage(Value chatID, Value messageID, bool notify = true, bool wait = true) {
+    fb::Result pinChatMessage(fb::ID chatID, fb::ID messageID, bool notify = true, bool wait = true) {
         if (!chatID) return fb::Result();
         fb::Packet p(tg_cmd::pinChatMessage, _token);
         p[tg_api::chat_id] = chatID;
@@ -157,7 +158,7 @@ class FastBot2Client : public fb::Core {
     }
 
     // открепить сообщение
-    fb::Result unpinChatMessage(Value chatID, Value messageID, bool wait = true) {
+    fb::Result unpinChatMessage(fb::ID chatID, fb::ID messageID, bool wait = true) {
         if (!chatID) return fb::Result();
         fb::Packet p(tg_cmd::unpinChatMessage, _token);
         p[tg_api::chat_id] = chatID;
@@ -166,7 +167,7 @@ class FastBot2Client : public fb::Core {
     }
 
     // открепить все сообщения
-    fb::Result unpinAllChatMessages(Value chatID, bool wait = true) {
+    fb::Result unpinAllChatMessages(fb::ID chatID, bool wait = true) {
         if (!chatID) return fb::Result();
         fb::Packet p(tg_cmd::unpinAllChatMessages, _token);
         p[tg_api::chat_id] = chatID;
@@ -221,7 +222,7 @@ class FastBot2Client : public fb::Core {
     // ============================== DELETE ==============================
 
     // удалить сообщение
-    fb::Result deleteMessage(Value chatID, Value messageID, bool wait = true) {
+    fb::Result deleteMessage(fb::ID chatID, fb::ID messageID, bool wait = true) {
         fb::Packet p(tg_cmd::deleteMessage, _token);
         p[tg_api::chat_id] = chatID;
         p[tg_api::message_id] = messageID;
@@ -229,12 +230,12 @@ class FastBot2Client : public fb::Core {
     }
 
     // удалить сообщения
-    fb::Result deleteMessages(Value chatID, uint32_t* messageIDs, uint16_t amount, bool wait = true) {
+    fb::Result deleteMessages(fb::ID chatID, uint32_t* messageIDs, uint16_t amount, bool wait = true) {
         fb::Packet p(tg_cmd::deleteMessages, _token);
         p[tg_api::chat_id] = chatID;
-        p.beginArr(tg_api::message_ids);
+        p[tg_api::message_ids]('[');
         for (uint16_t i = 0; i < amount; i++) p += messageIDs[i];
-        p.endArr();
+        p(']');
         return sendPacket(p, wait);
     }
 

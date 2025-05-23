@@ -21,10 +21,10 @@
 Любые Arduino
 
 ### Зависимости
-- [GSON](https://github.com/GyverLibs/GSON) v1.5+
-- [StringUtils](https://github.com/GyverLibs/StringUtils) v1.4.14+
-- [GyverHTTP](https://github.com/GyverLibs/GyverHTTP) v1.0.2+
-- [GTL](https://github.com/GyverLibs/GTL) v1.1.7+
+- [GSON](https://github.com/GyverLibs/GSON) v1.8.0+
+- [StringUtils](https://github.com/GyverLibs/StringUtils) v1.5.0+
+- [GyverHTTP](https://github.com/GyverLibs/GyverHTTP) v1.0.27+
+- [GTL](https://github.com/GyverLibs/GTL) v1.3.1+
 
 ## Содержание
 - [Документация](#docs)

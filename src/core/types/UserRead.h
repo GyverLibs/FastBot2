@@ -18,8 +18,8 @@ struct UserRead : public EntryAccess {
     }
 
     // бот или нет
-    Text isBot() {
-        return entry[tg_apih::is_bot];
+    bool isBot() {
+        return entry[tg_apih::is_bot] == true;
     }
 
     // имя
@@ -43,8 +43,8 @@ struct UserRead : public EntryAccess {
     }
 
     // true - премиум юзер
-    Text isPremium() {
-        return entry[tg_apih::is_premium];
+    bool isPremium() {
+        return entry[tg_apih::is_premium] == true;
     }
 };
 

@@ -3,8 +3,9 @@
 #include <GSON.h>
 #include <StringUtils.h>
 
-#include "Message.h"
 #include "../api.h"
+#include "ID.h"
+#include "Message.h"
 
 // https://core.telegram.org/bots/api#sendlocation
 namespace fb {
@@ -14,7 +15,7 @@ class Location : private Message {
 
    public:
     Location();
-    Location(float latitude, float longitude, Value chatID) : latitude(latitude), longitude(longitude) {
+    Location(float latitude, float longitude, ID chatID) : latitude(latitude), longitude(longitude) {
         this->chatID = chatID;
     }
 
@@ -49,9 +50,9 @@ class Location : private Message {
    protected:
     void makePacket(Packet& p) const {
         Message::makePacket(p);
-        p.addFloat(tg_api::latitude, latitude, 6);
-        p.addFloat(tg_api::longitude, longitude, 6);
-        if (!isnan(horizontalAccuracy)) p.addFloat(tg_api::horizontal_accuracy, horizontalAccuracy, 1);
+        p[tg_api::latitude].add(latitude, 6);
+        p[tg_api::longitude].add(longitude, 6);
+        if (!isnan(horizontalAccuracy)) p[tg_api::horizontal_accuracy].add(horizontalAccuracy, 1);
         if (livePeriod) p[tg_api::live_period] = livePeriod;
         if (heading) p[tg_api::heading] = heading;
         if (proximityAlertRadius) p[tg_api::proximity_alert_radius] = proximityAlertRadius;

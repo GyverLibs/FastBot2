@@ -1,4 +1,5 @@
 #pragma once
+#if defined(ESP8266) && defined(ESP32)
 #include <Arduino.h>
 
 #if defined(ESP8266)
@@ -14,7 +15,7 @@
 
 class FastBot2 : public FastBot2Client {
    public:
-    FastBot2() : FastBot2Client(client) {
+    FastBot2(const String& token = "") : FastBot2Client(client, token) {
         client.setInsecure();
 #if defined(ESP8266)
         client.setBufferSizes(512, 512);
@@ -28,3 +29,4 @@ class FastBot2 : public FastBot2Client {
 #endif
    private:
 };
+#endif

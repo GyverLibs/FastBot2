@@ -6,6 +6,7 @@
 #include "../api.h"
 #include "../packet.h"
 #include "FastBot2Client_class.h"
+#include "ID.h"
 #include "InlineMenu.h"
 #include "Menu.h"
 #include "Message_class.h"
@@ -18,7 +19,7 @@ struct ReplyParam {
     int32_t messageID = -1;
 
     // id чата, в котором находится сообщение, на которое отвечаем
-    Value chatID;
+    ID chatID;
 };
 
 // https://core.telegram.org/bots/api#sendmessage
@@ -32,18 +33,18 @@ class Message {
         HTML,
     };
     Message() {}
-    Message(Text text, Value chatID) : chatID(chatID) {
+    Message(const Text& text, ID chatID) : chatID(chatID) {
         text.toString(this->text);
     }
 
     // для ручного добавления тех параметров, которых нет в классе!
-    gson::string json;
+    gson::Str json;
 
     // текст сообщения
     String text;
 
     // id чата, куда отправлять
-    Value chatID;
+    ID chatID;
 
     // id темы в группе, куда отправлять
     int32_t threadID = -1;
@@ -110,27 +111,27 @@ class Message {
    protected:
     void makePacket(Packet& p) const {
         p[tg_api::chat_id] = chatID;
-        if (text.length()) p.addStringEsc(tg_api::text, text);
+        if (text.length()) p[tg_api::text].escape(text);
         if (threadID >= 0) p[tg_api::message_thread_id] = threadID;
         if (reply.messageID >= 0) {
-            p.beginObj(tg_api::reply_parameters);
+            p[tg_api::reply_parameters]('{');
             p[tg_api::message_id] = reply.messageID;
             if (reply.chatID) p[tg_api::chat_id] = reply.chatID;
-            p.endObj();
+            p('}');
         }
         if (!preview) {
-            p.beginObj(tg_api::link_preview_options);
+            p[tg_api::link_preview_options]('{');
             p[tg_api::is_disabled] = true;
-            p.endObj();
+            p('}');
         }
         if (!notification) p[tg_api::disable_notification] = true;
         if (protect) p[tg_api::protect_content] = true;
         if (mode != Message::Mode::Text) p[tg_api::parse_mode] = (mode == Message::Mode::MarkdownV2 ? F("MarkdownV2") : F("HTML"));
 
         if (_remove_menu || _menu_inline || _menu) {
-            p.beginObj(tg_api::reply_markup);
+            p[tg_api::reply_markup]('{');
             makeMenu(p);
-            p.endObj();
+            p('}');
         }
 
         p += json;
@@ -142,18 +143,16 @@ class Message {
         if (threadID >= 0) p.addQS(tg_api::message_thread_id, threadID);
         if (reply.messageID >= 0) {
             p.beginQS(tg_api::reply_parameters);
-            p.beginObj();
+            p('{');
             p[tg_api::message_id] = reply.messageID;
             if (reply.chatID) p[tg_api::chat_id] = reply.chatID;
-            p.endObj();
-            p.end();
+            p('}');
         }
         if (!preview) {
             p.beginQS(tg_api::link_preview_options);
-            p.beginObj();
+            p('{');
             p[tg_api::is_disabled] = true;
-            p.endObj();
-            p.end();
+            p('}');
         }
         if (!notification) p.addQS(tg_api::disable_notification, true);
         if (protect) p.addQS(tg_api::protect_content, true);
@@ -161,10 +160,9 @@ class Message {
 
         if (_remove_menu || _menu_inline || _menu) {
             p.beginQS(tg_api::reply_markup);
-            p.beginObj();
+            p('{');
             makeMenu(p);
-            p.endObj();
-            p.end();
+            p('}');
         }
     }
 

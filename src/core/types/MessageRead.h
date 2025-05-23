@@ -40,8 +40,8 @@ struct MessageRead : public EntryAccess {
     }
 
     // сообщение отправлено в топик форума
-    Text isTopic() {
-        return entry[tg_apih::is_topic_message];
+    bool isTopic() {
+        return entry[tg_apih::is_topic_message] == true;
     }
 
     // дата отправки или пересылки сообщения
