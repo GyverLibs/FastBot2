@@ -53,7 +53,7 @@ class File : protected Message {
     void makePacket(Packet& p) const {
         if (multipart.isFile()) {
             Message::makeQS(p);
-            if (caption.length()) p.addQS(tg_api::caption, caption);
+            if (caption.length()) p.addQS(tg_api::caption, su::url::encode(caption));
         } else {
             Message::makePacket(p);
             p[multipart.getType()] = multipart.getUrlid();

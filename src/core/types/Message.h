@@ -139,7 +139,7 @@ class Message {
 
     void makeQS(Packet& p) const {
         p.addQS(tg_api::chat_id, chatID);
-        if (text.length()) p.addQS(tg_api::text, text);
+        if (text.length()) p.addQS(tg_api::text, su::url::encode(text));
         if (threadID >= 0) p.addQS(tg_api::message_thread_id, threadID);
         if (reply.messageID >= 0) {
             p.beginQS(tg_api::reply_parameters);
