@@ -515,6 +515,7 @@ class Core : public Http {
 #endif
             return;
         }
+        updates.changed = false;
         thisBot = this;
         _exit_f = false;
         uint8_t len = result.length();

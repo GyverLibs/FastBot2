@@ -42,21 +42,25 @@ class Updates {
     // установить
     void set(uint32_t nmods) {
         updates |= nmods;
+        changed = true;
     }
 
     // очистить
     void clear(uint32_t nmods) {
         updates &= ~nmods;
+        changed = true;
     }
 
     // включить все
     void setAll() {
         updates = FB_UPDATES_FILL;
+        changed = true;
     }
 
     // очистить все
     void clearAll() {
         updates = 0;
+        changed = true;
     }
 
     // прочитать по типу
@@ -71,9 +75,10 @@ class Updates {
 
    private:
     uint32_t updates = FB_UPDATES_FILL;
+    bool changed = true;
 
     void makePacket(Packet& p) {
-        if (updates == FB_UPDATES_FILL) return;
+        if (!changed) return;
 
         const __FlashStringHelper* upd_arr[] = {
             tg_api::message,
