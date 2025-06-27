@@ -8,6 +8,7 @@ class ID {
    public:
     ID() {}
     ID(const Text& t) : _len(t.toStr(_str, 22)) {}
+    ID(const String& s) : ID(Text(s)) {}
     ID(const long long& v) : _len(su::int64ToStr(v, _str)) {}
     ID(const char* str) {
         strncpy(_str, str, 22);
