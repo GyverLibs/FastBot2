@@ -20,9 +20,13 @@ text = '''#pragma once
 #include <StringUtils.h>
 
 #define FB_BOT_API_VERSION '''
-text += '\"' + apiver + '\"'
-text += '''
+text += '\"' + apiver + '\"' + '\n\n'
 
+text += '// oversize keys:\n'
+for key in tgapi:
+    if len(key) > 31: text += '// ' + key + '\n'
+
+text += '''
 #define FB_MAKE_HASH(x) constexpr size_t x = SH(#x);
 #define FB_MAKE_EXTERN(x) extern const __FlashStringHelper* x;
 
