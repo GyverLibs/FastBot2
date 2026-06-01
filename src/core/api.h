@@ -1,6 +1,6 @@
 #pragma once
 #include <Arduino.h>
-#include <StringUtils.h>
+#include <StringUtilsGyver.h>
 
 #define FB_BOT_API_VERSION "9.4"
 

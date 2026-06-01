@@ -126,7 +126,7 @@ class Packet : public gson::Str {
                 // print
                 p.print(*this);
                 multipart->printTo(p);
-                p.print(F("\r\n--" FB_BOUNDARY "--"));
+                p.print(F("\r\n--" FB_BOUNDARY "--\r\n"));
             } break;
 #endif
 

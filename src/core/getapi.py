@@ -17,7 +17,7 @@ apiver = re.search(r"<p><strong>Bot API (.*)<\/strong><\/p>", resp).group(1)
 ################ h
 text = '''#pragma once
 #include <Arduino.h>
-#include <StringUtils.h>
+#include <StringUtilsGyver.h>
 
 #define FB_BOT_API_VERSION '''
 text += '\"' + apiver + '\"' + '\n\n'

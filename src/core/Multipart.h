@@ -1,7 +1,7 @@
 #pragma once
 #include <Arduino.h>
 #include <GyverHTTP.h>
-#include <StringUtils.h>
+#include <StringUtilsGyver.h>
 
 #include "../bot_config.h"
 #include "core/api.h"
