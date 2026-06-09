@@ -1,7 +1,13 @@
 #pragma once
 
+#ifndef TELEGRAM_HOST
 #define TELEGRAM_HOST "api.telegram.org"  // хост
+#endif
+
+#ifndef TELEGRAM_PORT
 #define TELEGRAM_PORT 443                 // ssl порт
+#endif
+
 #define FB_BLOCK_SIZE 256                 // буфер файлов
 #define FB_LONG_POLL_TOUT 300             // пауза между long poll update
 
